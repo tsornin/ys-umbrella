@@ -1,0 +1,10 @@
+Supported platforms:
+	Windows 7
+	Mac OS X
+	Ubuntu
+
+Libraries:
+	SDL
+	OpenGL
+	// SDL_image
+	// SDL_mixer
