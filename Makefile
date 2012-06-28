@@ -1,0 +1,115 @@
+# Makefile for Umbrella
+
+# ==============================
+# Platform-specific library flags
+# ==============================
+PLATFORM := $(shell uname)
+
+ifeq "$(PLATFORM)" "MINGW32_NT-6"
+	SDL_FLAGS = -IC:/MinGW/include/SDL
+	SDL_LIBS = -LC:/MinGW/lib -mwindows -lmingw32 -lSDLmain -lSDL
+
+	GL_LIBS += -lopengl32 -lglu32
+endif
+
+ifeq "$(PLATFORM)" "Darwin"
+	SDL_FLAGS = -I/Library/Frameworks/SDL.framework/Headers
+	SDL_LIBS = -framework SDL -framework Cocoa
+endif
+
+ifeq "$(PLATFORM)" "Linux"
+	SDL_FLAGS = `sdl-config --cflags`
+	SDL_LIBS  = `sdl-config --libs` 
+
+	GL_LIBS += -lGL -lGLU -lglut
+endif
+
+
+# ==============================
+# Project directories
+# ==============================
+SRC_DIR = src
+OBJ_DIR = obj
+
+
+# ==============================
+# Source and object file list
+# ==============================
+CPP_FILES := $(wildcard $(SRC_DIR)/*/*.cpp) $(SRC_DIR)/main.cpp
+OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(CPP_FILES))
+
+# Adds SDLMain.o as an object file.
+ifeq "$(PLATFORM)" "Darwin"
+OBJ_FILES += $(OBJ_DIR)/SDLMain.o
+endif
+
+
+# ==============================
+# Compiler, flags, binary name
+
+# TODO: LDFLAGS?
+# TODO: make sure that -I$(SRC_DIR) allows proper including
+# ==============================
+CXX = g++
+CXXFLAGS = --std=c++11 -Wall -I. -I$(SRC_DIR) $(SDL_FLAGS)
+LIBS = $(SDL_LIBS)
+BIN = ys
+RM = rm -f
+
+# Uses the MacPorts installation of g++ to avoid intefering with Xcode.
+# To install gcc 4.7 on MacPorts:
+# $ sudo port selfupdate
+# $ sudo port install gcc47
+# $ port select --list gcc
+# $ sudo port select --set gcc mp-gcc47
+ifeq "$(PLATFORM)" "Darwin"
+CXX = /opt/local/bin/g++
+endif
+
+
+# ==============================
+# Targets
+# ==============================
+.PHONY: all run clean veryclean profile native
+
+all: $(BIN)
+
+run:
+	$(MAKE)
+	./$(BIN)
+
+clean:
+	$(RM) $(OBJ_FILES)
+
+veryclean:
+	$(RM) $(OBJ_FILES) $(BIN)
+
+profile: CXXFLAGS += -pg
+profile: all
+
+# TODO: OS X doesn't support -march=native
+# Try again with gcc 4.7 installed?
+#native: CXXFLAGS += -march=native -O2 -pipe
+native: CXXFLAGS += -O2 -pipe
+native: all
+
+
+# ==============================
+# Rules
+# ==============================
+$(BIN): $(OBJ_FILES)
+	$(CXX) $(CXXFLAGS) $(LIBS) $^ -o $@
+
+# Collects object files in a separate directory.
+$(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp
+	$(CXX) $(CXXFLAGS) -c $^ -o $@
+
+# Uses gcc to compile SDLMain.o from SDLMain.m.
+# SDLMain.h/m is Objective-C glue code to produce a Cocoa application.
+ifeq "$(PLATFORM)" "Darwin"
+CC = gcc
+CFLAGS = -Wall -I. -I$(SRC_DIR) $(SDL_FLAGS)
+$(OBJ_DIR)/SDLMain.o: $(SRC_DIR)/SDLMain.m
+	$(CC) $(CFLAGS) -c $^ -o $@
+endif
+
