@@ -5,9 +5,9 @@
 # ==============================
 PLATFORM := $(shell uname)
 
-ifeq "$(PLATFORM)" "MINGW32_NT-6"
+ifeq "$(PLATFORM)" "MINGW32_NT-6.1"
 	SDL_FLAGS = -IC:/MinGW/include/SDL
-	SDL_LIBS = -LC:/MinGW/lib -mwindows -lmingw32 -lSDLmain -lSDL
+	SDL_LIBS = -mwindows -lmingw32 -lSDLmain -lSDL -LC:/MinGW/lib
 
 	GL_LIBS = -lopengl32 -lglu32
 endif
@@ -54,7 +54,7 @@ endif
 # ==============================
 CXX = g++
 CXXFLAGS = --std=c++11 -Wall -I. -I$(SRC_DIR) $(SDL_FLAGS)
-LIBS = $(SDL_LIBS) $(GL_LIBS)
+LIBS = $(GL_LIBS) $(SDL_LIBS)
 BIN = ys
 RM = rm -f
 
@@ -100,7 +100,7 @@ native: all
 # Rules
 # ==============================
 $(BIN): $(OBJ_FILES)
-	$(CXX) $(CXXFLAGS) $(LIBS) $^ -o $@
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LIBS)
 
 # Collects object files in a separate directory.
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp
