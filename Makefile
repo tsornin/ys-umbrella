@@ -9,19 +9,21 @@ ifeq "$(PLATFORM)" "MINGW32_NT-6"
 	SDL_FLAGS = -IC:/MinGW/include/SDL
 	SDL_LIBS = -LC:/MinGW/lib -mwindows -lmingw32 -lSDLmain -lSDL
 
-	GL_LIBS += -lopengl32 -lglu32
+	GL_LIBS = -lopengl32 -lglu32
 endif
 
 ifeq "$(PLATFORM)" "Darwin"
 	SDL_FLAGS = -I/Library/Frameworks/SDL.framework/Headers
 	SDL_LIBS = -framework SDL -framework Cocoa
+
+	GL_LIBS = -framework OpenGL
 endif
 
 ifeq "$(PLATFORM)" "Linux"
 	SDL_FLAGS = `sdl-config --cflags`
 	SDL_LIBS  = `sdl-config --libs` 
 
-	GL_LIBS += -lGL -lGLU -lglut
+	GL_LIBS += -lGL -lGLU
 endif
 
 
@@ -52,7 +54,7 @@ endif
 # ==============================
 CXX = g++
 CXXFLAGS = --std=c++11 -Wall -I. -I$(SRC_DIR) $(SDL_FLAGS)
-LIBS = $(SDL_LIBS)
+LIBS = $(SDL_LIBS) $(GL_LIBS)
 BIN = ys
 RM = rm -f
 

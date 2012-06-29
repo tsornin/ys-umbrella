@@ -7,8 +7,8 @@
 Framerate constants.
 ================================
 */
-const int TICK_INTERVAL = 17; // milliseconds
-const int FPS = 60;
+static const int TICK_INTERVAL = 17; // milliseconds
+static const int FPS = 60;
 
 /*
 ================================
@@ -109,8 +109,8 @@ Lets the current state draw to the screen.
 */
 void Engine::draw()
 {
-	// glClearColor( 0, 0, 0, 0 );
-	// glClear( GL_COLOR_BUFFER_BIT );
+	glClearColor( 0, 0, 0, 0 );
+	glClear( GL_COLOR_BUFFER_BIT );
 
 	if ( !states.empty() ) {
 		states.back()->draw( this );

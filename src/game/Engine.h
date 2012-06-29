@@ -3,6 +3,7 @@
 
 #include <vector> // for std::vector < State* >
 #include "SDL.h" // for SDL_Surface
+#include "SDL_opengl.h"
 
 class State;
 
@@ -11,10 +12,12 @@ class State;
 Game engine with a stack of game states:
 http://gamedevgeek.com/tutorials/managing-game-states-in-c/
 
-TODO: Arrange groups of functions into subsystem classes?
+TODO:
+This class definition conflates several subsystems.
+Should we arrange the groups of functions into subsystem classes?
 Subsystems should carry some data:
 	Input: key bindings, default key bindings
-	Video: Allowed video modes
+	Video: allowed video modes
 	Audio: ???
 
 TODO: Move subsystem data into a configuration subsystem.
@@ -45,7 +48,7 @@ public:
 	// Video
 	bool initVideo();
 	double getAspectRatio() const;
-	// bool setVideoMode( const int wx, const int wy, const bool fullscreen )
+	bool setVideoMode( const int wx, const int wy, const bool fullscreen );
 
 	// Audio
 	bool initAudio();
