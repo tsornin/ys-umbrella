@@ -53,3 +53,17 @@ void Engine::change( State* state )
 	// store and init the new state
 	push( state );
 }
+
+/*
+================================
+Engine::reset
+
+Resets the current state.
+================================
+*/
+void Engine::reset()
+{
+	if ( !states.empty() ) {
+		change( states.back() );
+	}
+}

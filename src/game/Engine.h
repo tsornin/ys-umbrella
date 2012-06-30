@@ -2,8 +2,10 @@
 #define GAME_ENGINE_H
 
 #include <vector> // for std::vector < State* >
+#include <map> // for std::map < SDLKey, InputKey >
 #include "SDL.h" // for SDL_Surface
 #include "SDL_opengl.h"
+#include "InputSet.h"
 
 class State;
 
@@ -34,6 +36,7 @@ public:
 	void pop();
 	void push( State* state );
 	void change( State* state );
+	void reset();
 
 	// Timer
 	void run();
@@ -43,7 +46,9 @@ public:
 	void setCaption();
 
 	// Input
+	bool initInput();
 	void pollInput();
+	void specialKeyDown( SDLKey sym );
 
 	// Video
 	bool initVideo();
@@ -63,7 +68,8 @@ private: // Members
 	bool pause;
 
 	// Input
-	// InputSet is1, is2;
+	std::map < SDLKey, InputKey > keymap1, keymap2;
+	InputSet is1, is2;
 
 	// Video
 	SDL_Surface* screen;
