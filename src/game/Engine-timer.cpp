@@ -30,6 +30,7 @@ static Uint32 time_left()
 		// This fixes the problem of next_time taking several frames to
 		// catch up (causing a big speed-up) when the window is dragged
 		// (since dragging the window simulates a huge processing lag).
+		// NOTE: Windows only.
 		next_time = now;
 		return 0;
 	}
@@ -49,20 +50,17 @@ void Engine::run()
 {
 	next_time = SDL_GetTicks() + TICK_INTERVAL;
 
-	// TODO: while ( !states.empty() && !quit )
-	while ( !quit )
+	while ( !states.empty() && !quit )
 	{
 		// Poll for input even when unfocused
 		pollInput();
 
-		if ( SDL_GetAppState() & SDL_APPINPUTFOCUS ) {
-		if ( !pause ) {
+		if ( !pause && (SDL_GetAppState() & SDL_APPINPUTFOCUS ) ) {
 			input();
 			update();
 			draw();
 
 			setCaption();
-		}
 		}
 
 		SDL_Delay( time_left() );
@@ -130,7 +128,7 @@ then lets the current state write some more to the title bar.
 void Engine::setCaption()
 {
 	std::ostringstream caption;
-	caption << "Umbrella ";
+	caption << "Umbrella: ";
 
 	// Display overload
 	// (Shows a sad face if we drop below 60 fps)
@@ -151,11 +149,11 @@ void Engine::setCaption()
 	if ( f < 10 ) caption << "0"; // zero in front of framecount
 	caption << f << "f"; // always show framecount
 
-	// TODO: OpenGL error
-	// GLenum err = glGetError();
-	// if ( err != GL_NO_ERROR ) {
-	// 	caption << " || OpenGL Error: " << gluErrorString( err );
-	// }
+	// OpenGL error
+	GLenum err = glGetError();
+	if ( err != GL_NO_ERROR ) {
+		caption << " || OpenGL Error: " << gluErrorString( err );
+	}
 
 	if ( !states.empty() ) {
 		states.back()->setCaption( caption );

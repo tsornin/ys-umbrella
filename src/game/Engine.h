@@ -14,8 +14,7 @@ class State;
 Game engine with a stack of game states:
 http://gamedevgeek.com/tutorials/managing-game-states-in-c/
 
-TODO:
-This class definition conflates several subsystems.
+TODO: This class definition conflates several subsystems.
 Should we arrange the groups of functions into subsystem classes?
 Subsystems should carry some data:
 	Input: key bindings, default key bindings
@@ -40,9 +39,9 @@ public:
 
 	// Timer
 	void run();
-		void input();
-		void update();
-		void draw();
+	void input();
+	void update();
+	void draw();
 	void setCaption();
 
 	// Input
@@ -52,8 +51,8 @@ public:
 
 	// Video
 	bool initVideo();
-	double getAspectRatio() const;
 	bool setVideoMode( const int wx, const int wy, const bool fullscreen );
+	double getAspectRatio() const;
 
 	// Audio
 	bool initAudio();

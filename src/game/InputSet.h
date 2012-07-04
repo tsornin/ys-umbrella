@@ -1,5 +1,5 @@
-#ifndef GAME_INPUTSET_H
-#define GAME_INPUTSET_H
+#ifndef GAME_INPUT_SET_H
+#define GAME_INPUT_SET_H
 
 #include <vector>
 
@@ -17,7 +17,7 @@ Abstracts input into an NES-like controller.
 
 Key events only appear on key-down and key-up.
 To detect if a key is currently pressed, we need additional state.
-We also keep track of the previous state to provide rising/falling edge detection.
+To store key-down and key-up events, we also track the previous state.
 ================================
 */
 class InputSet

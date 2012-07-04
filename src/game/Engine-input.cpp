@@ -5,7 +5,7 @@
 ================================
 Engine::initInput
 
-TODO: Even without any input-configuration function,
+TODO: Even without any input-configuration functions,
 we should read these settings from a configuration file.
 ================================
 */

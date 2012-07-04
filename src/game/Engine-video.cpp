@@ -5,7 +5,7 @@
 ================================
 Video size.
 
-TODO:
+TODO: Carry data of allowed resolutions here.
 ================================
 */
 static const int SCREEN_WIDTH = 1200;
@@ -24,16 +24,6 @@ bool Engine::initVideo()
 	}
 
 	return true;
-}
-
-/*
-================================
-Engine::getAspectRatio
-================================
-*/
-double Engine::getAspectRatio() const
-{
-	return (double) screen->w / screen->h;
 }
 
 /*
@@ -58,7 +48,6 @@ bool Engine::setVideoMode( const int wx, const int wy, const bool fullscreen )
 	// OpenGL context
 	Uint32 flags = SDL_OPENGL;
 	if ( fullscreen ) flags |= SDL_FULLSCREEN;
-	static const int SCREEN_BPP = 32;
 	screen = SDL_SetVideoMode( wx, wy, SCREEN_BPP, flags );
 	if ( screen == NULL ) {
 		std::cerr << "Video initialization failed: "
@@ -95,4 +84,14 @@ bool Engine::setVideoMode( const int wx, const int wy, const bool fullscreen )
 		<< glGetString( GL_VERSION ) << std::endl;
 
 	return true;
+}
+
+/*
+================================
+Engine::getAspectRatio
+================================
+*/
+double Engine::getAspectRatio() const
+{
+	return (double) screen->w / screen->h;
 }
