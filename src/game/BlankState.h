@@ -1,11 +1,11 @@
 #ifndef GAME_BLANK_STATE_H
 #define GAME_BLANK_STATE_H
 
-#include "State.h" // superclass GameState
+#include "State.h" // superclass State
 
 /*
 ================================
-A dummy GameState that does nothing except count frames.
+A dummy State that does nothing except count frames.
 This class stubs out all abstract functions of State
 (so subclasses don't have to).
 

@@ -59,11 +59,6 @@ BIN = ys
 RM = rm -f
 
 # Uses the MacPorts installation of g++ to avoid intefering with Xcode.
-# To install gcc 4.7 on MacPorts:
-# $ sudo port selfupdate
-# $ sudo port install gcc47
-# $ port select --list gcc
-# $ sudo port select --set gcc mp-gcc47
 ifeq "$(PLATFORM)" "Darwin"
 CXX = /opt/local/bin/g++
 endif
@@ -89,8 +84,8 @@ veryclean:
 profile: CXXFLAGS += -pg
 profile: all
 
-# TODO: OS X doesn't support -march=native
-# Try again with gcc 4.7 installed?
+# TODO: OS X doesn't support -march=native:
+# http://stackoverflow.com/questions/10327939/erroring-on-no-such-instruction-while-assembling-project-on-mac-os-x-lion
 #native: CXXFLAGS += -march=native -O2 -pipe
 native: CXXFLAGS += -O2 -pipe
 native: all

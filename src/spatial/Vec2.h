@@ -1,5 +1,5 @@
-#ifndef VEC_2_H
-#define VEC_2_H
+#ifndef SPATIAL_VEC_2_H
+#define SPATIAL_VEC_2_H
 
 #include <utility> // for std::pair
 #include "Scalar.h"

@@ -1,4 +1,5 @@
 #include "Scalar.h"
+#include <cmath> // for std::sqrt, std::fabs
 
 static const Scalar DEGS_PER_RAD = 57.295779513082320876798154814105;
 Scalar to_degrees( Scalar rad )

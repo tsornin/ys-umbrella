@@ -3,7 +3,8 @@ Installing gcc 4.7 with MacPorts
 Install MacPorts:
 http://www.macports.org/
 
-Install gcc 4.7 on MacPorts:
+The makefile uses the MacPorts installation of g++ to avoid intefering with Xcode.
+To install gcc 4.7 on MacPorts:
 	$ sudo port selfupdate
 	$ sudo port install gcc47
 	$ port select --list gcc

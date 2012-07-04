@@ -2,9 +2,13 @@
 #define SPATIAL_SCALAR_H
 
 #include <cfloat> // for DBL_MAX, FLT_MAX
-#include <cmath> // for std::sqrt
 #include <algorithm> // for std::min, std::max
 
+/*
+================================
+Precision typedef
+================================
+*/
 // #define SCALAR_USE_DOUBLE_PRECISION
 #ifdef SCALAR_USE_DOUBLE_PRECISION
 	typedef double Scalar;
@@ -16,8 +20,18 @@
 	#define SCALAR_MAX FLT_MAX
 #endif
 
+/*
+================================
+Constants
+================================
+*/
 const Scalar PI = 3.1415926535897932384626433832795;
 
+/*
+================================
+Functions
+================================
+*/
 Scalar to_degrees( Scalar rad );
 Scalar to_radians( Scalar deg );
 
