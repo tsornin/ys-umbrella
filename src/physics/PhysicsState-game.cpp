@@ -1,4 +1,8 @@
 #include "PhysicsState.h"
+#include "Euler.h"
+#include "Verlet.h"
+#include "Distance.h"
+#include "Angular.h"
 
 /*
 ================================
@@ -42,17 +46,15 @@ void PhysicsState::cleanup()
 	for ( TVerlet& tv : vls ) delete tv.second;
 	vls.clear();
 
-	// for ( TDistance& td : dcs ) delete td.second;
-	// dcs.clear();
+	for ( TDistance& td : dcs ) delete td.second;
+	dcs.clear();
 
-	// for ( Angular* ac : acs ) delete ac;
-	// acs.clear();
+	for ( Angular* ac : acs ) delete ac;
+	acs.clear();
 
-	// connected_components.clear();
+	connected_components.clear();
 
-	// clear_collision_data();
-
-	// hr.cleanup();
+	clear_collision_data();
 
 	BlankState::cleanup();
 }
@@ -81,17 +83,17 @@ void PhysicsState::update( Engine* game )
 	integrate();
 
 	// // Identify CC first,
-	// // so Verlets are tagged with their component ID
-	// if ( dirty_connected_components ) {
-	// 	find_connected_components();
-	// 	dirty_connected_components = false;
-	// }
+	// so Verlets are tagged with their component ID
+	if ( dirty_connected_components ) {
+		find_connected_components();
+		dirty_connected_components = false;
+	}
 
 	// // During RG-VL detection,
 	// // wall constraints are tagged with Verlet component IDs
 	// detect_collisions();
 
-	// relax_connected_components();
+	relax_connected_components();
 }
 
 /*
@@ -142,7 +144,7 @@ void PhysicsState::setCaption( std::ostringstream& buffer )
 	buffer << " || Physics:";
 	buffer << " " << frames_elapsed << " frames elapsed";
 
-	// buffer << " " << eus.size() << "/" << rgs.size() << "/" << vls.size();
-	// buffer << " " << dcs.size() << "/" << acs.size();
+	buffer << " " << eus.size() << "/" /*<< rgs.size() << "/"*/ << vls.size();
+	buffer << " " << dcs.size() << "/" << acs.size();
 	// buffer << " cc: " << connected_components.size();
 }

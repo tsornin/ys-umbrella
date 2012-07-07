@@ -1,6 +1,7 @@
 #ifndef PHYSICS_EULER_H
 #define PHSYICS_EULER_H
 
+#include "PhysicsTags.h"
 #include "spatial/Vec2.h"
 class AABB;
 class InputSet;
@@ -12,10 +13,10 @@ Euler particle.
 Provides a dedicated particle type for unstable particle simulations.
 
 Instances of this class are managed by the physics engine.
-Used PhysicsState::createEuler to create a Euler particle.
+Used PhysicsState::createEuler to create an Euler particle.
 ================================
 */
-class Euler
+class Euler : public PhysicsTags
 {
 private: // Lifecycle
 	Euler();
@@ -24,12 +25,7 @@ private: // Lifecycle
 public: // "Entity" functions
 	void input( const InputSet& is );
 	void update();
-	bool expired() const;
 	AABB getAABB() const;
-
-public: // Collision handler
-	// void setOwner( Handler* h ) { owner = h; }
-	// Handler* getOwner() { return owner; }
 
 public: // Euler functions
 
@@ -104,11 +100,6 @@ private: // Members
 		mass, // area in 2D
 		moment, // moment of inertia
 		bounce; // restitution
-
-private: // Physics engine tags
-	bool expire_enable;
-	int pid;
-	// Handler* owner;
 };
 
 #endif

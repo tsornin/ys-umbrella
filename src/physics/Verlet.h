@@ -1,8 +1,11 @@
 #ifndef PHYSICS_VERLET_H
 #define PHYSICS_VERLET_H
 
+#include "PhysicsTags.h"
+#include <set> // for std::set < Distance* >
 #include "spatial/Vec2.h"
 class AABB;
+class Distance;
 
 /*
 ================================
@@ -18,7 +21,7 @@ to specify a starting position during initialization
 (setPosition implicitly modifies velocity).
 ================================
 */
-class Verlet
+class Verlet : public PhysicsTags
 {
 private: // Lifecycle
 	Verlet();
@@ -26,12 +29,7 @@ private: // Lifecycle
 
 public: // "Entity" functions
 	void update();
-	bool expired() const;
 	AABB getAABB() const;
-
-public: // Collision handler
-	// void setOwner( Handler* h ) { owner = h; }
-	// Handler* getOwner() { return owner; }
 
 public: // Verlet functions
 	void putPosition( const Vec2& pos );
@@ -74,13 +72,8 @@ private: // Members
 		mass,
 		bounce;
 
-private: // Physics engine tags
-	bool expire_enable;
-	int pid;
-	// Handler* owner;
-
 private: // Physics engine graph data
-	// std::set < Distance* > edges;
+	std::set < Distance* > edges;
 	bool marked;
 	int component_id;
 };

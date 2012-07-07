@@ -2,13 +2,25 @@
 #define PHYSICS_STATE_H
 
 #include <list>
+#include <vector>
 #include "game/BlankState.h" // superclass BlankState
+
+// TODO: maybe we don't want type-safe enumerations
 
 class Euler;
 enum EulerType : unsigned int;
 
 class Verlet;
 enum VerletType : unsigned int;
+
+class Distance;
+enum DistanceType : unsigned int;
+
+class Angular;
+
+typedef std::pair <
+	std::vector < Verlet* >,
+	std::vector < Distance* > > VerletGraph;
 
 /*
 ================================
@@ -44,6 +56,14 @@ public: // Physics engine
 	Verlet* createVerlet( VerletType vt );
 	void destroyVerlet( Verlet* vl );
 
+	Distance* createDistance( Verlet* a, Verlet* b, DistanceType dt );
+	void destroyDistance( Distance* dc );
+
+	Angular* createAngular( Distance* m, Distance* n );
+	void destroyAngular( Angular* ac );
+
+	VerletGraph connected( Verlet* root );
+
 private: // Physics timestep
 	void expire();
 	void integrate();
@@ -51,6 +71,11 @@ private: // Physics timestep
 			void apply_gravity_forces();
 			void apply_wind_forces();
 		void integrate_position();
+	void find_connected_components();
+	void relax_connected_components();
+		VerletGraph mark_connected( Verlet* root );
+	void detect_collisions();
+		void clear_collision_data();
 
 	int nextPID();
 
@@ -64,7 +89,14 @@ private: // Members
 	typedef std::pair < VerletType, Verlet* > TVerlet;
 	std::list < TVerlet > vls;
 
+	typedef std::pair < DistanceType, Distance* > TDistance;
+	std::list < TDistance > dcs;
+
+	std::list < Angular* > acs;
+
+	// Connected-components analysis of Verlet-Distance graph
 	bool dirty_connected_components;
+	std::vector < VerletGraph > connected_components;
 };
 
 #endif

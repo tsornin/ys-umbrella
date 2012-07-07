@@ -23,13 +23,9 @@ Euler::Euler() :
 	// Collision properties
 	mass( STANDARD_MASS ),
 	moment( STANDARD_MOMENT ),
-	bounce( STANDARD_BOUNCE ),
+	bounce( STANDARD_BOUNCE )
 	// static_friction( STANDARD_KINETIC_FRICTION ),
 	// kinetic_friction( STANDARD_STATIC_FRICTION ),
-	// Physics engine tags
-	expire_enable( false ),
-	pid( -1 )
-	// owner( 0 )
 {
 	
 }
@@ -104,19 +100,6 @@ void Euler::update()
 	else {
 		angular_velocity = 0;
 	}
-}
-
-/*
-================================
-Euler::expired
-
-In lieu of a good data structure for PhysicsState::destroy,
-we're just using an "expired" flag.
-================================
-*/
-bool Euler::expired() const
-{
-	return expire_enable;
 }
 
 /*

@@ -18,10 +18,6 @@ Verlet::Verlet() :
 	// Collision properties
 	mass( STANDARD_MASS ),
 	bounce( 0 ),
-	// Physics engine tags
-	expire_enable( false ),
-	pid( -1 ),
-	// owner( 0 ),
 	// // Physics engine graph data
 	marked( false ),
 	component_id( -1 )
@@ -47,16 +43,6 @@ void Verlet::update()
 		previous = position;
 		velocity = position - previous;
 	}
-}
-
-/*
-================================
-Verlet::expired
-================================
-*/
-bool Verlet::expired() const
-{
-	return expire_enable;
 }
 
 /*
