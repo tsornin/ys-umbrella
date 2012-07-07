@@ -1,0 +1,88 @@
+#ifndef PHYSICS_VERLET_H
+#define PHYSICS_VERLET_H
+
+#include "spatial/Vec2.h"
+class AABB;
+
+/*
+================================
+Verlet particle.
+
+Provides a dedicated particle type for stable particle simulations.
+
+Instances of this class are managed by the physics engine.
+Used PhysicsState::createVerlet to create a Verlet particle.
+
+NOTE: Use Verlet::putPosition, not Verlet::setPosition,
+to specify a starting position during initialization
+(setPosition implicitly modifies velocity).
+================================
+*/
+class Verlet
+{
+private: // Lifecycle
+	Verlet();
+	friend class PhysicsState;
+
+public: // "Entity" functions
+	void update();
+	bool expired() const;
+	AABB getAABB() const;
+
+public: // Collision handler
+	// void setOwner( Handler* h ) { owner = h; }
+	// Handler* getOwner() { return owner; }
+
+public: // Verlet functions
+	void putPosition( const Vec2& pos );
+
+public: // Accessors
+	Vec2 getPosition() const { return position; }
+	Vec2 getVelocity() const { return velocity; }
+	bool isLinearEnable() const { return linear_enable; }
+	Scalar getMass() const { return mass; }
+	Scalar getBounce() const { return bounce; }
+
+public: // Mutators (set)
+	void setPosition( const Vec2& pos ) { if ( linear_enable ) { position = pos; } }
+	void setLinearEnable( bool le ) { linear_enable = le; }
+	void setGravity( const Vec2& g ) { gravity = g; }
+	void setMass( Scalar m ) { mass = m; }
+	void setBounce( Scalar b ) { bounce = b; }
+
+public: // Mutators (add)
+	void addPosition( const Vec2& add ) { if ( linear_enable ) { position += add; } }
+
+private: // Members
+	// Position state
+	Vec2
+		position, // in 2D world-space
+		velocity, // in units/frame
+		previous; // implicit velocity
+	bool linear_enable; // Must enable this to move.
+
+	// Damping
+	Scalar
+		linear_damping;
+
+	// Gravity
+	Vec2
+		gravity;
+
+	// Collision properties
+	Scalar
+		mass,
+		bounce;
+
+private: // Physics engine tags
+	bool expire_enable;
+	int pid;
+	// Handler* owner;
+
+private: // Physics engine graph data
+	// std::set < Distance* > edges;
+	bool marked;
+	int component_id;
+};
+
+#endif

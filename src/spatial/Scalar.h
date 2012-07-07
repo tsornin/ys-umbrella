@@ -1,6 +1,7 @@
 #ifndef SPATIAL_SCALAR_H
 #define SPATIAL_SCALAR_H
 
+#include <cmath>
 #include <cfloat> // for DBL_MAX, FLT_MAX
 #include <algorithm> // for std::min, std::max
 

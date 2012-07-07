@@ -27,8 +27,8 @@ public:
 	Vec2() : x(0), y(0) {}
 	Vec2( const Scalar& s ) : x(s), y(s) {}
 	Vec2( const Scalar& x, const Scalar& y ) : x(x), y(y) {}
-	Vec2( const Vec2& u, const Vec2& v ) { (*this) = v - u; }
-	// TODO: Delegating constructor Vec2( const Vec2& u, const Vec2& v ) : Vec2(v) { operator -= (u); }
+	// Vec2( const Vec2& u, const Vec2& v ) { (*this) = v - u; }
+	Vec2( const Vec2& u, const Vec2& v ) : Vec2(v) { operator -= (u); }
 
 	/*
 	================================
