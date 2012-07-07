@@ -16,6 +16,11 @@ Used for broad-phase collision regions.
 */
 struct AABB
 {
+public: // Members
+	Vec2
+		min, // bottom-left
+		max; // top-right
+
 public:	// Lifecycle
 	AABB();
 	AABB( const Vec2& v );
@@ -37,9 +42,6 @@ public:	// Other
 	AABB fatter( Scalar x ) const;
 	void fatten( Scalar x );
 	AABB subdiv( unsigned int quad ) const;
-
-public: // Members
-	Vec2 min, max; // worldspace
 };
 
 #endif

@@ -1,5 +1,4 @@
 #include "game/Engine.h"
-
 #include "game/BlankState.h"
 
 int main( int argc, char** argv )
