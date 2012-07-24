@@ -2,6 +2,7 @@
 #define PHYSICS_ANGULAR_CONSTRAINT_H
 
 #include "PhysicsTags.h"
+
 class Verlet;
 class Distance;
 

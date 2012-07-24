@@ -94,6 +94,7 @@ Distance* PhysicsState::createDistance( Verlet* a, Verlet* b, DistanceType dt )
 	dc->pid = nextPID();
 	dcs.push_back( TDistance( dt, dc ) );
 
+	// Graph setup
 	dc->a->edges.insert( dc );
 	dc->b->edges.insert( dc );
 
@@ -152,6 +153,7 @@ Angular* PhysicsState::createAngular( Distance* m, Distance* n )
 	ac->pid = nextPID();
 	acs.push_back( ac );
 
+	// Here are the three masses we'll be clamping
 	Verlet* a = ac->a = m->a;
 	Verlet* b = ac->b = m->b; // n->a
 	Verlet* c = ac->c = n->b;
@@ -161,20 +163,23 @@ Angular* PhysicsState::createAngular( Distance* m, Distance* n )
 	// TODO: Is this the best we can do for mass?
 	Scalar mass = b->getMass();
 
-	Verlet* l = ac->l = createVerlet( (VerletType)0 );
+	// Supporting Verlet masses
+	Verlet* l = ac->l = createVerlet();
 	l->putPosition( b->getPosition() + left );
 	l->setMass( mass );
 
-	Verlet* r = ac->r = createVerlet( (VerletType)0 );
+	Verlet* r = ac->r = createVerlet();
 	r->putPosition( b->getPosition() - left );
 	r->setMass( mass );
 
-	ac->al = createDistance( a, l, (DistanceType)0 ); ac->ar = createDistance( a, r, (DistanceType)0 );
-	ac->bl = createDistance( b, l, (DistanceType)0 ); ac->br = createDistance( b, r, (DistanceType)0 );
-	ac->cl = createDistance( c, l, (DistanceType)0 ); ac->cr = createDistance( c, r, (DistanceType)0 );
-	ac->h = createDistance( l, r, (DistanceType)0 );
-	ac->v = createDistance( a, c, (DistanceType)0 );
+	// Supporting Distance constraints
+	ac->al = createDistance( a, l ); ac->ar = createDistance( a, r );
+	ac->bl = createDistance( b, l ); ac->br = createDistance( b, r );
+	ac->cl = createDistance( c, l ); ac->cr = createDistance( c, r );
+	ac->h = createDistance( l, r );
+	ac->v = createDistance( a, c );
 
+	// Graph setup
 	ac->m->edges.insert( ac );
 	ac->n->edges.insert( ac );
 
@@ -194,7 +199,8 @@ void PhysicsState::destroyAngular( Angular* ac )
 	// (Angular is at the top of the dual-graph food chain)
 
 	// Destroy our physics objects.
-	// Destroying the two Verlet supports removes all constraints except ac->v.
+	// Destroying the two supporting Verlet masses
+	// removes all constraints except the vertical one.
 	destroyVerlet( ac->l );
 	destroyVerlet( ac->r );
 	destroyDistance( ac->v );

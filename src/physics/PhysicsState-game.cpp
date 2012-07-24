@@ -82,8 +82,7 @@ void PhysicsState::update( Engine* game )
 
 	integrate();
 
-	// // Identify CC first,
-	// so Verlets are tagged with their component ID
+	// Tag Verlet particles with component ID before RG-VL detection
 	if ( dirty_connected_components ) {
 		find_connected_components();
 		dirty_connected_components = false;
@@ -103,34 +102,43 @@ PhysicsState::draw
 */
 void PhysicsState::draw( Engine* game )
 {
-	// hr.drawAxes( 100 );
+	/*
+	TODO:
+	This function will be called at the end of EntityState::draw.
+	ES::draw is free to intercept the GL state to do splitscreen, etc.
+	Where will the color information (for different collision types)
+	be stored and accessed?
+	*/
+
+	// game->rd.drawAxes( 100 );
 
 	// // Display the bounding boxes of the convex list.
 	// // (The AABB's of Rigid::shapes are in object space, which isn't useful)
 	// for ( auto& pair : vxs ) {
 	// 	Convex& vx = pair.second;
-	// 	hr.drawAABB( vx.getAABB() );
+
+	// 	game->rd.drawAABB( vx.getAABB() );
 	// }
 
 	// for ( TRigid& tr : rgs ) {
-	// 	hr.drawRigid( *tr.second, rt_colors[ tr.first ] );
+	// 	game->rd.drawRigid( *tr.second, rt_colors[ tr.first ] );
 	// }
 
 	// for ( TEuler& te : eus ) {
-	// 	hr.drawEuler( *te.second, et_colors[ te.first ] );
+	// 	game->rd.drawEuler( *te.second, et_colors[ te.first ] );
 	// }
 
 	// for ( TDistance& td : dcs ) {
-	// 	hr.drawDistance( *td.second, dt_colors[ td.first ] );
+	// 	game->rd.drawDistance( *td.second, dt_colors[ td.first ] );
 	// }
 
 	// // TODO: get rid of this
 	// // for ( Angular* ac : acs ) {
-	// 	// hr.drawAngular( *ac, 0 ); // TODO: color
+	// 	// game->rd.drawAngular( *ac, 0 ); // TODO: color
 	// // }
 
 	// for ( TVerlet& tv : vls ) {
-	// 	hr.drawVerlet( *tv.second, vt_colors[ tv.first ] );
+	// 	game->rd.drawVerlet( *tv.second, vt_colors[ tv.first ] );
 	// }
 }
 

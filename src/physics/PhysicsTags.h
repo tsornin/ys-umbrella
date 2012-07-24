@@ -1,8 +1,7 @@
 #ifndef PHYSICS_TAGS_H
 #define PHYSICS_TAGS_H
 
-// TODO: get rid of this.
-typedef int Handler;
+#include "Handler.h"
 
 /*
 ================================

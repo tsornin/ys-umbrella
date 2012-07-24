@@ -5,26 +5,25 @@
 #include <vector>
 #include "game/BlankState.h" // superclass BlankState
 
-// TODO: maybe we don't want type-safe enumerations
-
+// TODO: consider enum EulerType : unsigned int;
 class Euler;
-enum EulerType : unsigned int;
+typedef unsigned int EulerType;
 
 class Verlet;
-enum VerletType : unsigned int;
+typedef unsigned int VerletType;
 
 class Distance;
-enum DistanceType : unsigned int;
+typedef unsigned int DistanceType;
 
 class Angular;
 
 typedef std::pair <
-	std::vector < Verlet* >,
+	std::vector < Verlet* >,	
 	std::vector < Distance* > > VerletGraph;
 
 /*
 ================================
-Physics Engine.
+Physics engine.
 
 Superclass for any State that uses physics objects.
 Manages (creates, destroys, and provides) physics objects.
@@ -50,13 +49,13 @@ protected:
 	PhysicsState() {}
 
 public: // Physics engine
-	Euler* createEuler( EulerType et );
+	Euler* createEuler( EulerType et = 0 );
 	void destroyEuler( Euler* eu );
 
-	Verlet* createVerlet( VerletType vt );
+	Verlet* createVerlet( VerletType vt = 0 );
 	void destroyVerlet( Verlet* vl );
 
-	Distance* createDistance( Verlet* a, Verlet* b, DistanceType dt );
+	Distance* createDistance( Verlet* a, Verlet* b, DistanceType dt = 0 );
 	void destroyDistance( Distance* dc );
 
 	Angular* createAngular( Distance* m, Distance* n );

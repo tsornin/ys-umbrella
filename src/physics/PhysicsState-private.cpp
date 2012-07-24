@@ -108,7 +108,7 @@ void PhysicsState::apply_gravity_forces()
 		eu->addVelocity( eu->gravity );
 	}
 
-	// TODO: rigid...
+	// TODO: TRigid
 
 	for ( TVerlet& tv : vls ) {
 		Verlet* vl = tv.second;
@@ -215,7 +215,7 @@ converging toward the solution and implicitly modifying velocity.
 void PhysicsState::relax_connected_components()
 {
 	for ( VerletGraph vg : connected_components ) {
-		std::vector < Verlet* >& vls = vg.first;
+		// std::vector < Verlet* >& vls = vg.first;
 		std::vector < Distance* >& dcs = vg.second;
 
 		// Estimate the number of iterations needed

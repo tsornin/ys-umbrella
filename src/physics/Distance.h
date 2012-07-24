@@ -4,6 +4,7 @@
 #include "PhysicsTags.h"
 #include <set> // for std::set < Angular* >
 #include "spatial/Scalar.h"
+
 class AABB;
 class Verlet;
 class Angular;
