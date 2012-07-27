@@ -21,6 +21,10 @@ bool Engine::init()
 		return false;
 	}
 
+	if ( !initInput() ) {
+		return false;
+	}
+
 	if ( !initVideo() ) {
 		return false;
 	}
