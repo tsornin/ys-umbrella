@@ -51,7 +51,7 @@ OpenGL helper functions
 ================================
 */
 
-inline void gl_SetColor( Color& c )
+inline void gl_SetColor( const Color& c )
 #ifdef SCALAR_USE_DOUBLE_PRECISION
 	{ glColor4dv( (GLdouble*) &c ); }
 #else

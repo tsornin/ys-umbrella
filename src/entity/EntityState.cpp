@@ -71,7 +71,8 @@ EntityState::draw
 */
 void EntityState::draw( Engine* game )
 {
-	// for ( Entity* en : entities ) en->draw( game->rd );
+	for ( Entity* en : entities ) en->draw( game->rd );
+
 	PhysicsState::draw( game );
 }
 

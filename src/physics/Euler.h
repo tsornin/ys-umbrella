@@ -27,6 +27,7 @@ public: // "Entity" functions
 	void input( const InputSet& is );
 	void update();
 	AABB getAABB() const;
+	friend class Renderer;
 
 public: // Euler functions
 
@@ -41,6 +42,8 @@ public: // Accessors
 	Scalar getAngle() const { return angle; }
 	Scalar getAngularVelocity() const { return angular_velocity; }
 	bool isAngularEnable() const { return angular_enable; }
+
+	Vec2 getGravity() const { return gravity; }
 
 	Scalar getMass() const { return mass; }
 	Scalar getMoment() const { return moment; }

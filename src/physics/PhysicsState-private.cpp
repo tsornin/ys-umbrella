@@ -1,9 +1,5 @@
 #include "PhysicsState.h"
 #include <queue>
-#include "Euler.h"
-#include "Verlet.h"
-#include "Distance.h"
-#include "Angular.h"
 
 /*
 ================================

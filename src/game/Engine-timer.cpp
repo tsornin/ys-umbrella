@@ -107,12 +107,13 @@ Lets the current state draw to the screen.
 */
 void Engine::draw()
 {
-	glClearColor( 0, 0, 0, 0 );
-	glClear( GL_COLOR_BUFFER_BIT );
+	rd.begin();
 
 	if ( !states.empty() ) {
 		states.back()->draw( this );
 	}
+
+	rd.end();
 
 	SDL_GL_SwapBuffers();
 }

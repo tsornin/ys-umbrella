@@ -33,6 +33,8 @@ bool Engine::init()
 		return false;
 	}
 
+	rd.init();
+
 	return true;
 }
 
@@ -50,6 +52,8 @@ void Engine::cleanup()
 		states.back()->cleanup();
 		states.pop_back();
 	}
+
+	rd.cleanup();
 
 	SDL_Quit();
 }

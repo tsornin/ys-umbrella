@@ -4,18 +4,14 @@
 #include <list>
 #include <vector>
 #include "game/BlankState.h" // superclass BlankState
+#include "Euler.h"
+#include "Verlet.h"
+#include "Distance.h"
+#include "Angular.h"
 
-// TODO: consider enum EulerType : unsigned int;
-class Euler;
 typedef unsigned int EulerType;
-
-class Verlet;
 typedef unsigned int VerletType;
-
-class Distance;
 typedef unsigned int DistanceType;
-
-class Angular;
 
 typedef std::pair <
 	std::vector < Verlet* >,	

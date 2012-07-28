@@ -1,8 +1,4 @@
 #include "PhysicsState.h"
-#include "Euler.h"
-#include "Verlet.h"
-#include "Distance.h"
-#include "Angular.h"
 
 /*
 ================================
@@ -102,44 +98,24 @@ PhysicsState::draw
 */
 void PhysicsState::draw( Engine* game )
 {
-	/*
-	TODO:
-	This function will be called at the end of EntityState::draw.
-	ES::draw is free to intercept the GL state to do splitscreen, etc.
-	Where will the color information (for different collision types)
-	be stored and accessed?
-	*/
-
-	// game->rd.drawAxes( 100 );
+	game->rd.drawAxes( 100 );
 
 	// // Display the bounding boxes of the convex list.
 	// // (The AABB's of Rigid::shapes are in object space, which isn't useful)
 	// for ( auto& pair : vxs ) {
 	// 	Convex& vx = pair.second;
-
 	// 	game->rd.drawAABB( vx.getAABB() );
 	// }
 
-	// for ( TRigid& tr : rgs ) {
-	// 	game->rd.drawRigid( *tr.second, rt_colors[ tr.first ] );
-	// }
+	// for ( TRigid& tr : rgs ) game->rd.drawRigid( *tr.second );
 
-	// for ( TEuler& te : eus ) {
-	// 	game->rd.drawEuler( *te.second, et_colors[ te.first ] );
-	// }
+	for ( TEuler& te : eus ) game->rd.drawEuler( *te.second );
 
-	// for ( TDistance& td : dcs ) {
-	// 	game->rd.drawDistance( *td.second, dt_colors[ td.first ] );
-	// }
+	for ( TDistance& td : dcs ) game->rd.drawDistance( *td.second );
 
-	// // TODO: get rid of this
-	// // for ( Angular* ac : acs ) {
-	// 	// game->rd.drawAngular( *ac, 0 ); // TODO: color
-	// // }
+	// for ( Angular* ac : acs ) game->rd.drawAngular( *ac );
 
-	// for ( TVerlet& tv : vls ) {
-	// 	game->rd.drawVerlet( *tv.second, vt_colors[ tv.first ] );
-	// }
+	for ( TVerlet& tv : vls ) game->rd.drawVerlet( *tv.second );
 }
 
 /*

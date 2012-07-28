@@ -6,6 +6,7 @@
 Video size.
 
 TODO: Carry data of allowed resolutions here.
+TODO: Consider mobile devices as well as PC resolutions.
 ================================
 */
 static const int SCREEN_WIDTH = 1200;
@@ -57,20 +58,6 @@ bool Engine::setVideoMode( const int wx, const int wy, const bool fullscreen )
 
 	// Set viewport according to actual screen size
 	glViewport( 0, 0, screen->w, screen->h );
-
-	// Enable antialiasing on points and lines
-	glEnable( GL_POINT_SMOOTH );
-	glHint( GL_POINT_SMOOTH_HINT, GL_DONT_CARE );
-	glEnable( GL_LINE_SMOOTH );
-	glHint( GL_LINE_SMOOTH_HINT, GL_DONT_CARE );
-
-	// Enable blending for antialiasing
-	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-
-	// Enable 1D and 2D texture mapping
-	glEnable( GL_TEXTURE_1D );
-	glEnable( GL_TEXTURE_2D );
 
 	// OpenGL report
 	std::cout << "Engine::setVideoMode:" << std::endl;

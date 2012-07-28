@@ -46,6 +46,7 @@ private: // Members
 	std::list < Entity* > entities;
 
 	// All top-level entities are also available here
+	// Camera* cam;
 };
 
 #endif

@@ -1,8 +1,4 @@
 #include "PhysicsState.h"
-#include "Euler.h"
-#include "Verlet.h"
-#include "Distance.h"
-#include "Angular.h"
 
 /*
 ================================
@@ -162,15 +158,18 @@ Angular* PhysicsState::createAngular( Distance* m, Distance* n )
 	Vec2 left = ( c->getPosition() - a->getPosition() ).lperp() * 0.25;
 	// TODO: Is this the best we can do for mass?
 	Scalar mass = b->getMass();
+	Vec2 gravity = b->getGravity();
 
 	// Supporting Verlet masses
 	Verlet* l = ac->l = createVerlet();
 	l->putPosition( b->getPosition() + left );
 	l->setMass( mass );
+	l->setGravity( gravity );
 
 	Verlet* r = ac->r = createVerlet();
 	r->putPosition( b->getPosition() - left );
 	r->setMass( mass );
+	r->setGravity( gravity );
 
 	// Supporting Distance constraints
 	ac->al = createDistance( a, l ); ac->ar = createDistance( a, r );

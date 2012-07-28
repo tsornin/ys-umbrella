@@ -73,4 +73,7 @@ inline void gl_SetVertex( const Vec2& v )
 	{ glVertex2fv( (GLfloat*) &v ); }
 #endif
 
+void gl_Enable2D();
+void gl_Disable2D();
+
 #endif

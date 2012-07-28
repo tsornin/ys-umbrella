@@ -31,6 +31,7 @@ private: // Lifecycle
 public: // "Entity" functions
 	void update();
 	AABB getAABB() const;
+	friend class Renderer;
 
 public: // Verlet functions
 	void putPosition( const Vec2& pos );
@@ -39,6 +40,7 @@ public: // Accessors
 	Vec2 getPosition() const { return position; }
 	Vec2 getVelocity() const { return velocity; }
 	bool isLinearEnable() const { return linear_enable; }
+	Vec2 getGravity() const { return gravity; }
 	Scalar getMass() const { return mass; }
 	Scalar getBounce() const { return bounce; }
 

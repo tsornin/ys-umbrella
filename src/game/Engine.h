@@ -6,6 +6,7 @@
 #include "SDL.h" // for SDL_Surface
 #include "SDL_opengl.h"
 #include "InputSet.h"
+#include "graphics/Renderer.h"
 
 class State;
 
@@ -75,6 +76,8 @@ private: // Members
 
 	// Audio
 
+public: // More members
+	Renderer rd;
 };
 
 #endif

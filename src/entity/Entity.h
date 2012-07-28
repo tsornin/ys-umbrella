@@ -5,8 +5,7 @@
 #include "game/InputSet.h" // for Entity::input
 #include "spatial/AABB.h" // for Entity::getAABB
 #include "physics/Handler.h"
-
-typedef int Renderer; // TODO: renderer
+#include "graphics/Renderer.h"
 
 /*
 ================================

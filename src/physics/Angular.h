@@ -22,6 +22,8 @@ public: // Lifecycle
 	Angular( Distance* m, Distance* n );
 	friend class PhysicsState;
 
+	friend class Renderer;
+
 private: // Members
 	// Vertices
 	Distance

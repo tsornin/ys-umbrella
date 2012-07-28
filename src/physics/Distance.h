@@ -46,6 +46,7 @@ private: // Lifecycle
 public: // "Entity" functions
 	void apply();
 	AABB getAABB() const;
+	friend class Renderer;
 
 public: // Distance functions
 
