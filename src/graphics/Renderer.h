@@ -29,6 +29,8 @@ Renderer.
 
 All virtual Entity::draw just call the appropriate Renderer function,
 consolidating rendering in one class.
+
+TODO: Debug shouldn't use immediate mode.
 ================================
 */
 class Renderer
