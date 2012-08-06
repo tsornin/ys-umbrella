@@ -1,5 +1,6 @@
 #include "Engine.h"
 #include <iostream> // for std::cout, std::cerr
+#include "SDL_opengl.h"
 
 /*
 ================================

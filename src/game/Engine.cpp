@@ -53,6 +53,8 @@ void Engine::cleanup()
 		states.pop_back();
 	}
 
+	// TODO: cleanup for subsystems.
+
 	rd.cleanup();
 
 	SDL_Quit();

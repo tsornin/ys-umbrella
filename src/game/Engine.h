@@ -4,7 +4,6 @@
 #include <vector> // for std::vector < State* >
 #include <map> // for std::map < SDLKey, InputKey >
 #include "SDL.h" // for SDL_Surface
-#include "SDL_opengl.h"
 #include "InputSet.h"
 #include "graphics/Renderer.h"
 
@@ -23,6 +22,12 @@ Subsystems should carry some data:
 	Audio: ???
 
 TODO: Move subsystem data into a configuration subsystem.
+
+TODO: Think about the resource split for subsystems and wrappers?
+video - graphics init
+image - image file format loading -> opengl
+audio - audio init
+sound - sound file format loading -> ???
 ================================
 */
 class Engine
@@ -52,6 +57,7 @@ public:
 
 	// Video
 	bool initVideo();
+	void cleanupAudio();
 	bool setVideoMode( const int wx, const int wy, const bool fullscreen );
 	double getAspectRatio() const;
 
