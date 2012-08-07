@@ -6,6 +6,8 @@
 #include "state/ClothTestState.h"
 #include "state/BarTestState.h"
 
+#include <iostream>
+
 int main( int argc, char** argv )
 {
 	Engine game;

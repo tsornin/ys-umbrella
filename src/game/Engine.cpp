@@ -15,7 +15,7 @@ bool Engine::init()
 
 	screen = 0;
 
-	if ( SDL_Init( SDL_INIT_EVERYTHING ) == -1 ) {
+	if ( SDL_Init( 0 ) == -1 ) {
 		std::cerr << "SDL initialization failed: "
 			<< SDL_GetError() << std::endl;
 		return false;

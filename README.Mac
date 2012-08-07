@@ -28,8 +28,20 @@ Installing SDL
 --------------------------------
 Download "SDL-1.2.15.dmg" from the SDL website:
 http://www.libsdl.org/release/SDL-1.2.15.dmg
-Open the .dmg and copy SDL.framework to /Library/Frameworks
+Open the .dmg and copy "SDL.framework" to "/Library/Frameworks"
 
+
+Installing SDL_image
+--------------------------------
+Download "SDL_image-1.2.12.dmg" from the SDL_image website:
+http://www.libsdl.org/projects/SDL_mixer/
+Open the .dmg and copy "SDL_image.framework" to "/Library/Frameworks"
+
+Installing SDL_mixer
+--------------------------------
+Download "SDL_mixer-1.2.12.dmg" from the SDL_mixer website:
+http://www.libsdl.org/projects/SDL_mixer/
+Open the .dmg and copy "SDL_mixer.framework" to "/Library/Frameworks"
 
 Cloning
 --------------------------------

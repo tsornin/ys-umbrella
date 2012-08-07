@@ -21,6 +21,12 @@ Engine::initVideo
 */
 bool Engine::initVideo()
 {
+	if ( SDL_InitSubSystem( SDL_INIT_VIDEO ) == -1 ) {
+		std::cerr << "SDL video subsystem initialization failed: "
+			<< SDL_GetError() << std::endl;
+		return false;
+	}
+
 	if ( !setVideoMode( SCREEN_WIDTH, SCREEN_HEIGHT, false ) ) {
 		return false;
 	}
