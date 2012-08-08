@@ -6,24 +6,22 @@
 PLATFORM := $(shell uname)
 
 ifeq "$(PLATFORM)" "MINGW32_NT-6.1"
+	SYSTEM_LIBS = -lmingw32 -mwindows
+
 	SDL_FLAGS = -IC:/MinGW/include/SDL
-	SDL_LIBS = -LC:/MinGW/lib -mwindows -lmingw32 -lSDLmain -lSDL
+	SDL_LIBS = -LC:/MinGW/lib/SDL -mwindows -lmingw32 -lSDLmain -lSDL_mixer -lSDL
 
-	# SDL_IMAGE_FLAGS = 
-	# SDL_IMAGE_LIBS = -lSDL_image
-
-	# SDL_MIXER_FLAGS = 
-	# SDL_MIXER_LIBS = -lSDL_mixer
+	SDL_MIXER_FLAGS =
+	SDL_MIXER_LIBS = -LC:/MinGW/lib/SDL -lSDL_mixer
 
 	GL_LIBS = -lopengl32 -lglu32
 endif
 
 ifeq "$(PLATFORM)" "Darwin"
-	SDL_FLAGS = -I/Library/Frameworks/SDL.framework/Headers
-	SDL_LIBS = -framework SDL -framework Cocoa
+	SYSTEM_LIBS = -framework Cocoa
 
-	SDL_IMAGE_FLAGS = -I/Library/Frameworks/SDL_image.framework/Headers
-	SDL_IMAGE_LIBS = -framework SDL_image
+	SDL_FLAGS = -I/Library/Frameworks/SDL.framework/Headers
+	SDL_LIBS = -framework SDL
 
 	SDL_MIXER_FLAGS = -I/Library/Frameworks/SDL_mixer.framework/Headers
 	SDL_MIXER_LIBS = -framework SDL_mixer
@@ -67,13 +65,10 @@ endif
 
 # ==============================
 # Compiler, flags, binary name
-
-# TODO: LDFLAGS?
-# TODO: make sure that -I$(SRC_DIR) allows proper including
 # ==============================
 CXX = g++
-CXXFLAGS = --std=c++11 -Wall -I. -I$(SRC_DIR) $(SDL_FLAGS) $(SDL_IMAGE_FLAGS) $(SDL_MIXER_FLAGS)
-LIBS = $(SDL_LIBS) $(GL_LIBS) $(SDL_IMAGE_LIBS) $(SDL_MIXER_LIBS)
+CXXFLAGS = --std=c++11 -Wall -I. -I$(SRC_DIR) $(SDL_FLAGS) $(SDL_MIXER_FLAGS)
+LDFLAGS = $(SYSTEM_LIBS) $(SDL_MIXER_LIBS) $(SDL_LIBS) $(GL_LIBS)
 BIN = ys
 RM = rm -f
 
@@ -114,7 +109,7 @@ native: all
 # Rules
 # ==============================
 $(BIN): $(OBJ_FILES)
-	$(CXX) $(LDFLAGS) $^ $(LIBS) -o $@
+	$(CXX) $^ $(LDFLAGS) -o $@
 
 # Collects object files in a separate directory.
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp

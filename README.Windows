@@ -3,11 +3,6 @@ Installing gcc 4.7 with MinGW
 This distro of MinGW includes gcc 4.7 and git:
 http://nuwen.net/mingw.html
 
-After installation, add these programs to "C:\MinGW\bin":
-	rm.exe (needed by Makefile)
-	gdb.exe (for debugging)
-	ls.exe (you're going to type it by accident)
-
 Add "C:\MinGW\bin" to the system PATH.
 
 
@@ -20,13 +15,22 @@ Add "C:\MinGW\git\bin" to the system PATH.
 Installing SDL
 --------------------------------
 This distro of MinGW includes SDL.
-Copy "C:\MinGW\bin\SDL.dll" to the project folder.
+Copy "C:\MinGW\bin\SDL.dll" to the project directory.
+
+
+Installing SDL_mixer
+--------------------------------
+This distro of MinGW includes SDL_mixer, but it doesn't link properly (?)
+Download "SDL_mixer-devel-1.2.12-VC.zip" from this website:
+http://www.libsdl.org/projects/SDL_mixer/
+Copy the "*.lib" files into "C:\MinGW\lib\SDL".
+Copy the "*.dll" files into the project directory.
 
 
 Cloning
 --------------------------------
 Run "C:\MinGW\open_distro_window.bat".
-Run "ssh-keygen -t RSA".
+Run "ssh-keygen -t rsa".
 Make the folder "C:\Users\[YOUR_USERNAME]\.ssh" in a command prompt.
 Move "id_rsa" and "id_rsa.pub" to "C:\Users\[YOUR_USERNAME]\.ssh".
 Upload "id_rsa.pub" to your Assembla account.

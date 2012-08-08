@@ -15,7 +15,7 @@ bool Engine::initAudio()
 		return false;
 	}
 
-	if ( Mix_Init( MIX_INIT_MP3 ) == 0 ) {
+	if ( Mix_Init( MIX_INIT_OGG ) == -1 ) {
 		return false;
 	}
 
@@ -24,5 +24,5 @@ bool Engine::initAudio()
 
 void Engine::cleanupAudio()
 {
-	return;
+	Mix_Quit();
 }

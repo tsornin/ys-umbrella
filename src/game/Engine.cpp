@@ -54,8 +54,9 @@ void Engine::cleanup()
 	}
 
 	// TODO: cleanup for subsystems.
-
 	rd.cleanup();
+
+	cleanupAudio();
 
 	SDL_Quit();
 }
