@@ -1,26 +1,30 @@
-#ifndef PHYSICS_EULER_H
-#define PHSYICS_EULER_H
+#ifndef PHYSICS_RIGID_H
+#define PHSYICS_RIGID_H
 
 #include "PhysicsTags.h"
 #include "spatial/Vec2.h"
+#include "spatial/Convex.h"
 
 class AABB;
 class InputSet;
 
 /*
 ================================
-Euler particle.
+Rigid body.
 
-Provides a dedicated particle type for unstable particle simulations.
+Represents a rigid body with associated collision shapes.
 
 Instances of this class are managed by the physics engine.
-Use PhysicsState::createEuler to create an Euler particle.
+Use PhysicsState::createRigid to create a Rigid body.
+
+Rigid bodies with no shapes are errors
+(should have used an Euler particle instead).
 ================================
 */
-class Euler : public PhysicsTags
+class Rigid : public PhysicsTags
 {
 private: // Lifecycle
-	Euler();
+	Rigid();
 	friend class PhysicsState;
 
 public: // "Entity" functions
@@ -29,7 +33,8 @@ public: // "Entity" functions
 	AABB getAABB() const;
 	friend class Renderer;
 
-public: // Euler functions
+public: // Rigid functions
+	// TODO: some function to get world-space Convex shapes
 
 public: // Accessors
 	Scalar getX() const { return position.x; }
@@ -39,9 +44,14 @@ public: // Accessors
 	Vec2 getVelocity() const { return velocity; }
 	bool isLinearEnable() const { return linear_enable; }
 
+	Scalar getAngle() const { return angle; }
+	Scalar getAngularVelocity() const { return angular_velocity; }
+	bool isAngularEnable() const { return angular_enable; }
+
 	Vec2 getGravity() const { return gravity; }
 
 	Scalar getMass() const { return mass; }
+	Scalar getMoment() const { return moment; }
 	Scalar getBounce() const { return bounce; }
 
 public: // Mutators (set)
@@ -52,16 +62,25 @@ public: // Mutators (set)
 	void setVelocity( const Vec2& vel ) { if ( linear_enable ) { velocity = vel; } }
 	void setLinearEnable( bool le ) { linear_enable = le; }
 
+	void setAngle( const Scalar th ) { angle = th; }
+	void setAngularVelocity( const Scalar w ) { if ( angular_enable ) { angular_velocity = w; } }
+	void setAngularEnable( bool ae ) { angular_enable = ae; }
+
 	void setLinearDamping( Scalar ld ) { linear_damping = ld; }
+	void setAngularDamping( Scalar ad ) { angular_damping = ad; }
 
 	void setGravity( Vec2 g ) { gravity = g; }
 
 	void setMass( Scalar m ) { mass = m; }
+	void setMoment( Scalar i ) { moment = i; }
 	void setBounce( Scalar b ) { bounce = b; }
 
 public: // Mutators (add)
 	void addPosition( const Vec2& add ) { if ( linear_enable ) { position += add; } }
 	void addVelocity( const Vec2& add ) { if ( linear_enable ) { velocity += add; } }
+
+	void addAngle( const Scalar th ) { if ( angular_enable ) { angle += th; } }
+	void addAngularVelocity( const Scalar w ) { if ( angular_enable ) { angular_velocity += w; } }
 
 private: // Members
 	// Position state
@@ -71,9 +90,16 @@ private: // Members
 		previous;
 	bool linear_enable; // Must enable this to move.
 
+	// Rotation state
+	Scalar
+		angle, // in radians
+		angular_velocity; // in radians/frame
+	bool angular_enable; // Must enable this to rotate.
+
 	// Damping
 	Scalar
-		linear_damping;
+		linear_damping,
+		angular_damping;
 
 	// Gravity
 	Vec2
@@ -82,7 +108,11 @@ private: // Members
 	// Collision properties
 	Scalar
 		mass,
+		moment,
 		bounce;
+
+private: // Members
+	std::vector < Convex > shapes; // object space
 };
 
 #endif

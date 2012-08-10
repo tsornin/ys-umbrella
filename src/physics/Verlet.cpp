@@ -18,7 +18,7 @@ Verlet::Verlet() :
 	// Collision properties
 	mass( STANDARD_MASS ),
 	bounce( 0 ),
-	// // Physics engine graph data
+	// Physics engine graph data
 	marked( false ),
 	component_id( -1 )
 {

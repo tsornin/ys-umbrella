@@ -40,14 +40,18 @@ public: // Accessors
 	Vec2 getPosition() const { return position; }
 	Vec2 getVelocity() const { return velocity; }
 	bool isLinearEnable() const { return linear_enable; }
+
 	Vec2 getGravity() const { return gravity; }
+
 	Scalar getMass() const { return mass; }
 	Scalar getBounce() const { return bounce; }
 
 public: // Mutators (set)
 	void setPosition( const Vec2& pos ) { if ( linear_enable ) { position = pos; } }
 	void setLinearEnable( bool le ) { linear_enable = le; }
+
 	void setGravity( const Vec2& g ) { gravity = g; }
+
 	void setMass( Scalar m ) { mass = m; }
 	void setBounce( Scalar b ) { bounce = b; }
 

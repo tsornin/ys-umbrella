@@ -14,9 +14,9 @@ int main( int argc, char** argv )
 
 	if ( !game.init() ) return 1;
 
-	game.push( BlankState::Instance() );
-	game.push( PhysicsState::Instance() );
-	game.push( EntityState::Instance() );
+	// game.push( BlankState::Instance() );
+	// game.push( PhysicsState::Instance() );
+	// game.push( EntityState::Instance() );
 
 	game.push( BarTestState::Instance() );
 	game.push( ClothTestState::Instance() );

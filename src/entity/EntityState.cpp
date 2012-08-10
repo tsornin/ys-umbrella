@@ -62,6 +62,10 @@ void EntityState::update( Engine* game )
 	PhysicsState::update( game );
 
 	for ( Entity* en : entities ) en->update();
+
+	// Compute cursor
+	// cursor_prev = cursor;
+	// cursor = cam->window2world( mx, my );
 }
 
 /*
@@ -88,6 +92,55 @@ void EntityState::setCaption( std::ostringstream& buffer )
 	buffer << " || Entity:";
 	buffer << " " << entities.size();
 }
+
+/*
+================================
+EntityState mouse functions
+================================
+*/
+
+// void EntityState::mouseMoved( const SDL_MouseMotionEvent& e )
+// {
+// 	mx = e.x;
+// 	my = e.y;
+// }
+
+// void EntityState::mouseDragged( const SDL_MouseMotionEvent& e )
+// {
+	
+// }
+
+// void EntityState::mouseUp( const SDL_MouseButtonEvent& e )
+// {
+// 	if ( e.button == SDL_BUTTON_LEFT ) {
+// 		ml = false;
+// 	}
+// 	if ( e.button == SDL_BUTTON_RIGHT ) {
+// 		mr = false;
+// 		mv = 0;
+// 	}
+// }
+
+// void EntityState::mouseDown( const SDL_MouseButtonEvent& e )
+// {
+// 	if ( e.button == SDL_BUTTON_LEFT ) {
+// 		ml = true;
+// 	}
+// 	if ( e.button == SDL_BUTTON_RIGHT ) {
+// 		if ( !mr ) {
+// 			// mv = PhysicsState::nearestVerlet( cursor, 20 );
+// 			mv = 0;
+// 		}
+// 		mr = true;
+// 	}
+
+// 	// if ( e.button == SDL_BUTTON_WHEELUP ) {
+// 	// 	cam->zoomIn();
+// 	// }
+// 	// if ( e.button == SDL_BUTTON_WHEELDOWN ) {
+// 	// 	cam->zoomOut();
+// 	// }
+// }
 
 /*
 ================================
