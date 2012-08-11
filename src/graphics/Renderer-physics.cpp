@@ -1,4 +1,5 @@
 #include "Renderer.h"
+#include "spatial/AABB.h"
 #include "physics/Euler.h"
 #include "physics/Rigid.h"
 #include "physics/Verlet.h"
@@ -48,9 +49,9 @@ void Renderer::drawRigid( const Rigid& rg )
 		}
 	glPopMatrix();
 
-	// TODO: try drawing AABB, don't draw AABB
+	// drawAABB( rg.getAABB() );
 
-	// TODO: draw centroid
+	// Draw centroid
 	Scalar d = std::pow( rg.mass, 0.33 ) + 4.0;
 
 	glPointSize( d );
@@ -59,8 +60,22 @@ void Renderer::drawRigid( const Rigid& rg )
 		gl_SetVertex( rg.position );
 	glEnd();
 
+	if ( !rg.angular_enable ) {
+		glPointSize( d * 0.8 );
+		gl_SetColor( RGBA_BLACK );
+		glBegin( GL_POINTS );
+			gl_SetVertex( rg.position );
+		glEnd();
+	}
+
+	glPointSize( d * 0.6 );
+	gl_SetColor( RGBA_WHITE );
+	glBegin( GL_POINTS );
+		gl_SetVertex( rg.position );
+	glEnd();
+
 	if ( !rg.linear_enable ) {
-		glPointSize( d/2 );
+		glPointSize( d * 0.4 );
 		gl_SetColor( RGBA_BLACK );
 		glBegin( GL_POINTS );
 			gl_SetVertex( rg.position );

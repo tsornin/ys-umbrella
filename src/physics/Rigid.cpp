@@ -32,6 +32,65 @@ Rigid::Rigid() :
 
 /*
 ================================
+Rigid::Rigid
+
+Creates a Rigid body with mass properties
+computed from the specified Convex shapes.
+================================
+*/
+Rigid::Rigid( const std::vector < Convex >& pgs ) :
+	Rigid()
+{
+	shapes = pgs;
+
+	int n = shapes.size();
+
+	// Compute convex properties
+	// Save data for aggregate calculations
+	std::vector < Scalar > masses(n);
+	std::vector < Scalar > moments(n);
+	std::vector < Vec2 > centroids(n);
+	for ( int i = 0; i < n; ++i ) {
+		Scalar mass; Scalar moment; Vec2 centroid;
+		shapes[i].calculate( mass, moment, centroid );
+
+		masses[i] = ( mass );
+		moments[i] = ( moment );
+		centroids[i] = ( centroid );
+	}
+
+	// Compute aggregate properties
+	// Avoid having zero-mass rigid bodies.
+	mass = STANDARD_MASS;
+	moment = STANDARD_MOMENT;
+
+	// Sum masses first
+	for ( int i = 0; i < n; ++i ) {
+		mass += masses[i];
+	}
+
+	// Find centroid with mass-weighted average of position
+	for ( int i = 0; i < n; ++i ) {
+		position += centroids[i] * masses[i];
+	}
+	position /= mass;
+
+	// Now that we have the centroid (which is the Rigid's position),
+	// we can sum the moments (calculated about individual Convex centroids)
+	// using the parallel axis theorem.
+	for ( int i = 0; i < n; ++i ) {
+		Vec2 r = centroids[i] - position;
+		moment += moments[i] + masses[i] * (r*r);
+	}
+
+	// Now that we have the centroid, we shift shapes to object space
+	for ( int i = 0; i < n; ++i ) {
+		shapes[i].translate( -position );
+	}
+}
+
+/*
+================================
 Rigid::input
 
 Provides general-purpose movement and rotation in any direction.

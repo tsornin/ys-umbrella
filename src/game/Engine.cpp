@@ -29,9 +29,9 @@ bool Engine::init()
 		return false;
 	}
 
-	if ( !initAudio() ) {
-		return false;
-	}
+	// if ( !initAudio() ) {
+	// 	return false;
+	// }
 
 	rd.init();
 

@@ -30,15 +30,14 @@ void PhysicsState::destroyEuler( Euler* eu )
 /*
 ================================
 PhysicsState::createRigid
+
+Creates a new Rigid body shaped like the specified MeshOBJ.
 ================================
 */
-Rigid* PhysicsState::createRigid( const MeshOBJ& obj, RigidType rt ) 
+Rigid* PhysicsState::createRigid( const MeshOBJ& obj, RigidType rt )
 {
-	Rigid* rg = new Rigid();
-	rg->pid = nextPID();
-	rgs.push_back( TRigid( rt, rg ) );
-
 	// Copy OBJ data
+	std::vector < Convex > pgs;
 	for ( unsigned int i = 0; i < obj.faces.size(); ++i ) {
 		std::vector < Vec2 > points;
 		const FaceOBJ& f = obj.faces[i];
@@ -46,54 +45,12 @@ Rigid* PhysicsState::createRigid( const MeshOBJ& obj, RigidType rt )
 			VertexOBJ v = obj.getVertex( f.vis[i] );
 			points.push_back( Vec2( v.x, v.y ) * obj.scale );
 		}
-		rg->shapes.push_back( Convex( points ) );
+		pgs.push_back( Convex( points ) );
 	}
 
-	int n = rg->shapes.size();
-
-	// Compute convex properties
-	// Save data for aggregate calculations
-	std::vector < Scalar > masses(n);
-	std::vector < Scalar > moments(n);
-	std::vector < Vec2 > centroids(n);
-	for ( int i = 0; i < n; ++i ) {
-		Scalar mass; Scalar moment; Vec2 centroid;
-		rg->shapes[i].calculate( mass, moment, centroid );
-
-		masses[i] = ( mass );
-		moments[i] = ( moment );
-		centroids[i] = ( centroid );
-	}
-
-	// Compute aggregate properties
-	// Avoid having zero-mass rigid bodies.
-	rg->mass = STANDARD_MASS;
-	rg->moment = STANDARD_MOMENT;
-
-	// Sum masses first
-	for ( int i = 0; i < n; ++i ) {
-		rg->mass += masses[i];
-	}
-
-	// Find centroid with mass-weighted average of position
-	for ( int i = 0; i < n; ++i ) {
-		rg->position += centroids[i] * masses[i];
-	}
-	rg->position /= rg->mass;
-
-	// Now that we have the centroid (which is the Rigid's position),
-	// we can sum the moments (calculated about individual Convex centroids)
-	// using the parallel axis theorem.
-	for ( int i = 0; i < n; ++i ) {
-		Vec2 r = centroids[i] - rg->position;
-		rg->moment += moments[i] + masses[i] * (r*r);
-	}
-
-	// Now that we have the centroid, we shift shapes to object space
-	for ( int i = 0; i < n; ++i ) {
-		rg->shapes[i].translate( -rg->position );
-	}
-
+	Rigid* rg = new Rigid( pgs );
+	rg->pid = nextPID();
+	rgs.push_back( TRigid( rt, rg ) );
 	return rg;
 }
 

@@ -9,7 +9,15 @@ Renderer::drawAABB
 */
 void Renderer::drawAABB( const AABB& box )
 {
+	glLineWidth( 1.0 );
+	gl_SetColor( RGBA_RED.alpha( 0.5 ) );
 
+	glBegin( GL_LINE_LOOP );
+		gl_SetVertex( box.max );
+		gl_SetVertex( Vec2( box.min.x, box.max.y ) );
+		gl_SetVertex( box.min );
+		gl_SetVertex( Vec2( box.max.x, box.min.y ) );
+	glEnd();
 }
 
 /*

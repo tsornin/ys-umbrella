@@ -25,6 +25,7 @@ class Rigid : public PhysicsTags
 {
 private: // Lifecycle
 	Rigid();
+	Rigid( const std::vector < Convex >& pgs );
 	friend class PhysicsState;
 
 public: // "Entity" functions
