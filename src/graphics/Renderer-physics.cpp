@@ -14,6 +14,7 @@ Renderer::drawEuler
 void Renderer::drawEuler( const Euler& eu )
 {
 	Scalar d = std::pow( eu.mass, 0.33 ) + 4.0;
+	if ( d > 64.0 ) d = 64.0;
 
 	glPointSize( d );
 	gl_SetColor( RGBA_WHITE );
