@@ -19,6 +19,12 @@ public:
 	Color() : r(0), g(0), b(0), a(0) {}
 	Color( Scalar r, Scalar g, Scalar b, Scalar a = 1 ) :
 		r(r), g(g), b(b), a(a) {}
+
+	Color alpha( Scalar a ) const {
+		Color ret( *this );
+		ret.a = a;
+		return ret;
+	}
 };
 
 /*

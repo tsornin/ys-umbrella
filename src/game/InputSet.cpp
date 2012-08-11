@@ -6,8 +6,11 @@ InputSet::InputSet
 ================================
 */
 InputSet::InputSet() :
-	current( IK_TOTAL ),
-	previous( IK_TOTAL ) {}
+	current( IK_TOTAL, false ),
+	previous( IK_TOTAL, false )
+{
+
+}
 
 /*
 ================================

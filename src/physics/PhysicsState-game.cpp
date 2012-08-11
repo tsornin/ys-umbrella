@@ -36,8 +36,8 @@ void PhysicsState::cleanup()
 	for ( TEuler& te : eus ) delete te.second;
 	eus.clear();
 
-	// for ( TRigid& tr : rgs ) delete tr.second;
-	// rgs.clear();
+	for ( TRigid& tr : rgs ) delete tr.second;
+	rgs.clear();
 
 	for ( TVerlet& tv : vls ) delete tv.second;
 	vls.clear();
@@ -107,7 +107,7 @@ void PhysicsState::draw( Engine* game )
 	// 	game->rd.drawAABB( vx.getAABB() );
 	// }
 
-	// for ( TRigid& tr : rgs ) game->rd.drawRigid( *tr.second );
+	for ( TRigid& tr : rgs ) game->rd.drawRigid( *tr.second );
 
 	for ( TEuler& te : eus ) game->rd.drawEuler( *te.second );
 
@@ -128,7 +128,7 @@ void PhysicsState::setCaption( std::ostringstream& buffer )
 	buffer << " || Physics:";
 	buffer << " " << frames_elapsed << " frames elapsed";
 
-	buffer << " " << eus.size() << "/" /*<< rgs.size() << "/"*/ << vls.size();
+	buffer << " " << eus.size() << "/" << rgs.size() << "/" << vls.size();
 	buffer << " " << dcs.size() << "/" << acs.size();
 	// buffer << " cc: " << connected_components.size();
 }

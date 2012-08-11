@@ -48,8 +48,8 @@ EntityState::input
 ================================
 */
 void EntityState::input( Engine* game )
-{
-	// cam->input( game-is2 );
+
+	// cam->input( game->is2 );
 }
 
 /*

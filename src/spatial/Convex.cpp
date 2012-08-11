@@ -5,16 +5,62 @@
 
 /*
 ================================
+Convex::Convex
+================================
+*/
+Convex::Convex( const std::vector < Vec2 >& points ) :
+	points( points )
+{
+	// Compute normals
+	int n = points.size();
+	for ( int i = 0; i < n; ++i ) {
+		const Vec2& p = points[i]; // current point
+		const Vec2& q = points[ (i+1) % n ]; // next point
+		// Expected CCW: right-hand normal faces outwards
+		Vec2 normal = (q - p).rperp();
+		normal.normalize();
+		normals.push_back( normal );
+	}
+
+	// TODO: we shouldn't have to do this
+	verify();
+}
+
+/*
+================================
+Convex::negation
+
+Returns a Convex C such that for all points p,
+iff this->contains( p ) then C.contains( -p ).
+================================
+*/
+const Convex Convex::negation() const
+{
+	Convex ret( *this );
+
+	int n = ret.points.size();
+	for ( int i = 0; i < n; ++i ) {
+		ret.points[i] = -ret.points[i];
+	}
+	for ( int i = 0; i < n; ++i ) {
+		ret.normals[i] = -ret.normals[i];
+	}
+
+	return ret;
+}
+
+/*
+================================
 Convex::contains (overloaded)
 
 Returns true if this polygon contains the specified point
 (point-in-polygon query).
-
-Here, we describe this polygon as an intersection of half-spaces.
 ================================
 */
 bool Convex::contains( const Vec2& p ) const
 {
+	// A convex polygon can be described
+	// as an intersection of half-spaces.
 	int n = points.size();
 	for ( int i = 0; i < n; ++i ) {
 		Wall w( points[i], normals[i] );
@@ -253,12 +299,12 @@ bool Convex::verify()
 
 /*
 ================================
-Convex::getProperties
+Convex::calculate
 
 Calculates the area, centroid, and moment (about the centroid) of this polygon.
 ================================
 */
-void Convex::getProperties( Scalar& area, Scalar& moment, Vec2& centroid ) const
+void Convex::calculate( Scalar& area, Scalar& moment, Vec2& centroid ) const
 {
 	int n = points.size();
 	switch ( n )
@@ -308,7 +354,7 @@ void Convex::getProperties( Scalar& area, Scalar& moment, Vec2& centroid ) const
 			moment += ( p0*p0 + p0*p1 + p1*p1 ) * cross;
 		}
 
-		// TODO: verify that moment/area are positive
+		// TODO: assert that moment/area are positive
 
 		// Normalize area sum.
 		area /= 2.0;

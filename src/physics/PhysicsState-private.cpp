@@ -51,7 +51,7 @@ Removes and deletes expired physics objects.
 void PhysicsState::expire()
 {
 	eus.remove_if( TExpire < TEuler >() );
-	// rgs.remove_if( TExpire < TRigid >() );
+	rgs.remove_if( TExpire < TRigid >() );
 	vls.remove_if( TExpire < TVerlet >() );
 	dcs.remove_if( TExpire < TDistance >() );
 
@@ -151,7 +151,7 @@ Applies velocities to positions, possibly creating collisions.
 void PhysicsState::integrate_position()
 {
 	for ( TEuler& te : eus ) te.second->update();
-	// for ( TRigid& tr : rgs ) tr.second->update();
+	for ( TRigid& tr : rgs ) tr.second->update();
 	for ( TVerlet& tv : vls ) tv.second->update();
 }
 

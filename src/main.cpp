@@ -16,7 +16,7 @@ int main( int argc, char** argv )
 
 	// game.push( BlankState::Instance() );
 	// game.push( PhysicsState::Instance() );
-	// game.push( EntityState::Instance() );
+	game.push( EntityState::Instance() );
 
 	game.push( BarTestState::Instance() );
 	game.push( ClothTestState::Instance() );

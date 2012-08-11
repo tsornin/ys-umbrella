@@ -1,5 +1,6 @@
 #include "Renderer.h"
 #include "physics/Euler.h"
+#include "physics/Rigid.h"
 #include "physics/Verlet.h"
 #include "physics/Distance.h"
 #include "physics/Angular.h"
@@ -11,7 +12,60 @@ Renderer::drawEuler
 */
 void Renderer::drawEuler( const Euler& eu )
 {
+	Scalar d = std::pow( eu.mass, 0.33 ) + 4.0;
 
+	glPointSize( d );
+	gl_SetColor( RGBA_WHITE );
+	glBegin( GL_POINTS );
+		gl_SetVertex( eu.position );
+	glEnd();
+
+	if ( !eu.linear_enable ) {
+		glPointSize( d/2 );
+		gl_SetColor( RGBA_BLACK );
+		glBegin( GL_POINTS );
+			gl_SetVertex( eu.position );
+		glEnd();
+	}
+}
+
+/*
+================================
+Renderer::drawRigid
+================================
+*/
+void Renderer::drawRigid( const Rigid& rg )
+{
+	int n = rg.shapes.size();
+
+	glMatrixMode( GL_MODELVIEW );
+	glPushMatrix();
+		glTranslatef( rg.position.x, rg.position.y, 0 );
+		glRotatef( to_degrees( rg.angle ), 0, 0, 1 );
+
+		for ( int i = 0; i < n; ++i ) {
+			drawConvex( rg.shapes[i] );
+		}
+	glPopMatrix();
+
+	// TODO: try drawing AABB, don't draw AABB
+
+	// TODO: draw centroid
+	Scalar d = std::pow( rg.mass, 0.33 ) + 4.0;
+
+	glPointSize( d );
+	gl_SetColor( RGBA_WHITE );
+	glBegin( GL_POINTS );
+		gl_SetVertex( rg.position );
+	glEnd();
+
+	if ( !rg.linear_enable ) {
+		glPointSize( d/2 );
+		gl_SetColor( RGBA_BLACK );
+		glBegin( GL_POINTS );
+			gl_SetVertex( rg.position );
+		glEnd();
+	}
 }
 
 /*

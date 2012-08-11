@@ -14,9 +14,11 @@ Forward declarations
 
 // Spatial
 struct AABB;
+struct Convex;
 
 // Physics
 class Euler;
+class Rigid;
 class Verlet;
 class Distance;
 class Angular;
@@ -48,9 +50,11 @@ public: // Misc
 
 public: // Spatial
 	void drawAABB( const AABB& box );
+	void drawConvex( const Convex& pg );
 
 public: // Physics
 	void drawEuler( const Euler& eu );
+	void drawRigid( const Rigid& rg );
 	void drawVerlet( const Verlet& vl );
 	void drawDistance( const Distance& dc );
 	void drawAngular( const Angular& ac );

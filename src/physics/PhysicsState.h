@@ -4,12 +4,17 @@
 #include <list>
 #include <vector>
 #include "game/BlankState.h" // superclass BlankState
+#include "Constants.h"
 #include "Euler.h"
+#include "Rigid.h"
 #include "Verlet.h"
 #include "Distance.h"
 #include "Angular.h"
 
+#include "common/MeshOBJ.h"
+
 typedef unsigned int EulerType;
+typedef unsigned int RigidType;
 typedef unsigned int VerletType;
 typedef unsigned int DistanceType;
 
@@ -48,6 +53,9 @@ public: // Physics engine
 	Euler* createEuler( EulerType et = 0 );
 	void destroyEuler( Euler* eu );
 
+	Rigid* createRigid( const MeshOBJ& obj, RigidType rt = 0 );
+	void destroyRigid( Rigid* rg );
+
 	Verlet* createVerlet( VerletType vt = 0 );
 	void destroyVerlet( Verlet* vl );
 
@@ -80,6 +88,9 @@ private: // Members
 
 	typedef std::pair < EulerType, Euler* > TEuler;
 	std::list < TEuler > eus;
+
+	typedef std::pair < RigidType, Rigid* > TRigid;
+	std::list < TRigid > rgs;
 
 	typedef std::pair < VerletType, Verlet* > TVerlet;
 	std::list < TVerlet > vls;

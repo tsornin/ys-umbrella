@@ -64,7 +64,7 @@ public:
 	// Audio
 	bool initAudio();
 
-private: // Members
+public: // Members
 	// Stack
 	std::vector < State* > states;
 

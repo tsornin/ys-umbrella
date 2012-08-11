@@ -105,9 +105,29 @@ void Rigid::update()
 /*
 ================================
 Rigid::getAABB
+
+Returns a bounding box containing all the bounding boxes
+of the Convex shapes that make up this Rigid, in world space.
+
+Expensive. In the process,
+the world transform of each shape is computed, then discarded.
 ================================
 */
 AABB Rigid::getAABB() const
 {
-	return AABB( position );
+	// Start with a box enclosing the centroid.
+	// TODO: The centroid may not always be inside the shapes-box,
+	// (although it is for "well-formed" bodies such as those from
+	// PhysicsState::createRigid).
+	AABB box( position );
+
+	// TODO (convex concept):
+	// The plus operator is planned to become the Minkowski Sum.
+	int n = shapes.size();
+	for ( int i = 0; i < n; ++i ) {
+		Convex pg( shapes[i] );
+		pg.transform( position, angle );
+		box += pg.getAABB();
+	}
+	return box;
 }

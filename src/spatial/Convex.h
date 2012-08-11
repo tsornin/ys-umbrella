@@ -26,9 +26,10 @@ public: // Members
 	std::vector < Vec2 > normals;
 
 public: // Lifecycle
-	// TODO: Convex constructor
+	Convex( const std::vector < Vec2 >& points );
 
-public: // Collision
+public: // Convex
+	const Convex negation() const;
 	bool contains( const Vec2& p ) const;
 	std::pair < bool, Vec2 > correction( const Vec2& p ) const;
 	std::pair < bool, Vec2 > correction( const Vec2& p, const Vec2& bias ) const;
@@ -38,7 +39,7 @@ public: // Collision
 
 public: // Self
 	bool verify();
-	void getProperties( Scalar& area, Scalar& moment, Vec2& centroid ) const;
+	void calculate( Scalar& area, Scalar& moment, Vec2& centroid ) const;
 
 public: // Movement
 	void translate( Vec2 p );
