@@ -64,6 +64,9 @@ void Engine::run()
 		}
 
 		SDL_Delay( time_left() );
+		// while ( SDL_GetTicks() < next_time ) {
+		// 	SDL_Delay(1);
+		// }
 		next_time += TICK_INTERVAL;
 	}
 }

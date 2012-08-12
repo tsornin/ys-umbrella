@@ -15,7 +15,8 @@ Scalar geometric_mean( Scalar a, Scalar b )
 Scalar arithmetic_mean( Scalar a, Scalar b )
 	{ return ( a + b ) * 0.5; }
 
+// TODO: floating-point comparsions are really hard
 static const Scalar EQUALS_EPSILON = 1e-4;
-Scalar equals( Scalar a, Scalar b ) {
+bool equals( Scalar a, Scalar b ) {
 	return std::fabs( a - b ) <= EQUALS_EPSILON * std::fabs( a );
 }

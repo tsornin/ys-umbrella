@@ -39,7 +39,7 @@ Scalar to_radians( Scalar deg );
 Scalar geometric_mean( Scalar a, Scalar b );
 Scalar arithmetic_mean( Scalar a, Scalar b );
 
-Scalar equals( Scalar a, Scalar b );
+bool equals( Scalar a, Scalar b );
 
 template< typename T >
 bool bound( T& n, const T& a, const T& b ) {

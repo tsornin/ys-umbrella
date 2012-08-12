@@ -81,6 +81,7 @@ private: // Physics timestep
 		VerletGraph mark_connected( Verlet* root );
 	void detect_collisions();
 		void clear_collision_data();
+		void transform_convex();
 
 	int nextPID();
 

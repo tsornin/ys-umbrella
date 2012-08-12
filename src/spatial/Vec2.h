@@ -36,10 +36,10 @@ public:
 	================================
 	*/
 	Scalar& operator [] ( const unsigned int i ) { return ( (Scalar*) this )[i]; }
-	const Scalar operator [] ( const unsigned int i ) const { return ( (Scalar*) this )[i]; }
+	Scalar operator [] ( const unsigned int i ) const { return ( (Scalar*) this )[i]; }
 
 	Scalar& operator () ( const unsigned int i ) { return operator [] (i); }
-	const Scalar operator () ( const unsigned int i ) const { return operator [] (i); }
+	Scalar operator () ( const unsigned int i ) const { return operator [] (i); }
 
 	/*
 	================================
@@ -78,24 +78,24 @@ public:
 	Vector multiplication operators
 	================================
 	*/
-	const Scalar operator * ( const Vec2& v ) const { return ( x*v.x + y*v.y ); }
-	const Scalar operator ^ ( const Vec2& v ) const { return ( x*v.y - y*v.x ); }
+	Scalar operator * ( const Vec2& v ) const { return ( x*v.x + y*v.y ); }
+	Scalar operator ^ ( const Vec2& v ) const { return ( x*v.y - y*v.x ); }
 
-	const Scalar dot  ( const Vec2& v ) const { return (*this) * v; }
-	const Scalar cross( const Vec2& v ) const { return (*this) ^ v; }
+	Scalar dot  ( const Vec2& v ) const { return (*this) * v; }
+	Scalar cross( const Vec2& v ) const { return (*this) ^ v; }
 
 	/*
 	================================
 	Length functions
 	================================
 	*/
-	const Scalar length2() const { return dot( *this ); }
+	Scalar length2() const { return dot( *this ); }
 
-	const Scalar length() const { return std::sqrt( length2() ); }
+	Scalar length() const { return std::sqrt( length2() ); }
 
-	const Vec2 unit() const { return operator / ( length() ); }
+	Vec2 unit() const { return operator / ( length() ); }
 
-	const Scalar normalize() {
+	Scalar normalize() {
 		Scalar ret = length();
 		operator /= ( ret );
 		return ret;
@@ -131,7 +131,7 @@ public:
 		return b * ( this->dot( b ) );
 	}
 
-	const Scalar scalar_component( const Vec2& b ) const {
+	Scalar scalar_component( const Vec2& b ) const {
 		return this->dot( b.unit() );
 	}
 
@@ -154,7 +154,7 @@ public:
 			x * sin + y * cos );
 	}
 
-	const Scalar theta() const { return std::atan2( y, x ); }
+	Scalar theta() const { return std::atan2( y, x ); }
 
 	/*
 	================================
@@ -197,7 +197,7 @@ public:
 	}
 
 	// Smaller angle between two vectors
-	static const Scalar angle( const Vec2& u, const Vec2& v ) {
+	static Scalar angle( const Vec2& u, const Vec2& v ) {
 		return std::acos( u.dot( v ) / u.length() / v.length() );
 	}
 
