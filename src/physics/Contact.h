@@ -1,17 +1,22 @@
 #ifndef PHYSICS_CONTACT_H
 #define PHYSICS_CONTACT_H
 
+class Rigid;
+
 struct Contact
 {
 public:
-	// Points away from body 1
-	Vec2 normal;
+	Vec2 normal; // Points away from body A
+	Scalar overlap; // Positive when penetrating
 
-	int b1_index;
-	Vec2 b1_where;
+	// TODO: We don't need the Rigid bodies here, do we?
+	Rigid* a;
+	int a_i;
+	Vec2 a_p;
 
-	int b2_index;
-	Vec2 b2_where;
+	Rigid* b;
+	int b_i;
+	Vec2 b_p;
 };
 
 #endif

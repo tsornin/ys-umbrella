@@ -4,6 +4,7 @@
 #include "physics/Verlet.h"
 #include "physics/Distance.h"
 #include "physics/Angular.h"
+#include "physics/Contact.h"
 
 /*
 ================================
@@ -132,4 +133,21 @@ Renderer::drawAngular
 void Renderer::drawAngular( const Angular& ac )
 {
 
+}
+
+/*
+================================
+Renderer::drawContact
+================================
+*/
+void Renderer::drawContact( const Contact& ct )
+{
+	glLineWidth( 1.0 );
+	gl_SetColor( RGBA_GREEN );
+	glBegin( GL_LINE_STRIP );
+		gl_SetVertex( ct.a->position );
+		gl_SetVertex( ct.a_p );
+		gl_SetVertex( ct.b_p );
+		gl_SetVertex( ct.b->position );
+	glEnd();
 }

@@ -1,6 +1,7 @@
 #include "PhysicsState.h"
 #include <queue>
 #include <algorithm> // for std::remove_if
+#include "spatial/PD_BruteForce.h"
 
 /*
 ================================
@@ -282,6 +283,7 @@ void PhysicsState::detect_collisions()
 	clear_collision_data();
 	transform_convex();
 
+	detect_rigid_collisions();
 	// detect_solve_euler_rigid();
 	// detect_solve_verlet_rigid();
 }
@@ -295,7 +297,8 @@ Clears all collision data from the last frame.
 */
 void PhysicsState::clear_collision_data()
 {
-	// pgs.clear();
+	rigid_shapes.clear();
+	rigid_contacts.clear();
 	// verlet_wall_contacts.clear();
 }
 
@@ -312,14 +315,67 @@ TODO: A more sophisticated on-demand transforming scheme?
 */
 void PhysicsState::transform_convex()
 {
-	// for ( TRigid& tr : rgs ) {
-	// 	Rigid* rg = tr.second;
-	// 	for ( const Convex& pg : rg->shapes ) {
-	// 		Convex t( pg );
-	// 		t.transform( rg->position, rg->angle );
-	// 		pgs.push_back( std:pair < TRigid, Convex >( tr, t ) );
-	// 	}
-	// }
+	for ( unsigned int i = 0; i < rgs.size(); ++i ) {
+		Rigid* rg = rgs[i];
+
+		// Skip non-colliding Rigid bodies
+		//if ( rg->mask == 0 ) continue;
+
+		for ( const Convex& pg : rg->shapes ) {
+			Convex t( pg );
+			t.transform( rg->position, rg->angle );
+			rigid_shapes.insert( std::pair < int, Convex >( i, t ) );
+		}
+	}
+}
+
+/*
+================================
+PhysicsState::detect_rigid_collisions
+================================
+*/
+void PhysicsState::detect_rigid_collisions()
+{
+	// Rigid body vertex potpourri
+	PD_BruteForce < std::pair < int, Vec2 > > pd;
+	for ( const auto& pair : rigid_shapes ) {
+		int i = pair.first;
+		const Convex& pg = pair.second;
+
+		for ( Vec2 v : pg.points ) {
+			pd.insert( v, std::pair < int, Vec2 >( i, v ) );
+		}
+	}
+
+	for ( const auto& pair : rigid_shapes ) {
+		int a_i = pair.first;
+		const Convex& pg = pair.second;
+
+		for ( const auto& pair : pd.query( pg.getAABB() ) ) {
+			int b_i = pair.first;
+			const Vec2& v = pair.second;
+
+			// TODO: We're going to see a lot of this. Problem?
+			if ( a_i == b_i ) continue;
+
+			auto maybe_correction = pg.correction( v );
+			if ( !maybe_correction.first ) continue;
+			Vec2 normal = maybe_correction.second.first;
+			Scalar overlap = maybe_correction.second.second;
+			Vec2 correction = normal * overlap;
+
+			Contact c;
+				c.normal = normal;
+				c.overlap = overlap;
+				c.a = rgs[ a_i ];
+				c.a_i = a_i;
+				c.a_p = v + correction;
+				c.b = rgs[ b_i ];
+				c.b_i = b_i;
+				c.b_p = v;
+			rigid_contacts.push_back( c );
+		}
+	}
 }
 
 /*

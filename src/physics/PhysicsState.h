@@ -10,7 +10,7 @@
 #include "Verlet.h"
 #include "Distance.h"
 #include "Angular.h"
-
+#include "Contact.h"
 #include "common/MeshOBJ.h"
 
 typedef std::pair <
@@ -86,15 +86,14 @@ private: // Members
 	int next_pid;
 
 	std::vector < Rigid* > rgs;
+	std::multimap < int, Convex > rigid_shapes;
+	std::vector < Contact > rigid_contacts;
 
 	std::list < Euler* > eus;
 
 	std::list < Verlet* > vls;
 	std::list < Distance* > dcs;
 	std::list < Angular* > acs;
-
-	//std::multimap < int, Contact > rigid_shapes;
-
 	// Connected-components analysis of Verlet-Distance graph
 	bool dirty_connected_components;
 	std::vector < VerletGraph > connected_components;

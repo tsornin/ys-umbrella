@@ -75,14 +75,17 @@ Convex::correction (overloaded)
 
 Returns:
 	bool	true if this polygon contains the specified point
-	Vec2	the minimum correction to move the specified point
-			out of this polygon
+	Vec2	the (unit) axis along which the minimum distance was found
+	Scalar	the minimum distance from the specified point to this Convex
+
+When combined, the second half of the return value gives
+the minimum correction to move the specified point out of this polygon.
 ================================
 */
-std::pair < bool, Vec2 >
+std::pair < bool, std::pair < Vec2, Scalar > >
 Convex::correction( const Vec2& p ) const
 {
-	std::pair < bool, Vec2 > ret;
+	std::pair < bool, std::pair < Vec2, Scalar > > ret;
 	Scalar overlap = SCALAR_MAX;
 
 	int n = points.size();
@@ -104,7 +107,8 @@ Convex::correction( const Vec2& p ) const
 			Scalar overlap_c = max_b - min_a;
 			if ( overlap_c < overlap ) {
 				overlap = overlap_c;
-				ret.second = axis * overlap_c;
+				ret.second.first = axis;
+				ret.second.second = overlap_c;
 			}
 		}
 	}

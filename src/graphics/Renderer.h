@@ -22,6 +22,7 @@ class Rigid;
 class Verlet;
 class Distance;
 class Angular;
+class Contact;
 
 // Entity
 class Camera;
@@ -59,6 +60,7 @@ public: // Physics
 	void drawVerlet( const Verlet& vl );
 	void drawDistance( const Distance& dc );
 	void drawAngular( const Angular& ac );
+	void drawContact( const Contact& ct );
 
 public: // Entity
 	void drawCamera( const Camera& cam );

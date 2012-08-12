@@ -31,11 +31,13 @@ public: // Lifecycle
 public: // Convex
 	const Convex negation() const;
 	bool contains( const Vec2& p ) const;
-	std::pair < bool, Vec2 > correction( const Vec2& p ) const;
-	std::pair < bool, Vec2 > correction( const Vec2& p, const Vec2& bias ) const;
 	Vec2 nearest( const Vec2& p ) const;
-
 	AABB getAABB() const;
+
+public: // Other
+	std::pair < bool, std::pair < Vec2, Scalar > > correction( const Vec2& p ) const;
+	// Return correction, normal, and boolean.
+	std::pair < bool, Vec2 > correction( const Vec2& p, const Vec2& bias ) const;
 
 public: // Self
 	bool verify();

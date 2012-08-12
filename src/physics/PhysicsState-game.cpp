@@ -84,9 +84,9 @@ void PhysicsState::update( Engine* game )
 		dirty_connected_components = false;
 	}
 
-	// // During RG-VL detection,
+	// // TODO: During RG-VL detection,
 	// // wall constraints are tagged with Verlet component IDs
-	// detect_collisions();
+	detect_collisions();
 
 	relax_connected_components();
 }
@@ -106,6 +106,8 @@ void PhysicsState::draw( Engine* game )
 	// 	Convex& vx = pair.second;
 	// 	game->rd.drawAABB( vx.getAABB() );
 	// }
+
+	for ( Contact& ct : rigid_contacts ) game->rd.drawContact( ct );
 
 	for ( Rigid* rg : rgs ) game->rd.drawRigid( *rg );
 
@@ -129,7 +131,8 @@ void PhysicsState::setCaption( std::ostringstream& buffer )
 	buffer << " " << frames_elapsed << " frames elapsed";
 
 	buffer << " " << rgs.size();
-	// buffer << "/" << Show number of contacts/islands here.
+	buffer << "/" << rigid_shapes.size();
+	buffer << "/?"; // TODO: number of islands
 	buffer << ", " << eus.size();
 	buffer << ", " << vls.size() << "-" << dcs.size() << "-" << acs.size();
 	buffer << "/" << connected_components.size();
