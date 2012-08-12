@@ -1,5 +1,4 @@
 #include "Renderer.h"
-#include "spatial/AABB.h"
 #include "physics/Euler.h"
 #include "physics/Rigid.h"
 #include "physics/Verlet.h"

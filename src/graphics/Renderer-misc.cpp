@@ -44,24 +44,6 @@ void Renderer::begin()
 {
 	glClearColor( 0, 0, 0, 0 );
 	glClear( GL_COLOR_BUFFER_BIT );
-
-	// TODO: this shouldn't be here (just checking axes)
-	GLdouble z = 700;
-	GLdouble z_near = 699;
-	GLdouble z_far = 701;
-
-	glMatrixMode( GL_PROJECTION );
-	glLoadIdentity();
-	gluPerspective( 51.13, 1.5, z_near, z_far ); // 1.5 aspect
-
-	glMatrixMode( GL_MODELVIEW );
-	glLoadIdentity();
-	gluLookAt(
-		0, 0, z, // eye
-		0, 0, 0, // target
-		0, 1, 0 ); // up
-
-	drawAxes( 100 );
 }
 
 /*
@@ -87,14 +69,21 @@ void Renderer::drawAxes( Scalar m )
 	glLineWidth( 2.0 );
 	glBegin( GL_LINES );
 		gl_SetColor( RGBA_RED );
-		glVertex3d(  m, 0, 0 );
-		glVertex3d( -m, 0, 0 );
+		glVertex3f(  m, 0, 0 );
+		glVertex3f( -m, 0, 0 );
 		gl_SetColor( RGBA_GREEN );
-		glVertex3d( 0,  m, 0 );
-		glVertex3d( 0, -m, 0 );
+		glVertex3f( 0,  m, 0 );
+		glVertex3f( 0, -m, 0 );
 		gl_SetColor( RGBA_BLUE );
-		glVertex3d( 0, 0,  m );
-		glVertex3d( 0, 0, -m );
+		glVertex3f( 0, 0,  m );
+		glVertex3f( 0, 0, -m );
+	glEnd();
+
+	// Hide the intersection
+	glPointSize( 4.0 );
+	glBegin( GL_POINTS );
+		gl_SetColor( RGBA_WHITE );
+		glVertex3f( 0, 0, 0 );
 	glEnd();
 }
 

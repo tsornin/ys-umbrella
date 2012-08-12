@@ -24,6 +24,7 @@ class Distance;
 class Angular;
 
 // Entity
+class Camera;
 
 /*
 ================================
@@ -60,10 +61,12 @@ public: // Physics
 	void drawAngular( const Angular& ac );
 
 public: // Entity
+	void drawCamera( const Camera& cam );
 
 private: // Functions
 
-private: // Members;
+private: // Members
+
 };
 
 /*

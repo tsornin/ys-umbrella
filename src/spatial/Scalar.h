@@ -49,4 +49,10 @@ bool bound( T& n, const T& a, const T& b ) {
 	return ( n == n_prev );
 }
 
+template < typename T >
+void clamp( T& n, const T& a, const T& b ) {
+	if ( n < a ) n = a;
+	if ( b < n ) n = b;
+}
+
 #endif

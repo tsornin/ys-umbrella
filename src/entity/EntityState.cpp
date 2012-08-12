@@ -1,5 +1,6 @@
 #include "EntityState.h"
 #include "Entity.h"
+#include "Camera.h"
 
 /*
 ================================
@@ -25,8 +26,7 @@ void EntityState::init( Engine* game )
 
 	next_eid = 0;
 
-	// In the header: Camera* cam
-	// add( cam = new Camera( *this ) );
+	add( cam = new Camera( *this ) );
 }
 
 /*
@@ -49,7 +49,7 @@ EntityState::input
 */
 void EntityState::input( Engine* game )
 {
-	// cam->input( game->is2 );
+	cam->input( game->is2 );
 }
 
 /*
@@ -65,7 +65,7 @@ void EntityState::update( Engine* game )
 
 	// Compute cursor
 	// cursor_prev = cursor;
-	// cursor = cam->window2world( mx, my );
+	// cursor = cam->world( mx, my );
 }
 
 /*

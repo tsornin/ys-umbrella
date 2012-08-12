@@ -51,7 +51,7 @@ private: // Members
 	std::list < Entity* > entities;
 
 	// All top-level entities are also available here
-	// Camera* cam;
+	Camera* cam;
 
 	int mx, my;
 	bool ml, mr;
