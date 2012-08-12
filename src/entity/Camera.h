@@ -26,7 +26,7 @@ public: // Camera functions
 	void addTarget( Entity* en );
 	Entity* getTarget() const;
 
-	// Vec2 world( int wx, int wy );
+	Vec2 world( int wx, int wy );
 	// std::pair < int, int > window( Vec2 );
 
 	void zoomIn();

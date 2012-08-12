@@ -156,6 +156,54 @@ Entity* Camera::getTarget() const
 
 /*
 ================================
+Camera::world
+
+Wrapper around gluUnProject.
+Returns world (object) coordinates for the specified window coordinates.
+
+In 2D, the world is on the XY plane and we already know
+the distance from the camera to the XY plane.
+Given X and Y window coordinates, we need to find the point
+in object space which is z_distance away from the camera.
+
+In window space,
+	1/z_distance
+		= linterp( 1/z_near, 1/z_far, winZ )
+		= (1 - winZ) * 1/z_near + (winZ) * 1/z_far.
+
+Solving for winZ:
+	winZ = ( 1/z_near - 1/z_distance ) / ( 1/z_near - 1/z_far ).
+
+After the call to gluUnProject, objZ should be (approximately) zero.
+================================
+*/
+Vec2 Camera::world( const int wx, const int wy )
+{
+	GLdouble model[16];
+	GLdouble proj[16];
+	GLint view[4];
+	glGetDoublev( GL_MODELVIEW_MATRIX, model );
+	glGetDoublev( GL_PROJECTION_MATRIX, proj );
+	glGetIntegerv( GL_VIEWPORT, view );
+
+	GLdouble winX = wx;
+	GLdouble winY = view[3] - wy;
+	GLdouble winZ = ( 1.0f/z_near - 1.0f/this->z ) /
+		( 1.0f/z_near - 1.0f/z_far );
+
+	GLdouble objX, objY, objZ;
+	gluUnProject(
+		winX, winY, winZ,
+		model, proj, view,
+		&objX, &objY, &objZ );
+
+	// ASSERT: objZ should be (approximately) zero.
+
+	return Vec2( objX, objY );
+}
+
+/*
+================================
 Camera zooming
 ================================
 */

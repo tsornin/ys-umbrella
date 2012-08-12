@@ -67,6 +67,8 @@ public: // Physics engine
 
 	VerletGraph connected( Verlet* root );
 
+	Verlet* nearestVerlet( const Vec2& p, Scalar r );
+
 private: // Physics timestep
 	void expire();
 	void integrate();

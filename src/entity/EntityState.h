@@ -27,10 +27,10 @@ public: // State implementation
 
 	virtual void setCaption( std::ostringstream& buffer );
 
-	// virtual void mouseMoved( const SDL_MouseMotionEvent& e );
-	// virtual void mouseDragged( const SDL_MouseMotionEvent& e );
-	// virtual void mouseUp( const SDL_MouseButtonEvent& e );
-	// virtual void mouseDown( const SDL_MouseButtonEvent& e );
+	virtual void mouseMoved( const SDL_MouseMotionEvent& e );
+	virtual void mouseDragged( const SDL_MouseMotionEvent& e );
+	virtual void mouseUp( const SDL_MouseButtonEvent& e );
+	virtual void mouseDown( const SDL_MouseButtonEvent& e );
 
 public: // Singleton pattern
 	static EntityState* Instance();

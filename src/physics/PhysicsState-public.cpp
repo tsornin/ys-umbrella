@@ -273,3 +273,28 @@ VerletGraph PhysicsState::connected( Verlet* root )
 
 	return ret;
 }
+
+/*
+================================
+PhysicsState::nearestVerlet
+
+Returns the Verlet particle nearest to the specified location.
+Returns null if there are no Verlet particles within the specified radius.
+================================
+*/
+Verlet* PhysicsState::nearestVerlet( const Vec2& p, Scalar r )
+{
+	Verlet* ret = 0;
+	Scalar score = SCALAR_MAX;
+
+	for ( TVerlet& tv : vls ) {
+		Verlet* vl = tv.second;
+		Scalar rr = (vl->position - p).length2();
+		if ( rr < score ) {
+			ret = vl;
+			score = rr;
+		}
+	}
+
+	return score < r*r ? ret : 0;
+}
