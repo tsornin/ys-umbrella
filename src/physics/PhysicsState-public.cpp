@@ -2,33 +2,6 @@
 
 /*
 ================================
-PhysicsState::createEuler
-
-Creates a new Euler particle.
-================================
-*/
-Euler* PhysicsState::createEuler( EulerType et )
-{
-	Euler* eu = new Euler();
-	eu->pid = nextPID();
-	eus.push_back( TEuler( et, eu ) );
-	return eu;
-}
-
-/*
-================================
-PhysicsState::destroyEuler
-
-Marks the specified Euler particle for deletion.
-================================
-*/
-void PhysicsState::destroyEuler( Euler* eu )
-{
-	eu->expire_enable = true;
-}
-
-/*
-================================
 PhysicsState::createRigid
 
 Creates a new Rigid body shaped like the specified MeshOBJ.
@@ -50,7 +23,8 @@ Rigid* PhysicsState::createRigid( const MeshOBJ& obj, RigidType rt )
 
 	Rigid* rg = new Rigid( pgs );
 	rg->pid = nextPID();
-	rgs.push_back( TRigid( rt, rg ) );
+	rg->mask = rt;
+	rgs.push_back( rg );
 	return rg;
 }
 
@@ -68,6 +42,34 @@ void PhysicsState::destroyRigid( Rigid* rg )
 
 /*
 ================================
+PhysicsState::createEuler
+
+Creates a new Euler particle.
+================================
+*/
+Euler* PhysicsState::createEuler( EulerType et )
+{
+	Euler* eu = new Euler();
+	eu->pid = nextPID();
+	eu->mask = et;
+	eus.push_back( eu );
+	return eu;
+}
+
+/*
+================================
+PhysicsState::destroyEuler
+
+Marks the specified Euler particle for deletion.
+================================
+*/
+void PhysicsState::destroyEuler( Euler* eu )
+{
+	eu->expire_enable = true;
+}
+
+/*
+================================
 PhysicsState::createVerlet
 
 Creates a new Verlet particle.
@@ -79,8 +81,9 @@ Verlet* PhysicsState::createVerlet( VerletType vt )
 
 	Verlet* vl = new Verlet();
 	vl->pid = nextPID();
+	vl->mask = vt;
 	vl->marked = false;
-	vls.push_back( TVerlet( vt, vl ) );
+	vls.push_back( vl );
 	return vl;
 }
 
@@ -127,7 +130,8 @@ Distance* PhysicsState::createDistance( Verlet* a, Verlet* b, DistanceType dt )
 
 	Distance* dc = new Distance( a, b );
 	dc->pid = nextPID();
-	dcs.push_back( TDistance( dt, dc ) );
+	dc->mask = dt;
+	dcs.push_back( dc );
 
 	// Graph setup
 	dc->a->edges.insert( dc );
@@ -287,8 +291,7 @@ Verlet* PhysicsState::nearestVerlet( const Vec2& p, Scalar r )
 	Verlet* ret = 0;
 	Scalar score = SCALAR_MAX;
 
-	for ( TVerlet& tv : vls ) {
-		Verlet* vl = tv.second;
+	for ( Verlet* vl : vls ) {
 		Scalar rr = (vl->position - p).length2();
 		if ( rr < score ) {
 			ret = vl;

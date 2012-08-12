@@ -1,11 +1,12 @@
 #include "PhysicsState.h"
 #include <queue>
+#include <algorithm> // for std::remove_if
 
 /*
 ================================
 Expire
 
-Functor for std::list < T* >::remove_if,
+Functor for std::remove_if,
 called from PhysicsState::expire
 ================================
 */
@@ -23,26 +24,6 @@ struct Expire {
 
 /*
 ================================
-TExpire
-
-Functor for std::list < T* >::remove_if,
-called from PhysicsState::expire
-================================
-*/
-
-template < typename T >
-struct TExpire {
-	bool operator() ( T& t ) {
-		if ( t.second->expired() ) {
-			delete t.second;
-			return true;
-		}
-		return false;
-	}
-};
-
-/*
-================================
 PhysicsState::expire
 
 Removes and deletes expired physics objects.
@@ -50,11 +31,11 @@ Removes and deletes expired physics objects.
 */
 void PhysicsState::expire()
 {
-	eus.remove_if( TExpire < TEuler >() );
-	rgs.remove_if( TExpire < TRigid >() );
-	vls.remove_if( TExpire < TVerlet >() );
-	dcs.remove_if( TExpire < TDistance >() );
-
+	// This invalidates old indices.
+	rgs.erase( std::remove_if( rgs.begin(), rgs.end(), Expire < Rigid* >() ), rgs.end() );
+	eus.remove_if( Expire < Euler* >() );
+	vls.remove_if( Expire < Verlet* >() );
+	dcs.remove_if( Expire < Distance* >() );
 	acs.remove_if( Expire < Angular* >() );
 }
 
@@ -99,17 +80,16 @@ stop manually applying gravity at Entity level
 */
 void PhysicsState::apply_gravity_forces()
 {
-	for ( TEuler& te : eus ) {
-		Euler* eu = te.second;
-		eu->addVelocity( eu->gravity );
-	}
+	// TODO: we probably don't want to apply gravity here,
+	// since the Lambda matrix is computed with V and F_ext.
+	// Instead, we should add to the F_ext matrix.
+	// for ( Rigid* rg : rgs ) {
+	// 	rg->addVelocity( rg->gravity );
+	// }
 
-	// TODO: TRigid
+	for ( Euler* eu : eus ) eu->addVelocity( eu->gravity );
 
-	for ( TVerlet& tv : vls ) {
-		Verlet* vl = tv.second;
-		vl->addPosition( vl->gravity );
-	}
+	for ( Verlet* vl : vls ) vl->addPosition( vl->gravity );
 }
 
 /*
@@ -139,6 +119,10 @@ void PhysicsState::apply_wind_forces()
 				// eu->linear_damping );
 		// }
 	// }
+
+	// TODO: Wind forces to Rigid are a bit different.
+	// 1. Add forces to F_ext
+	// 2. Add forces per projected Convex?
 }
 
 /*
@@ -150,9 +134,9 @@ Applies velocities to positions, possibly creating collisions.
 */
 void PhysicsState::integrate_position()
 {
-	for ( TEuler& te : eus ) te.second->update();
-	for ( TRigid& tr : rgs ) tr.second->update();
-	for ( TVerlet& tv : vls ) tv.second->update();
+	for ( Rigid* rg : rgs ) rg->update();
+	for ( Euler* eu : eus ) eu->update();
+	for ( Verlet* vl : vls ) vl->update();
 }
 
 /*
@@ -170,8 +154,7 @@ void PhysicsState::find_connected_components()
 	connected_components.clear();
 
 	// Undirected connected components algorithm
-	for ( TVerlet& tv : vls ) {
-		Verlet* vl = tv.second;
+	for ( Verlet* vl : vls ) {
 		if ( vl->marked ) continue;
 
 		VerletGraph vg = mark_connected( vl );
@@ -185,15 +168,13 @@ void PhysicsState::find_connected_components()
 		connected_components.push_back( vg );
 	}
 
-	// All vertices should be marked
-	// for ( TVerlet& tv : vls ) {
-		// Verlet* vl = tv.second;
+	// ASSERT: All vertices should be marked
+	// for ( Verlet* vl : vls ) {
 		// assert( vl->marked );
 	// }
 
 	// Post-condition
-	for ( TVerlet& tv : vls ) {
-		Verlet* vl = tv.second;
+	for ( Verlet* vl : vls ) {
 		vl->marked = false;
 	}
 }
@@ -299,7 +280,7 @@ PhysicsState::detect_collisions
 void PhysicsState::detect_collisions()
 {
 	clear_collision_data();
-	// transform_convex();
+	transform_convex();
 
 	// detect_solve_euler_rigid();
 	// detect_solve_verlet_rigid();
@@ -314,8 +295,31 @@ Clears all collision data from the last frame.
 */
 void PhysicsState::clear_collision_data()
 {
-	// vxs.clear();
+	// pgs.clear();
 	// verlet_wall_contacts.clear();
+}
+
+/*
+================================
+PhysicsState::transform_convex
+
+Makes copies of all Rigid-owned Convex shapes,
+transformed into world space and tagged with owners.
+This happens every frame; there are no deletion problems.
+
+TODO: A more sophisticated on-demand transforming scheme?
+================================
+*/
+void PhysicsState::transform_convex()
+{
+	// for ( TRigid& tr : rgs ) {
+	// 	Rigid* rg = tr.second;
+	// 	for ( const Convex& pg : rg->shapes ) {
+	// 		Convex t( pg );
+	// 		t.transform( rg->position, rg->angle );
+	// 		pgs.push_back( std:pair < TRigid, Convex >( tr, t ) );
+	// 	}
+	// }
 }
 
 /*

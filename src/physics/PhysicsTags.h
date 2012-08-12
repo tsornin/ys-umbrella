@@ -3,6 +3,12 @@
 
 #include "Handler.h"
 
+// TODO: this seems silly
+typedef unsigned int EulerType;
+typedef unsigned int RigidType;
+typedef unsigned int VerletType;
+typedef unsigned int DistanceType;
+
 /*
 ================================
 Tags used by the physics engine,
@@ -18,14 +24,17 @@ public: // Lifecycle
 	bool expired() const;
 
 public: // Accessors
+	unsigned int getMask() { return mask; }
 	Handler* getOwner() { return owner; }
 
 public: // Mutators
+	void setMask( unsigned int m ) { mask = m; }
 	void setOwner( Handler* h ) { owner = h; }
 
 public: // Members
-	bool expire_enable;
 	int pid;
+	unsigned int mask;
+	bool expire_enable;
 	Handler* owner;
 };
 

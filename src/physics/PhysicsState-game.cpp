@@ -33,16 +33,16 @@ PhysicsState::cleanup
 */
 void PhysicsState::cleanup()
 {
-	for ( TEuler& te : eus ) delete te.second;
-	eus.clear();
-
-	for ( TRigid& tr : rgs ) delete tr.second;
+	for ( Rigid* rg : rgs ) delete rg;
 	rgs.clear();
 
-	for ( TVerlet& tv : vls ) delete tv.second;
+	for ( Euler* eu : eus ) delete eu;
+	eus.clear();
+
+	for ( Verlet* vl : vls ) delete vl;
 	vls.clear();
 
-	for ( TDistance& td : dcs ) delete td.second;
+	for ( Distance* dc : dcs ) delete dc;
 	dcs.clear();
 
 	for ( Angular* ac : acs ) delete ac;
@@ -107,15 +107,15 @@ void PhysicsState::draw( Engine* game )
 	// 	game->rd.drawAABB( vx.getAABB() );
 	// }
 
-	for ( TRigid& tr : rgs ) game->rd.drawRigid( *tr.second );
+	for ( Rigid* rg : rgs ) game->rd.drawRigid( *rg );
 
-	for ( TEuler& te : eus ) game->rd.drawEuler( *te.second );
+	for ( Euler* eu : eus ) game->rd.drawEuler( *eu );
 
-	for ( TDistance& td : dcs ) game->rd.drawDistance( *td.second );
+	for ( Distance* dc : dcs ) game->rd.drawDistance( *dc );
 
 	// for ( Angular* ac : acs ) game->rd.drawAngular( *ac );
 
-	for ( TVerlet& tv : vls ) game->rd.drawVerlet( *tv.second );
+	for ( Verlet* vl : vls ) game->rd.drawVerlet( *vl );
 }
 
 /*
@@ -128,7 +128,9 @@ void PhysicsState::setCaption( std::ostringstream& buffer )
 	buffer << " || Physics:";
 	buffer << " " << frames_elapsed << " frames elapsed";
 
-	buffer << " " << eus.size() << "/" << rgs.size() << "/" << vls.size();
-	buffer << " " << dcs.size() << "/" << acs.size();
-	// buffer << " cc: " << connected_components.size();
+	buffer << " " << rgs.size();
+	// buffer << "/" << Show number of contacts/islands here.
+	buffer << ", " << eus.size();
+	buffer << ", " << vls.size() << "-" << dcs.size() << "-" << acs.size();
+	buffer << "/" << connected_components.size();
 }

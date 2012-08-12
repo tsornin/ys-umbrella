@@ -1,8 +1,9 @@
 #include "PhysicsTags.h"
 
 PhysicsTags::PhysicsTags() :
-	expire_enable( false ),
 	pid( -1 ),
+	mask( 0 ),
+	expire_enable( false ),
 	owner( 0 )
 {
 	

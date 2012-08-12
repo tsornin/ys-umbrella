@@ -13,11 +13,6 @@
 
 #include "common/MeshOBJ.h"
 
-typedef unsigned int EulerType;
-typedef unsigned int RigidType;
-typedef unsigned int VerletType;
-typedef unsigned int DistanceType;
-
 typedef std::pair <
 	std::vector < Verlet* >,	
 	std::vector < Distance* > > VerletGraph;
@@ -50,11 +45,11 @@ protected:
 	PhysicsState() {}
 
 public: // Physics engine
-	Euler* createEuler( EulerType et = 0 );
-	void destroyEuler( Euler* eu );
-
 	Rigid* createRigid( const MeshOBJ& obj, RigidType rt = 0 );
 	void destroyRigid( Rigid* rg );
+
+	Euler* createEuler( EulerType et = 0 );
+	void destroyEuler( Euler* eu );
 
 	Verlet* createVerlet( VerletType vt = 0 );
 	void destroyVerlet( Verlet* vl );
@@ -82,6 +77,7 @@ private: // Physics timestep
 	void detect_collisions();
 		void clear_collision_data();
 		void transform_convex();
+		void detect_rigid_collisions();
 
 	int nextPID();
 
@@ -89,19 +85,15 @@ private: // Members
 	// (next) Physics ID
 	int next_pid;
 
-	typedef std::pair < EulerType, Euler* > TEuler;
-	std::list < TEuler > eus;
+	std::vector < Rigid* > rgs;
 
-	typedef std::pair < RigidType, Rigid* > TRigid;
-	std::list < TRigid > rgs;
+	std::list < Euler* > eus;
 
-	typedef std::pair < VerletType, Verlet* > TVerlet;
-	std::list < TVerlet > vls;
-
-	typedef std::pair < DistanceType, Distance* > TDistance;
-	std::list < TDistance > dcs;
-
+	std::list < Verlet* > vls;
+	std::list < Distance* > dcs;
 	std::list < Angular* > acs;
+
+	//std::multimap < int, Contact > rigid_shapes;
 
 	// Connected-components analysis of Verlet-Distance graph
 	bool dirty_connected_components;

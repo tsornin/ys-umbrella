@@ -98,7 +98,7 @@ void Engine::pollInput()
 		case SDL_KEYDOWN: {
 			SDLKey sym = event.key.keysym.sym;
 			std::map < SDLKey, InputKey >::iterator kmi;
-			// TODO: why doesn't this work?
+			// TODO: why doesn't this work?!
 			// if ( (kmi = keymap1.find(sym)) != keymap1.end() ) {
 			// 	is1.set( kmi->second, true );
 			// }
@@ -118,6 +118,10 @@ void Engine::pollInput()
 		case SDL_KEYUP: {
 			SDLKey sym = event.key.keysym.sym;
 			std::map < SDLKey, InputKey >::iterator kmi;
+			// TODO: see above
+			// if ( (kmi = keymap1.find( sym )) != keymap1.end() ) {
+			// 	is1.set( kmi->second, false );
+			// }
 			kmi = keymap1.find( sym );
 			if ( kmi != keymap1.end() ) {
 				is1.set( kmi->second, false );
