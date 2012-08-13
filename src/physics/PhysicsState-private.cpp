@@ -251,7 +251,17 @@ VerletGraph PhysicsState::mark_connected( Verlet* root )
 		for ( Distance* dc : v->edges ) {
 			// assert( dc->a == v || dc->b == v );
 			Verlet* w = ( dc->a == v ) ? dc->b : dc->a;
-			if ( ! w->marked ) {
+
+			// Include and mark, but do not expand, frozen nodes.
+			// We add frozen nodes even if they are marked: this means that
+			// we consider frozen nodes with multiple neighbors
+			// to belong to multiple connected components (which is correct).
+			if ( ! w->linear_enable ) {
+				vls.push_back( w );
+				w->marked = true;
+			}
+			// Normal BFS on non-frozen nodes.
+			else if ( ! w->marked ) {
 				unseen.push( w );
 				vls.push_back( w );
 				w->marked = true;
@@ -336,6 +346,11 @@ PhysicsState::detect_rigid_collisions
 */
 void PhysicsState::detect_rigid_collisions()
 {
+	// To generate contacts, we place all Rigid body shape vertices
+	// into a single point-data and query the point-data with each shape.
+	// Since it only queries points, this algorithm fails to detect
+	// severely overpenetrating shapes (such as two crossed rectangles).
+
 	// Rigid body vertex potpourri
 	PD_BruteForce < std::pair < int, Vec2 > > pd;
 	for ( const auto& pair : rigid_shapes ) {
@@ -347,19 +362,34 @@ void PhysicsState::detect_rigid_collisions()
 		}
 	}
 
+	// Query the potpourri with every Convex shape
 	for ( const auto& pair : rigid_shapes ) {
 		int a_i = pair.first;
 		const Convex& pg = pair.second;
 
+		// Spatial partitioning speed-up happens here
 		for ( const auto& pair : pd.query( pg.getAABB() ) ) {
 			int b_i = pair.first;
-			const Vec2& v = pair.second;
+			const Vec2& p = pair.second;
 
+			Rigid* a = rgs[ a_i ];
+			Rigid* b = rgs[ b_i ];
+
+			// assert( (a==b) == (a_i==b_i) );
+
+			// Skip our own points
 			// TODO: We're going to see a lot of this. Problem?
 			if ( a_i == b_i ) continue;
 
-			auto maybe_correction = pg.correction( v );
+			// TODO: collision masking happens here
+
+			// TODO: use bias at p when picking the edge here
+			// The bias is v_b_p - v_b_a
+			// where v_i_p = v_i + w_i x r_i
+			// where r_i = p - x_i
+			auto maybe_correction = pg.correction( p );
 			if ( !maybe_correction.first ) continue;
+
 			Vec2 normal = maybe_correction.second.first;
 			Scalar overlap = maybe_correction.second.second;
 			Vec2 correction = normal * overlap;
@@ -367,12 +397,12 @@ void PhysicsState::detect_rigid_collisions()
 			Contact c;
 				c.normal = normal;
 				c.overlap = overlap;
-				c.a = rgs[ a_i ];
+				c.a = a;
 				c.a_i = a_i;
-				c.a_p = v + correction;
-				c.b = rgs[ b_i ];
+				c.a_p = p + correction;
+				c.b = b;
 				c.b_i = b_i;
-				c.b_p = v;
+				c.b_p = p;
 			rigid_contacts.push_back( c );
 		}
 	}
