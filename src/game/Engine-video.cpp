@@ -77,6 +77,8 @@ bool Engine::setVideoMode( const int wx, const int wy, const bool fullscreen )
 		<< glGetString( GL_RENDERER ) << ", "
 		<< glGetString( GL_VERSION ) << std::endl;
 
+	rd.init();
+
 	return true;
 }
 

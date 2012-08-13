@@ -33,8 +33,6 @@ bool Engine::init()
 	// 	return false;
 	// }
 
-	rd.init();
-
 	return true;
 }
 
