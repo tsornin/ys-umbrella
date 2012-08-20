@@ -97,7 +97,7 @@ Convex::correction( const Vec2& p ) const
 		// The minimum projection of the point is...the point
 		Scalar min_a = p.dot( axis );
 
-		if ( max_b <= min_a ) {
+		if ( max_b < min_a ) {
 			// Not overlapping. Separation found; early exit.
 			ret.first = false;
 			return ret;
@@ -124,14 +124,17 @@ Convex::correction (overloaded)
 
 Returns:
 	bool	true if this polygon contains the specified point
-	Vec2	the biased minimum correction to move the specified point
-			out of this polygon
+	Vec2	the (unit) axis along which the biased minimum distance was found
+	Scalar	the biased minimum distance from the specified point to this Convex
+
+When combined, the second half of the return value gives
+the biased minimum correction to move the specified point out of this polygon.
 ================================
 */
-std::pair < bool, Vec2 >
+std::pair < bool, std::pair < Vec2, Scalar > >
 Convex::correction( const Vec2& p, const Vec2& bias ) const
 {
-	std::pair < bool, Vec2 > ret;
+	std::pair < bool, std::pair < Vec2, Scalar > > ret;
 	Scalar overlap = SCALAR_MAX;
 
 	int n = points.size();
@@ -140,7 +143,7 @@ Convex::correction( const Vec2& p, const Vec2& bias ) const
 		Scalar max_b = points[i].dot( axis );
 		Scalar min_a = p.dot( axis );
 
-		if ( max_b <= min_a ) {
+		if ( max_b < min_a ) {
 			ret.first = false;
 			return ret;
 		}
@@ -149,8 +152,9 @@ Convex::correction( const Vec2& p, const Vec2& bias ) const
 			Scalar overlap_c = max_b - min_a;
 			Scalar overlap_c_biased = overlap_c + bias.dot( axis );
 			if ( overlap_c_biased < overlap ) {
-				overlap = overlap_c;
-				ret.second = axis * overlap_c;
+				overlap = overlap_c_biased;
+				ret.second.first = axis;
+				ret.second.second = overlap_c;
 			}
 		}
 	}

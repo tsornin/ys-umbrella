@@ -142,12 +142,17 @@ Renderer::drawContact
 */
 void Renderer::drawContact( const Contact& ct )
 {
-	glLineWidth( 1.0 );
 	gl_SetColor( RGBA_GREEN );
-	glBegin( GL_LINE_STRIP );
-		gl_SetVertex( ct.a->position );
+
+	glLineWidth( 1.0 );
+	glBegin( GL_LINES );
 		gl_SetVertex( ct.a_p );
 		gl_SetVertex( ct.b_p );
-		gl_SetVertex( ct.b->position );
+	glEnd();
+
+	glPointSize( 4.0 );
+	glBegin( GL_POINTS );
+		gl_SetVertex( ct.a_p );
+		gl_SetVertex( ct.b_p );
 	glEnd();
 }

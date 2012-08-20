@@ -27,7 +27,6 @@ public:
 	Vec2() : x(0), y(0) {}
 	Vec2( const Scalar& s ) : x(s), y(s) {}
 	Vec2( const Scalar& x, const Scalar& y ) : x(x), y(y) {}
-	// Vec2( const Vec2& u, const Vec2& v ) { (*this) = v - u; }
 	Vec2( const Vec2& u, const Vec2& v ) : Vec2(v) { operator -= (u); }
 
 	/*
@@ -35,11 +34,11 @@ public:
 	Access operators
 	================================
 	*/
-	Scalar& operator [] ( const unsigned int i ) { return ( (Scalar*) this )[i]; }
-	Scalar operator [] ( const unsigned int i ) const { return ( (Scalar*) this )[i]; }
+	Scalar& operator [] ( unsigned int i ) { return ( (Scalar*) this )[i]; }
+	Scalar operator [] ( unsigned int i ) const { return ( (Scalar*) this )[i]; }
 
-	Scalar& operator () ( const unsigned int i ) { return operator [] (i); }
-	Scalar operator () ( const unsigned int i ) const { return operator [] (i); }
+	Scalar& operator () ( unsigned int i ) { return operator [] (i); }
+	Scalar operator () ( unsigned int i ) const { return operator [] (i); }
 
 	/*
 	================================
@@ -83,6 +82,8 @@ public:
 
 	Scalar dot  ( const Vec2& v ) const { return (*this) * v; }
 	Scalar cross( const Vec2& v ) const { return (*this) ^ v; }
+
+	Vec2 prod( const Vec2& v ) const { return Vec2( x*v.x, y*v.y ); }
 
 	/*
 	================================

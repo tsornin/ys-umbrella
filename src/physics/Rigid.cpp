@@ -145,7 +145,7 @@ void Rigid::update()
 	if ( linear_enable ) {
 		previous = position;
 		position += velocity;
-		velocity *= linear_damping; // wind resistance
+		// velocity *= linear_damping; // wind resistance
 	}
 	else {
 		velocity = Vec2( 0, 0 );
@@ -153,7 +153,7 @@ void Rigid::update()
 
 	if ( angular_enable ) {
 		angle += angular_velocity;
-		angular_velocity *= angular_damping; // wind resistance
+		// angular_velocity *= angular_damping; // wind resistance
 		std::fmod( angle, 2*PI );
 	}
 	else {

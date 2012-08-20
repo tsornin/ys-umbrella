@@ -1,5 +1,5 @@
 #ifndef PHYSICS_RIGID_H
-#define PHSYICS_RIGID_H
+#define PHYSICS_RIGID_H
 
 #include "PhysicsTags.h"
 #include "spatial/Vec2.h"

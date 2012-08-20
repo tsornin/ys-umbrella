@@ -1,5 +1,5 @@
 #ifndef PHYSICS_EULER_H
-#define PHSYICS_EULER_H
+#define PHYSICS_EULER_H
 
 #include "PhysicsTags.h"
 #include "spatial/Vec2.h"

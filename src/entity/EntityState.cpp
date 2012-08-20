@@ -34,6 +34,24 @@ void EntityState::init( Engine* game )
 	mr = false;
 	cursor = Vec2( 0 );
 	cursor_prev = Vec2( 0 );
+
+	MeshOBJ o_frame;
+	o_frame.load( Path( "level/pong/", "frame.obj" ) );
+	o_frame.setScale( 50 );
+	Rigid* frame = PhysicsState::createRigid( o_frame, 1 );
+	frame->setPosition( Vec2( 0, -500 ) );
+	frame->setLinearEnable( false );
+	frame->setAngularEnable( false );
+
+	MeshOBJ o_rg;
+	o_rg.load( Path( "level/test/", "4gon.obj" ) );
+	o_rg.setScale( 50 );
+
+	for ( int j = 0; j < 5; ++j ) {
+		rg = PhysicsState::createRigid( o_rg, 1 );
+		rg->setPosition( Vec2( 0, ((float)j+0.5)*50*1.515 ) );
+		rg->setGravity( Vec2( 0, -0.2 ) );
+	}
 }
 
 /*
@@ -56,6 +74,7 @@ EntityState::input
 */
 void EntityState::input( Engine* game )
 {
+	rg->input( game->is1 );
 	cam->input( game->is2 );
 
 	Entity* t = cam->getTarget();

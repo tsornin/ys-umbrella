@@ -23,7 +23,7 @@ void PhysicsState::init( Engine* game )
 	BlankState::init( game );
 
 	next_pid = 0;
-	dirty_connected_components = false;
+	dirty_verlet_islands = false;
 }
 
 /*
@@ -48,7 +48,7 @@ void PhysicsState::cleanup()
 	for ( Angular* ac : acs ) delete ac;
 	acs.clear();
 
-	connected_components.clear();
+	verlet_islands.clear();
 
 	clear_collision_data();
 
@@ -74,21 +74,7 @@ void PhysicsState::update( Engine* game )
 {
 	BlankState::update( game );
 
-	expire();
-
-	integrate();
-
-	// Tag Verlet particles with component ID before RG-VL detection
-	if ( dirty_connected_components ) {
-		find_connected_components();
-		dirty_connected_components = false;
-	}
-
-	// // TODO: During RG-VL detection,
-	// // wall constraints are tagged with Verlet component IDs
-	detect_collisions();
-
-	relax_connected_components();
+	step();
 }
 
 /*
@@ -107,8 +93,6 @@ void PhysicsState::draw( Engine* game )
 	// 	game->rd.drawAABB( vx.getAABB() );
 	// }
 
-	for ( Contact& ct : rigid_contacts ) game->rd.drawContact( ct );
-
 	for ( Rigid* rg : rgs ) game->rd.drawRigid( *rg );
 
 	for ( Euler* eu : eus ) game->rd.drawEuler( *eu );
@@ -118,6 +102,8 @@ void PhysicsState::draw( Engine* game )
 	// for ( Angular* ac : acs ) game->rd.drawAngular( *ac );
 
 	for ( Verlet* vl : vls ) game->rd.drawVerlet( *vl );
+
+	for ( Contact& ct : rigid_contacts ) game->rd.drawContact( ct );
 }
 
 /*
@@ -132,8 +118,9 @@ void PhysicsState::setCaption( std::ostringstream& buffer )
 
 	buffer << " " << rgs.size();
 	buffer << "/" << rigid_shapes.size();
+	buffer << "/" << rigid_contacts.size();
 	buffer << "/?"; // TODO: number of islands
 	buffer << ", " << eus.size();
 	buffer << ", " << vls.size() << "-" << dcs.size() << "-" << acs.size();
-	buffer << "/" << connected_components.size();
+	buffer << "/" << verlet_islands.size();
 }

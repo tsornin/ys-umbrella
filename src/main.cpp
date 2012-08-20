@@ -6,8 +6,6 @@
 #include "state/ClothTestState.h"
 #include "state/BarTestState.h"
 
-#include <iostream>
-
 int main( int argc, char** argv )
 {
 	Engine game;
@@ -18,9 +16,9 @@ int main( int argc, char** argv )
 	// game.push( PhysicsState::Instance() );
 	game.push( EntityState::Instance() );
 
-	game.push( BarTestState::Instance() );
-	game.push( ClothTestState::Instance() );
-	game.push( StringTestState::Instance() );
+	// game.push( BarTestState::Instance() );
+	// game.push( ClothTestState::Instance() );
+	// game.push( StringTestState::Instance() );
 
 	game.run();
 

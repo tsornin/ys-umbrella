@@ -37,7 +37,7 @@ public: // Convex
 public: // Other
 	std::pair < bool, std::pair < Vec2, Scalar > > correction( const Vec2& p ) const;
 	// Return correction, normal, and boolean.
-	std::pair < bool, Vec2 > correction( const Vec2& p, const Vec2& bias ) const;
+	std::pair < bool, std::pair < Vec2, Scalar > > correction( const Vec2& p, const Vec2& bias ) const;
 
 public: // Self
 	bool verify();

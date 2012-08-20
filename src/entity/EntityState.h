@@ -57,6 +57,8 @@ private: // Members
 	bool ml, mr;
 	Vec2 cursor, cursor_prev;
 	Verlet* mv;
+
+	Rigid *rg;
 };
 
 #endif
