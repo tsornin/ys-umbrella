@@ -52,6 +52,6 @@ void StringTestState::init( Engine* game )
 	vls[0]->setLinearEnable( false );
 	vls[x-1]->setLinearEnable( false );
 
-	// Pin center
+	// Pin center (we should see two islands)
 	vls[x/2]->setLinearEnable( false );
 }

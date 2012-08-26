@@ -8,13 +8,30 @@
 
 /*
 ================================
+mass_diameter
+
+Returns the graphical diameter for a point-mass of the specified mass.
+================================
+*/
+static Scalar mass_diameter( Scalar mass )
+{
+	static const Scalar MASS_DIAMETER_MIN = 4.0;
+	static const Scalar MASS_DIAMETER_MAX = 64.0;
+
+	Scalar d = MASS_DIAMETER_MIN;
+	d += std::pow( mass, 0.33 ) * 0.5;
+	if ( d > MASS_DIAMETER_MAX ) d = MASS_DIAMETER_MAX;
+	return d;
+}
+
+/*
+================================
 Renderer::drawEuler
 ================================
 */
 void Renderer::drawEuler( const Euler& eu )
 {
-	Scalar d = std::pow( eu.mass, 0.33 ) + 4.0;
-	if ( d > 64.0 ) d = 64.0;
+	Scalar d = mass_diameter( eu.mass );
 
 	glPointSize( d );
 	gl_SetColor( RGBA_WHITE );
@@ -53,8 +70,7 @@ void Renderer::drawRigid( const Rigid& rg )
 	// drawAABB( rg.getAABB() );
 
 	// Draw centroid
-	Scalar d = std::pow( rg.mass, 0.25 ) + 4.0;
-	if ( d > 64.0 ) d = 64.0;
+	Scalar d = mass_diameter( rg.mass );
 
 	glPointSize( d );
 	gl_SetColor( RGBA_WHITE );
@@ -92,8 +108,7 @@ Renderer::drawVerlet
 */
 void Renderer::drawVerlet( const Verlet& vl )
 {
-	// Cube root of mass with minimum size
-	Scalar d = std::pow( vl.mass, 0.33 ) + 4.0;
+	Scalar d = mass_diameter( vl.mass );
 
 	glPointSize( d );
 	gl_SetColor( RGBA_WHITE );

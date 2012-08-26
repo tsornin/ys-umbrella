@@ -34,48 +34,6 @@ void EntityState::init( Engine* game )
 	mr = false;
 	cursor = Vec2( 0 );
 	cursor_prev = Vec2( 0 );
-
-	// TODO: What is this nonsense? Make some Rigid test cases!
-
-	MeshOBJ o_frame;
-	o_frame.load( Path( "level/pong/", "frame.obj" ) );
-	o_frame.setScale( 50 );
-
-	Rigid* frame = PhysicsState::createRigid( o_frame, 1 );
-	frame->setPosition( Vec2( 0, -1600 ) );
-	frame->setLinearEnable( false );
-	frame->setAngularEnable( false );
-
-	frame = PhysicsState::createRigid( o_frame, 1 );
-	frame->setPosition( Vec2( 0, -600 ) );
-	frame->setAngle( 1.57 );
-	frame->setLinearEnable( false );
-	frame->setAngularEnable( false );
-
-	MeshOBJ o_rg;
-	o_rg.load( Path( "level/test/", "4gon.obj" ) );
-	o_rg.setScale( 50 );
-
-	// Column
-	Scalar s = 50 * 1.5;
-	for ( int j = 0; j < 50; ++j ) {
-		rg = PhysicsState::createRigid( o_rg, 1 );
-		rg->setPosition( Vec2( 0, ((float)j+0.5)*s ) );
-		rg->setGravity( Vec2( 0, -0.2 ) );
-	}
-
-	// rg->setMass( rg->getMass() * 10 );
-	// rg->setMoment( rg->getMoment() * 10 );
-
-	// Pyramid
-	// Scalar s = 50 * 1.5;
-	// int n = 5;
-	// for ( int j = 0; j < n; ++j ) {
-	// for ( int i = 0; i < n-j; ++i ) {
-	// 	rg = PhysicsState::createRigid( o_rg, 1 );
-	// 	rg->setPosition( Vec2( (i - n/2 + (Scalar)j/2)*s, j*s ) );
-	// 	rg->setGravity( Vec2( 0, -0.2 ) );
-	// }}
 }
 
 /*
@@ -98,14 +56,13 @@ EntityState::input
 */
 void EntityState::input( Engine* game )
 {
-	rg->input( game->is1 );
 	cam->input( game->is2 );
 
 	Entity* t = cam->getTarget();
 	if ( t ) t->input( game->is1 );
 
 	if ( ml ) {
-
+		// TODO: cutting Distance constraints
 	}
 	if ( mr ) {
 		if ( mv ) mv->setPosition( cursor );

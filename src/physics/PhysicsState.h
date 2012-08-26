@@ -96,7 +96,6 @@ private: // Members
 	// Rigid bodies
 	std::vector < Rigid* > rgs;
 	std::vector < std::pair < Rigid*, Convex > > rigid_shapes;
-	//std::multimap < int, Convex > rigid_shapes; // maps rg->gid to shapes
 	std::vector < Contact > rigid_contacts;
 
 	// Euler particles

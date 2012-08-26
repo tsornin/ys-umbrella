@@ -233,15 +233,17 @@ void PhysicsState::transform_convex()
 PhysicsState::detect_rigid_collisions
 ================================
 */
-
-// #define SAT_COLLISION
-// #define POT_COLLISION
-#define CTP_COLLISION
-
-#ifdef CTP_COLLISION
 void PhysicsState::detect_rigid_collisions()
 {
-	// TODO: rigid islands
+	// TODO: island indexing
+	// Constraint just stores Rigid*.
+	/*
+		PS::expire
+		frame-id set. indexes rgs
+		PS::detect_rigid_collisions
+		PS::find_rigid_islands
+		each island sets component-id and per-island-id.
+	*/
 	for ( unsigned int i = 0; i < rgs.size(); ++i ) {
 		// Store the local ID in the Rigid body,
 		// so that Constraint can just store Rigid*.
@@ -276,16 +278,6 @@ void PhysicsState::detect_rigid_collisions()
 			// THE SEPARATING AXIS THEOREM ALGORITHM
 			bool swap; Vec2 p; Wall w;
 			if ( ! Convex::sat( pg, pg2, swap, p, w ) ) continue;
-			// Contact c;
-			// 	c.a = swap ? rg2 : rg;
-			// 	c.b = swap ? rg : rg2;
-			// 	c.overlap = - w.distance( p );;
-			// 	c.normal = w.normal;
-			// 	c.a_p = w.nearest( p );
-			// 	c.b_p = p;
-			// rigid_contacts.push_back( c );
-			// continue;
-				// We see from this contact that it's CALTROPS that's the problem.
 
 			// Correction to B
 			Vec2 correction( p, w.nearest( p ) );
@@ -297,27 +289,6 @@ void PhysicsState::detect_rigid_collisions()
 			Convex& b = pg2;
 			int an = a.points.size();
 			int bn = b.points.size();
-
-			// This seems to be a decent caltrop length.
-			// What if we just calculate right away?
-			// Or, store the calcs in Rigid...
-			// Scalar aa, am; Vec2 ac;
-			// a.calculate( aa, am, ac );
-			// Scalar acl = SCALAR_MAX;
-			// for ( int i = 0; i < an; ++i ) {
-			// 	Wall w( a.points[i], a.normals[i] );
-			// 	Scalar dist = - w.distance( ac );
-			// 	if ( dist < acl ) acl = dist;
-			// }
-
-			// Scalar ba, bm; Vec2 bc;
-			// b.calculate( ba, bm, bc );
-			// Scalar bcl = SCALAR_MAX;
-			// for ( int i = 0; i < bn; ++i ) {
-			// 	Wall w( b.points[i], b.normals[i] );
-			// 	Scalar dist = - w.distance( bc );
-			// 	if ( dist < bcl ) bcl = dist;
-			// }
 
 			correction = -correction;
 
@@ -419,187 +390,6 @@ void PhysicsState::detect_rigid_collisions()
 		rd.insert( box, i );
 	}
 }
-#endif
-
-#ifdef SAT_COLLISION
-void PhysicsState::detect_rigid_collisions()
-{
-	// TODO: rigid islands
-	for ( unsigned int i = 0; i < rgs.size(); ++i ) {
-		// Store the local ID in the Rigid body,
-		// so that Constraint can just store Rigid*.
-		rgs[i]->local_id = i;
-	}
-
-	RD_BruteForce < int > rd;
-	for ( unsigned int i = 0; i < rigid_shapes.size(); ++i ) {
-		Rigid* rg = rigid_shapes[i].first;
-		const Convex& pg = rigid_shapes[i].second;
-
-		AABB box = pg.getAABB().fatter( 2.0 );
-
-		// Broadphase happens here
-		for ( int j : rd.query( box ) ) {
-			Rigid* rg2 = rigid_shapes[j].first;
-			const Convex& pg2 = rigid_shapes[j].second;
-
-			// Avoid self-collision
-			if ( rg == rg2 ) continue;
-
-			// Masking happens here
-
-			bool swap; Vec2 p; Wall w;
-			if ( ! Convex::sat( pg, pg2, swap, p, w ) ) continue;
-			// const Convex& a = swap ? pg2 : pg;
-			// const Convex& b = swap ? pg : pg2;
-
-			// TODO:
-			// Besides the swapping logic bug,
-			// SAT suffers severely from the "pong" bug.
-			// wat do?
-
-			// After we're done, we should have convex a and b.
-			// as well as a wall and a point.
-
-			// Generate our first contact from SAT.
-			swap = !swap;
-			Scalar overlap = - w.distance( p );
-			Contact c;
-				c.a = swap ? rg2 : rg;
-				c.b = swap ? rg : rg2;
-				c.overlap = overlap;
-				c.normal = w.normal;
-				c.a_p = !swap ? p + w.normal * overlap : p;
-				c.b_p = !swap ? p : p + w.normal * overlap;
-			rigid_contacts.push_back( c );
-
-
-			// Look for additional points v_B inside A.
-			// If found, we have an additional contact against the wall.
-
-			// Flip the wall (just negate later)
-
-			// Look for additional points v_A inside B.
-			// If found, we have an additional contact against the wall.
-			// Chances are, this is one of the points from the wall we're looking at.
-			// As such, the constraint error will be 0. Is this a problem?
-		}
-
-		rd.insert( box, i );
-	}
-}
-#endif
-
-#ifdef POT_COLLISION
-void PhysicsState::detect_rigid_collisions()
-{
-	// TODO: rigid islands
-	for ( unsigned int i = 0; i < rgs.size(); ++i ) {
-		// Store the local ID in the Rigid body,
-		// so that Constraint can just store Rigid*.
-		rgs[i]->local_id = i;
-	}
-
-	// To generate contacts, we place all Rigid body shape vertices
-	// into a single point-data and query the point-data with each shape.
-	// Since it only queries points, this algorithm fails to detect
-	// severely overpenetrating shapes (such as two crossed rectangles).
-
-	// With this approach, we're not using polygon-polygon SAT,
-	// only point-polygon degenerate SAT (henceforth SATp).
-	// Naively, this method is very prone to choosing the wrong edge/normal.
-
-	// The medial axis is implicit in SATp. SATp maps points inside a polygon
-	// to the edge corresponding to the medial axis region* the point is in.
-	// SATp bias shifts the medial axis
-
-	// WE'RE STILL BONED
-	// even with normal bias...
-
-	// Try SAT instead. This time, once the vertex is found,
-	// identify all contained vertices (for BOTH polygons)
-	// and add them as contacts, but against the same wall.
-
-	// * I think these are called Voronoi regions.
-
-	// Rigid body vertex potpourri
-	// PD_BruteForce < std::pair < int, Vec2 > > pd;
-	PD_BruteForce < std::pair < int, std::pair < Vec2, Vec2 > > > pd;
-	for ( const auto& pair : rigid_shapes ) {
-		int i = pair.first->local_id;
-		const Convex& pg = pair.second;
-
-		// for ( Vec2 v : pg.points ) {
-		// 	pd.insert( v, std::pair < int, Vec2 >( i, v ) );
-		// }
-		int n = pg.points.size();
-		for ( int b = 0; b < n; ++b ) {
-			int a = b - 1; if ( a < 0 ) a += n; // a loopmod n
-			// This breaks digons.
-			Vec2 point_normal = pg.normals[b] + pg.normals[a];
-			point_normal.normalize();
-			pd.insert( pg.points[b], std::pair < int, std::pair < Vec2, Vec2 > >( i, std::pair < Vec2, Vec2 >( pg.points[b], point_normal ) ) );
-		}
-	}
-
-	// Query the potpourri with every Convex shape
-	for ( const auto& pair : rigid_shapes ) {
-		int a_i = pair.first->local_id;
-		const Convex& pg = pair.second;
-
-		// Spatial partitioning speed-up happens here
-		for ( const auto& pair : pd.query( pg.getAABB() ) ) {
-			int b_i = pair.first;
-			// const Vec2& p = pair.second;
-			const Vec2& p = pair.second.first;
-			const Vec2& pn = pair.second.second;
-
-			Rigid* a = rgs[ a_i ];
-			Rigid* b = rgs[ b_i ];
-
-			// assert( (a==b) == (a_i==b_i) );
-
-			// Skip our own points
-			// TODO: We're going to see a lot of this. Problem?
-			if ( a_i == b_i ) continue;
-
-			// TODO: collision masking happens here
-
-			// TODO: use bias at p when picking the edge here
-			// Vec2 v_a = a->velocity + (p-a->position).lperp() * a->angular_velocity;
-			// Vec2 v_b = b->velocity + (p-b->position).lperp() * b->angular_velocity;
-			// Vec2 v_rel = v_b - v_a;
-
-			Vec2 caltrop = (p - b->position).projection( pn );
-
-			Vec2 bias = caltrop;
-
-			// Derp.
-			bias = pn.unit() * 50.0;
-
-			// Nope, triangles still not working...
-
-			// TODO: this point-cloud scheme is bullshit.
-
-			auto maybe_correction = pg.correction( p, bias );
-			if ( !maybe_correction.first ) continue;
-
-			Vec2 normal = maybe_correction.second.first;
-			Scalar overlap = maybe_correction.second.second;
-			Vec2 correction = normal * overlap;
-
-			Contact c;
-				c.a = a;
-				c.b = b;
-				c.overlap = overlap;
-				c.normal = normal;
-				c.a_p = p + correction;
-				c.b_p = p;
-			rigid_contacts.push_back( c );
-		}
-	}
-}
-#endif
 
 /*
 ================================
@@ -850,8 +640,6 @@ void PhysicsState::apply_contact_forces()
 		rg->setVelocity( Vec2( V[i].x, V[i].y ) );
 		rg->setAngularVelocity( V[i].z );
 	}
-
-	// TODO: must apply Rigid wind resistance in apply_wind_forces.
 }
 
 /*
