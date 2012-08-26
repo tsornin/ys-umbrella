@@ -53,7 +53,7 @@ void Renderer::drawRigid( const Rigid& rg )
 	// drawAABB( rg.getAABB() );
 
 	// Draw centroid
-	Scalar d = std::pow( rg.mass, 0.33 ) + 4.0;
+	Scalar d = std::pow( rg.mass, 0.25 ) + 4.0;
 	if ( d > 64.0 ) d = 64.0;
 
 	glPointSize( d );
@@ -152,7 +152,9 @@ void Renderer::drawContact( const Contact& ct )
 
 	glPointSize( 4.0 );
 	glBegin( GL_POINTS );
+		gl_SetColor( RGBA_GREEN );
 		gl_SetVertex( ct.a_p );
+		gl_SetColor( RGBA_RED );
 		gl_SetVertex( ct.b_p );
 	glEnd();
 }

@@ -77,23 +77,6 @@ private: // Physics timestep
 			// Think about adding eu-rg and vl-rg later.
 				// run dser and dsvr here.
 
-			// integrate velocity
-				// apply external forces (wind, gravity)
-					// V2bar = V1 + M-1 F_ext
-				// apply contact forces
-					// Form J
-					// Form M
-					// Form Lambda_bounds
-					// C' = J V2bar
-					// Eta = beta C + C'
-					// B = M-1 Jt
-					// Solve Lambda: J B Lambda = Eta
-					// Apply contact forces:
-					// V2 = V2bar + M-1 Jt Lambda
-			// integrate position
-				// X2 = X1 + V2
-	// RENDER
-
 		void relax_verlet_islands();
 		void integrate();
 			void integrate_velocity();
@@ -112,7 +95,8 @@ private: // Members
 
 	// Rigid bodies
 	std::vector < Rigid* > rgs;
-	std::multimap < int, Convex > rigid_shapes; // maps rg->gid to shapes
+	std::vector < std::pair < Rigid*, Convex > > rigid_shapes;
+	//std::multimap < int, Convex > rigid_shapes; // maps rg->gid to shapes
 	std::vector < Contact > rigid_contacts;
 
 	// Euler particles

@@ -51,4 +51,7 @@ void StringTestState::init( Engine* game )
 	// Pin ends
 	vls[0]->setLinearEnable( false );
 	vls[x-1]->setLinearEnable( false );
+
+	// Pin center
+	vls[x/2]->setLinearEnable( false );
 }

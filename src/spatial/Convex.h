@@ -3,6 +3,7 @@
 
 #include <vector> // for std::vector< Vec2 >
 #include "Vec2.h" // for std::vector< Vec2 >
+#include "Wall.h" // for Convex::sat
 
 class AABB;
 
@@ -36,8 +37,17 @@ public: // Convex
 
 public: // Other
 	std::pair < bool, std::pair < Vec2, Scalar > > correction( const Vec2& p ) const;
-	// Return correction, normal, and boolean.
 	std::pair < bool, std::pair < Vec2, Scalar > > correction( const Vec2& p, const Vec2& bias ) const;
+
+	static bool sat(
+		// in
+		const Convex& c1,
+		const Convex& c2,
+		// out
+		bool& swap,
+		Vec2& p,
+		Wall& w
+		);
 
 public: // Self
 	bool verify();

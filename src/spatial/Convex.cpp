@@ -165,6 +165,92 @@ Convex::correction( const Vec2& p, const Vec2& bias ) const
 
 /*
 ================================
+Convex::sat
+
+Returns true if the two specified polygons intersect.
+
+Returns:
+	bool	true if the first specified polygon is incident
+	Vec2	the offending point on the incident polygon
+	Wall	the face on the reference polygon
+================================
+*/
+bool Convex::sat(
+	// in
+	const Convex& c1,
+	const Convex& c2,
+	// out
+	bool& swap,
+	Vec2& p,
+	Wall& w )
+{
+	Scalar overlap = SCALAR_MAX;
+
+	int n1 = c1.points.size();
+	int n2 = c2.points.size();
+
+	// First polygon reference
+	for ( int j = 0; j < n1; ++j ) {
+		Wall ref( c1.points[j], c1.normals[j] );
+
+		// Minimum against the reference wall
+		Scalar min2 = SCALAR_MAX;
+		Vec2 minp;
+		for ( int i = 0; i < n2; ++i ) {
+			Scalar dist = ref.distance( c2.points[i] );
+			if ( dist < min2 ) {
+				min2 = dist;
+				minp = c2.points[i];
+			}
+		}
+
+		if ( 0 < min2 ) {
+			return false;
+		}
+		else {
+			Scalar overlap_c = -min2;
+			if ( overlap_c < overlap ) {
+				overlap = overlap_c;
+				swap = false;
+				p = minp;
+				w = ref;
+			}
+		}
+	}
+
+	// Second polygon reference
+	for ( int j = 0; j < n2; ++j ) {
+		Wall ref( c2.points[j], c2.normals[j] );
+
+		Scalar min1 = SCALAR_MAX;
+		Vec2 minp;
+		for ( int i = 0; i < n1; ++i ) {
+			Scalar dist = ref.distance( c1.points[i] );
+			if ( dist < min1 ) {
+				min1 = dist;
+				minp = c1.points[i];
+			}
+		}
+
+		if ( 0 < min1 ) {
+			return false;
+		}
+		else {
+			Scalar overlap_c = -min1;
+			if ( overlap_c < overlap ) {
+				overlap = overlap_c;
+				swap = true;
+				p = minp;
+				w = ref;
+			}
+		}
+	}
+
+	return true;
+}
+
+/*
+================================
 Convex::nearest
 
 Returns the point on this polygon nearest to the specified point.

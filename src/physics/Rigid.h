@@ -114,6 +114,12 @@ private: // Members
 
 private: // Members
 	std::vector < Convex > shapes; // object space
+
+private: // Physics engine graph data
+	// std::set < Constraint* > edges;
+	// bool marked;
+	// int component_id; // The component we're in
+	int local_id; // Our ID in this component
 };
 
 #endif

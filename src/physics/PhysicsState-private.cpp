@@ -2,8 +2,10 @@
 #include <queue>
 #include <algorithm> // for std::remove_if
 #include "spatial/PD_BruteForce.h"
-#include "spatial/Vec3.h"
-#include <iostream>
+#include "spatial/RD_BruteForce.h"
+#include "spatial/Vec3.h" // for solver // TODO: move
+#include "spatial/Segment.h"
+#include "spatial/Ray.h"
 
 /*
 ================================
@@ -14,11 +16,13 @@ Steps the simulation.
 */
 void PhysicsState::step()
 {
+	integrate_position();
 	expire();
 	find_verlet_islands();
 	detect_collisions();
 	relax_verlet_islands();
-	integrate();
+	//integrate();
+	integrate_velocity();
 }
 
 /*
@@ -64,35 +68,49 @@ PhysicsState::find_verlet_islands
 
 Finds all connected components of the
 { Verlet particle, Distance constraint } graph.
+This is a slightly modified CC algorithm:
+	1. Edge-less vertices are not considered components.
+	2. "Frozen" vertices belong to as many components as they have edges.
 
 Invariant: no Verlet particles are marked
 ================================
 */
 void PhysicsState::find_verlet_islands()
 {
-	if ( ! dirty_verlet_islands ) return;
+	// TODO: any freeze toggle should also set this.
+	// if ( ! dirty_verlet_islands ) return;
 
 	verlet_islands.clear();
+
+	// Pre-processing
+	for ( Verlet* vl : vls ) {
+		// Ignore edge-less points
+		if ( vl->edges.empty() ) vl->marked = true;
+
+		// Ignore frozen points
+		if ( ! vl->linear_enable ) vl->marked = true;
+
+		// Reset all component ID tags
+		vl->component_id = -1;
+	}
 
 	// Undirected connected components algorithm
 	for ( Verlet* vl : vls ) {
 		if ( vl->marked ) continue;
+		verlet_islands.push_back( mark_connected( vl ) );
+	}
 
-		VerletGraph vg = mark_connected( vl );
-
-		// Tag every Verlet with the component ID
-		int id = verlet_islands.size();
-		for ( Verlet* vl : vg.first ) vl->component_id = id;
-
-		verlet_islands.push_back( vg );
+	// Tag every Verlet with its component ID
+	int n = verlet_islands.size();
+	for ( int i = 0; i < n; ++i ) {
+		VerletGraph& vg = verlet_islands[i];
+		for ( Verlet* vl : vg.first ) vl->component_id = i;
 	}
 
 	// for ( Verlet* vl : vls ) assert( vl->marked );
 
 	// Post-condition
-	for ( Verlet* vl : vls ) {
-		vl->marked = false;
-	}
+	for ( Verlet* vl : vls ) vl->marked = false;
 
 	dirty_verlet_islands = false;
 }
@@ -103,6 +121,10 @@ PhysicsState::mark_connected
 
 Returns all Verlet particles and Distance constraints in
 the connected component of the specified Verlet particle.
+
+This is a slightly modified CC algorithm (see find_verlet_islands):
+We never call mark_connected on frozen or edge-less vertices, and
+frozen vertices belong to multiple components.
 
 Post-condition: all Verlet particles returned are marked
 ================================
@@ -128,12 +150,11 @@ VerletGraph PhysicsState::mark_connected( Verlet* root )
 			Verlet* w = ( dc->a == v ) ? dc->b : dc->a;
 
 			// Include and mark, but do not expand, frozen nodes.
-			// We add frozen nodes even if they are marked: this means that
-			// we consider frozen nodes with multiple neighbors
-			// to belong to multiple connected components (which is correct).
+			// We add frozen nodes even though they are marked:
+			// this means that we consider frozen nodes with multiple neighbors
+			// to belong to multiple connected components.
 			if ( ! w->linear_enable ) {
 				vls.push_back( w );
-				w->marked = true;
 			}
 			// Normal BFS on non-frozen nodes.
 			else if ( ! w->marked ) {
@@ -195,16 +216,14 @@ TODO: A more sophisticated on-demand transforming scheme?
 */
 void PhysicsState::transform_convex()
 {
-	for ( unsigned int i = 0; i < rgs.size(); ++i ) {
-		Rigid* rg = rgs[i];
-
+	for ( Rigid* rg : rgs ) {
 		// Skip non-colliding Rigid bodies
 		if ( rg->mask == 0 ) continue;
 
 		for ( const Convex& pg : rg->shapes ) {
 			Convex t( pg );
 			t.transform( rg->position, rg->angle );
-			rigid_shapes.insert( std::pair < int, Convex >( i, t ) );
+			rigid_shapes.push_back( std::pair < Rigid*, Convex >( rg, t ) );
 		}
 	}
 }
@@ -214,43 +233,326 @@ void PhysicsState::transform_convex()
 PhysicsState::detect_rigid_collisions
 ================================
 */
+
+// #define SAT_COLLISION
+// #define POT_COLLISION
+#define CTP_COLLISION
+
+#ifdef CTP_COLLISION
 void PhysicsState::detect_rigid_collisions()
 {
+	// TODO: rigid islands
+	for ( unsigned int i = 0; i < rgs.size(); ++i ) {
+		// Store the local ID in the Rigid body,
+		// so that Constraint can just store Rigid*.
+		rgs[i]->local_id = i;
+	}
+
+	RD_BruteForce < int > rd; // The integer indexes rigid_shapes
+	for ( unsigned int i = 0; i < rigid_shapes.size(); ++i ) {
+		Rigid* rg = rigid_shapes[i].first;
+		Convex& pg = rigid_shapes[i].second;
+
+		AABB box = pg.getAABB();
+		box.fatten( 2.0 );
+
+		// Broadphase happens here
+		for ( int j : rd.query( box ) ) {
+			Rigid* rg2 = rigid_shapes[j].first;
+			Convex& pg2 = rigid_shapes[j].second;
+
+			// Avoid self-collision
+			if ( rg == rg2 ) continue;
+
+			if ( rg->linear_enable == false
+				&& rg->angular_enable == false
+				&& rg2->linear_enable == false
+				&& rg2->angular_enable == false ) continue;
+
+			// Masking happens here
+
+			// Bodies and shapes: (rg,pg) and (rg2,pg2).
+
+			// THE SEPARATING AXIS THEOREM ALGORITHM
+			bool swap; Vec2 p; Wall w;
+			if ( ! Convex::sat( pg, pg2, swap, p, w ) ) continue;
+			// Contact c;
+			// 	c.a = swap ? rg2 : rg;
+			// 	c.b = swap ? rg : rg2;
+			// 	c.overlap = - w.distance( p );;
+			// 	c.normal = w.normal;
+			// 	c.a_p = w.nearest( p );
+			// 	c.b_p = p;
+			// rigid_contacts.push_back( c );
+			// continue;
+				// We see from this contact that it's CALTROPS that's the problem.
+
+			// Correction to B
+			Vec2 correction( p, w.nearest( p ) );
+			correction *= 2.0;
+			if ( swap ) correction = -correction;
+
+			// THE CALTROPS ALGORITHM
+			Convex& a = pg;
+			Convex& b = pg2;
+			int an = a.points.size();
+			int bn = b.points.size();
+
+			// This seems to be a decent caltrop length.
+			// What if we just calculate right away?
+			// Or, store the calcs in Rigid...
+			// Scalar aa, am; Vec2 ac;
+			// a.calculate( aa, am, ac );
+			// Scalar acl = SCALAR_MAX;
+			// for ( int i = 0; i < an; ++i ) {
+			// 	Wall w( a.points[i], a.normals[i] );
+			// 	Scalar dist = - w.distance( ac );
+			// 	if ( dist < acl ) acl = dist;
+			// }
+
+			// Scalar ba, bm; Vec2 bc;
+			// b.calculate( ba, bm, bc );
+			// Scalar bcl = SCALAR_MAX;
+			// for ( int i = 0; i < bn; ++i ) {
+			// 	Wall w( b.points[i], b.normals[i] );
+			// 	Scalar dist = - w.distance( bc );
+			// 	if ( dist < bcl ) bcl = dist;
+			// }
+
+			correction = -correction;
+
+			for ( int i = 0; i < bn; ++i ) {
+				int h = i-1; if ( h < 0 ) h += bn;
+				// Vec2& m = b.normals[h];
+				// Vec2& n = b.normals[i];
+				// Vec2 vn = (m+n).unit(); // This breaks digons
+				Vec2 vn = correction.unit();
+				Vec2& v = b.points[i];
+
+				// Scalar caltrop_length = 50.0; // This is bullshit
+				Scalar caltrop_length = correction.length();
+
+				// This is the caltrop
+				Ray r( v - vn * caltrop_length, vn );
+
+				// The key point of caltrops (fixing triangles)
+				// is that v_b doesn't need to be in A to be detected.
+
+				// Fire the ray at each segment.
+				for ( int i = 0; i < an; ++i ) {
+					Vec2& p = a.points[i];
+					Vec2& q = a.points[ (i+1) % an ];
+					Vec2& n = a.normals[i];
+
+					if ( vn * n > 0 ) continue;
+					Segment s( p, q );
+					auto rxs = r.intersects( s );
+					if ( rxs.first ) {
+						if ( rxs.second > caltrop_length ) break;
+						// See if s "contains" v.
+						if ( Wall( p, n.lperp() ).contains( v ) ) break;
+						if ( Wall( q, n.rperp() ).contains( v ) ) break;
+						// Yes, s "contains" v.
+						Wall w( p, n );
+						Contact c;
+							c.a = rg;
+							c.b = rg2;
+							c.overlap = - w.distance( v );
+							c.normal = w.normal;
+							c.a_p = w.nearest( v );
+							c.b_p = v;
+						rigid_contacts.push_back( c );
+						break; // Only one intersection.
+					}
+				}
+			}
+
+			correction = -correction;
+
+			for ( int i = 0; i < an; ++i ) {
+				int h = i-1; if ( h < 0 ) h += an;
+				// Vec2& m = a.normals[h];
+				// Vec2& n = a.normals[i];
+				// Vec2 vn = (m+n).unit(); // This breaks digons
+				Vec2 vn = correction.unit();
+				Vec2& v = a.points[i];
+
+				// Scalar caltrop_length = 50.0; // This is bullshit
+				Scalar caltrop_length = correction.length();
+
+				// This is the caltrop
+				Ray r( v - vn * caltrop_length, vn );
+
+				// The key point of caltrops (fixing triangles)
+				// is that v_a doesn't need to be in B to be detected.
+
+				// Fire the ray at each segment.
+				for ( int i = 0; i < bn; ++i ) {
+					Vec2& p = b.points[i];
+					Vec2& q = b.points[ (i+1) % bn ];
+					Vec2& n = b.normals[i];
+
+					if ( vn * n > 0 ) continue;
+					Segment s( p, q );
+					auto rxs = r.intersects( s );
+					if ( rxs.first ) {
+						if ( rxs.second > caltrop_length ) break;
+						// See if s "contains" v.
+						if ( Wall( p, n.lperp() ).contains( v ) ) break;
+						if ( Wall( q, n.rperp() ).contains( v ) ) break;
+						// Yes, s "contains" v.
+						Wall w( p, n );
+						Contact c;
+							c.a = rg2;
+							c.b = rg;
+							c.overlap = - w.distance( v );
+							c.normal = w.normal;
+							c.a_p = w.nearest( v );
+							c.b_p = v;
+						rigid_contacts.push_back( c );
+						break; // Only one intersection.
+					}
+				}
+			}
+		}
+
+		rd.insert( box, i );
+	}
+}
+#endif
+
+#ifdef SAT_COLLISION
+void PhysicsState::detect_rigid_collisions()
+{
+	// TODO: rigid islands
+	for ( unsigned int i = 0; i < rgs.size(); ++i ) {
+		// Store the local ID in the Rigid body,
+		// so that Constraint can just store Rigid*.
+		rgs[i]->local_id = i;
+	}
+
+	RD_BruteForce < int > rd;
+	for ( unsigned int i = 0; i < rigid_shapes.size(); ++i ) {
+		Rigid* rg = rigid_shapes[i].first;
+		const Convex& pg = rigid_shapes[i].second;
+
+		AABB box = pg.getAABB().fatter( 2.0 );
+
+		// Broadphase happens here
+		for ( int j : rd.query( box ) ) {
+			Rigid* rg2 = rigid_shapes[j].first;
+			const Convex& pg2 = rigid_shapes[j].second;
+
+			// Avoid self-collision
+			if ( rg == rg2 ) continue;
+
+			// Masking happens here
+
+			bool swap; Vec2 p; Wall w;
+			if ( ! Convex::sat( pg, pg2, swap, p, w ) ) continue;
+			// const Convex& a = swap ? pg2 : pg;
+			// const Convex& b = swap ? pg : pg2;
+
+			// TODO:
+			// Besides the swapping logic bug,
+			// SAT suffers severely from the "pong" bug.
+			// wat do?
+
+			// After we're done, we should have convex a and b.
+			// as well as a wall and a point.
+
+			// Generate our first contact from SAT.
+			swap = !swap;
+			Scalar overlap = - w.distance( p );
+			Contact c;
+				c.a = swap ? rg2 : rg;
+				c.b = swap ? rg : rg2;
+				c.overlap = overlap;
+				c.normal = w.normal;
+				c.a_p = !swap ? p + w.normal * overlap : p;
+				c.b_p = !swap ? p : p + w.normal * overlap;
+			rigid_contacts.push_back( c );
+
+
+			// Look for additional points v_B inside A.
+			// If found, we have an additional contact against the wall.
+
+			// Flip the wall (just negate later)
+
+			// Look for additional points v_A inside B.
+			// If found, we have an additional contact against the wall.
+			// Chances are, this is one of the points from the wall we're looking at.
+			// As such, the constraint error will be 0. Is this a problem?
+		}
+
+		rd.insert( box, i );
+	}
+}
+#endif
+
+#ifdef POT_COLLISION
+void PhysicsState::detect_rigid_collisions()
+{
+	// TODO: rigid islands
+	for ( unsigned int i = 0; i < rgs.size(); ++i ) {
+		// Store the local ID in the Rigid body,
+		// so that Constraint can just store Rigid*.
+		rgs[i]->local_id = i;
+	}
+
 	// To generate contacts, we place all Rigid body shape vertices
 	// into a single point-data and query the point-data with each shape.
 	// Since it only queries points, this algorithm fails to detect
 	// severely overpenetrating shapes (such as two crossed rectangles).
 
+	// With this approach, we're not using polygon-polygon SAT,
+	// only point-polygon degenerate SAT (henceforth SATp).
+	// Naively, this method is very prone to choosing the wrong edge/normal.
+
+	// The medial axis is implicit in SATp. SATp maps points inside a polygon
+	// to the edge corresponding to the medial axis region* the point is in.
+	// SATp bias shifts the medial axis
+
+	// WE'RE STILL BONED
+	// even with normal bias...
+
+	// Try SAT instead. This time, once the vertex is found,
+	// identify all contained vertices (for BOTH polygons)
+	// and add them as contacts, but against the same wall.
+
+	// * I think these are called Voronoi regions.
+
 	// Rigid body vertex potpourri
-	PD_BruteForce < std::pair < int, Vec2 > > pd;
+	// PD_BruteForce < std::pair < int, Vec2 > > pd;
+	PD_BruteForce < std::pair < int, std::pair < Vec2, Vec2 > > > pd;
 	for ( const auto& pair : rigid_shapes ) {
-		int i = pair.first;
+		int i = pair.first->local_id;
 		const Convex& pg = pair.second;
 
 		// for ( Vec2 v : pg.points ) {
 		// 	pd.insert( v, std::pair < int, Vec2 >( i, v ) );
 		// }
-
 		int n = pg.points.size();
-		for ( int x = 0; x < n; ++x ) {
-			const Vec2& p = pg.points[x];
-			const Vec2& q = pg.points[ (x+1) % n ];
-
-			Vec2 m = (p+q) * 0.5;
-			pd.insert( p, std::pair < int, Vec2 >( i, p ) );
-			// pd.insert( m, std::pair < int, Vec2 >( i, m ) ); // DOUBLED IT
+		for ( int b = 0; b < n; ++b ) {
+			int a = b - 1; if ( a < 0 ) a += n; // a loopmod n
+			// This breaks digons.
+			Vec2 point_normal = pg.normals[b] + pg.normals[a];
+			point_normal.normalize();
+			pd.insert( pg.points[b], std::pair < int, std::pair < Vec2, Vec2 > >( i, std::pair < Vec2, Vec2 >( pg.points[b], point_normal ) ) );
 		}
 	}
 
 	// Query the potpourri with every Convex shape
 	for ( const auto& pair : rigid_shapes ) {
-		int a_i = pair.first;
+		int a_i = pair.first->local_id;
 		const Convex& pg = pair.second;
 
 		// Spatial partitioning speed-up happens here
 		for ( const auto& pair : pd.query( pg.getAABB() ) ) {
 			int b_i = pair.first;
-			const Vec2& p = pair.second;
+			// const Vec2& p = pair.second;
+			const Vec2& p = pair.second.first;
+			const Vec2& pn = pair.second.second;
 
 			Rigid* a = rgs[ a_i ];
 			Rigid* b = rgs[ b_i ];
@@ -266,8 +568,18 @@ void PhysicsState::detect_rigid_collisions()
 			// TODO: use bias at p when picking the edge here
 			// Vec2 v_a = a->velocity + (p-a->position).lperp() * a->angular_velocity;
 			// Vec2 v_b = b->velocity + (p-b->position).lperp() * b->angular_velocity;
-			// Vec2 bias = v_a - v_b;
-			Vec2 bias = p - b->position;
+			// Vec2 v_rel = v_b - v_a;
+
+			Vec2 caltrop = (p - b->position).projection( pn );
+
+			Vec2 bias = caltrop;
+
+			// Derp.
+			bias = pn.unit() * 50.0;
+
+			// Nope, triangles still not working...
+
+			// TODO: this point-cloud scheme is bullshit.
 
 			auto maybe_correction = pg.correction( p, bias );
 			if ( !maybe_correction.first ) continue;
@@ -276,20 +588,18 @@ void PhysicsState::detect_rigid_collisions()
 			Scalar overlap = maybe_correction.second.second;
 			Vec2 correction = normal * overlap;
 
-
 			Contact c;
-				c.normal = normal;
-				c.overlap = overlap;
 				c.a = a;
-				c.a_i = a_i;
-				c.a_p = p + correction;
 				c.b = b;
-				c.b_i = b_i;
+				c.overlap = overlap;
+				c.normal = normal;
+				c.a_p = p + correction;
 				c.b_p = p;
 			rigid_contacts.push_back( c );
 		}
 	}
 }
+#endif
 
 /*
 ================================
@@ -433,8 +743,8 @@ void PhysicsState::apply_contact_forces()
 		J_sp[0][i] = Vec3( -c.normal, -(c.a_p - c.a->position)^c.normal );
 		J_sp[1][i] = Vec3(  c.normal,  (c.b_p - c.b->position)^c.normal );
 
-		J_map[0][i] = c.a_i;
-		J_map[1][i] = c.b_i;
+		J_map[0][i] = c.a->local_id;
+		J_map[1][i] = c.b->local_id;
 	}
 
 	// Consider changing the layout of Rigid:
