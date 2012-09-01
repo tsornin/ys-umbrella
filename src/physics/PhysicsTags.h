@@ -23,6 +23,9 @@ public: // Lifecycle
 
 	bool expired() const;
 
+public: // PhysicsTags
+	static bool pid_lt( PhysicsTags* a, PhysicsTags* b );
+
 public: // Accessors
 	unsigned int getMask() { return mask; }
 	Handler* getOwner() { return owner; }

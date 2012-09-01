@@ -646,8 +646,6 @@ Constraint
 	bounds
 ================================
 */
-bool pid_lt( PhysicsTags* a, PhysicsTags* b ) { return a->pid < b->pid; }
-
 void PhysicsState::solve_rigid_island( RigidGraph& rgg )
 {
 	// This shadows this->rgs and this->cts.
@@ -658,8 +656,8 @@ void PhysicsState::solve_rigid_island( RigidGraph& rgg )
 	// Under the monolithic solver, the simulation is always the same.
 	// Under the island solver, the simulation is different the first few times.
 	// (?!)
-	std::sort( rgs.begin(), rgs.end(), pid_lt );
-	std::sort( cts.begin(), cts.end(), pid_lt );
+	std::sort( rgs.begin(), rgs.end(), PhysicsTags::pid_lt );
+	std::sort( cts.begin(), cts.end(), PhysicsTags::pid_lt );
 
 	/*
 	Reproducibility (?!)

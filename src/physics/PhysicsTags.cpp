@@ -21,3 +21,15 @@ bool PhysicsTags::expired() const
 {
 	return expire_enable;
 }
+
+/*
+================================
+PhysicsTags::pid_lt
+
+Sort physics objects by their PID.
+================================
+*/
+bool PhysicsTags::pid_lt( PhysicsTags* a, PhysicsTags* b )
+{
+	return a->pid < b->pid;
+}
