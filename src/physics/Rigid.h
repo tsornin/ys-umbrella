@@ -2,11 +2,13 @@
 #define PHYSICS_RIGID_H
 
 #include "PhysicsTags.h"
+#include <set>
 #include "spatial/Vec2.h"
 #include "spatial/Convex.h"
 
 class AABB;
 class InputSet;
+class Constraint;
 
 /*
 ================================
@@ -116,9 +118,9 @@ private: // Members
 	std::vector < Convex > shapes; // object space
 
 private: // Physics engine graph data
-	// std::set < Constraint* > edges;
-	// bool marked;
-	// int component_id; // The component we're in
+	std::set < Constraint* > edges;
+	bool marked;
+	int component_id; // The component we're in
 	int local_id; // Our ID in this component
 };
 

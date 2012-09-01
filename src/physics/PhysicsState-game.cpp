@@ -1,4 +1,5 @@
 #include "PhysicsState.h"
+#include "spatial/AABB.h"
 
 /*
 ================================
@@ -29,12 +30,19 @@ void PhysicsState::init( Engine* game )
 /*
 ================================
 PhysicsState::cleanup
+
+NOTE: Clearing the lists isn't voodoo (PhysicsState is never destructed).
 ================================
 */
 void PhysicsState::cleanup()
 {
 	for ( Rigid* rg : rgs ) delete rg;
 	rgs.clear();
+
+	for ( Contact* ct : cts ) delete ct;
+	cts.clear();
+
+	rigid_islands.clear();
 
 	for ( Euler* eu : eus ) delete eu;
 	eus.clear();
@@ -95,6 +103,8 @@ void PhysicsState::draw( Engine* game )
 
 	for ( Rigid* rg : rgs ) game->rd.drawRigid( *rg );
 
+	for ( Contact* ct : cts ) game->rd.drawContact( *ct );
+
 	for ( Euler* eu : eus ) game->rd.drawEuler( *eu );
 
 	for ( Distance* dc : dcs ) game->rd.drawDistance( *dc );
@@ -103,7 +113,27 @@ void PhysicsState::draw( Engine* game )
 
 	for ( Verlet* vl : vls ) game->rd.drawVerlet( *vl );
 
-	for ( Contact& ct : rigid_contacts ) game->rd.drawContact( ct );
+
+	// TODO: Display islands.
+	// TODO: don't do this. also, get rid of #include AABB
+
+	for ( VerletGraph& vlg : verlet_islands ) {
+		AABB box = vlg.first.front()->getAABB();
+		for ( Verlet* vl : vlg.first ) {
+			box += vl->getAABB();
+		}
+		game->rd.drawAABB( box );
+	}
+
+	// TODO: remember, Rigid::getAABB incurs extra transforms
+	for ( RigidGraph& rgg : rigid_islands ) {
+		AABB box = rgg.first.front()->getAABB();
+		for ( Rigid* rg : rgg.first ) {
+			if ( rg->linear_enable || rg-> angular_enable )
+			box += rg->getAABB();
+		}
+		game->rd.drawAABB( box );
+	}
 }
 
 /*
@@ -117,10 +147,12 @@ void PhysicsState::setCaption( std::ostringstream& buffer )
 	buffer << " " << frames_elapsed << " frames elapsed";
 
 	buffer << " " << rgs.size();
-	buffer << "/" << rigid_shapes.size();
-	buffer << "/" << rigid_contacts.size();
-	buffer << "/?"; // TODO: number of islands
+	buffer << " (" << rigid_shapes.size() << ")";
+	buffer << "-" << cts.size();
+	buffer << "/" << rigid_islands.size();
+
 	buffer << ", " << eus.size();
+
 	buffer << ", " << vls.size() << "-" << dcs.size() << "-" << acs.size();
 	buffer << "/" << verlet_islands.size();
 }

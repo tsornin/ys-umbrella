@@ -88,7 +88,7 @@ public:
 			x*v.y - y*v.x );
 	}
 
-	Scalar dot  ( const Vec3& v ) const { return (*this) * v; }
+	Scalar dot( const Vec3& v ) const { return (*this) * v; }
 	Vec3 cross( const Vec3& v ) const { return (*this) ^ v; }
 
 	Vec3 prod( const Vec3& v ) const { return Vec3( x*v.x, y*v.y, z*v.z ); }

@@ -167,86 +167,70 @@ Convex::correction( const Vec2& p, const Vec2& bias ) const
 ================================
 Convex::sat
 
-Returns true if the two specified polygons intersect.
+Separating Axis Theorem algorithm.
 
 Returns:
-	bool	true if the first specified polygon is incident
-	Vec2	the offending point on the incident polygon
-	Wall	the face on the reference polygon
+	bool	true if the specified polygons intersect
+	Vec2	the minimum translation for the second specified polygon
 ================================
 */
-bool Convex::sat(
-	// in
-	const Convex& c1,
-	const Convex& c2,
-	// out
-	bool& swap,
-	Vec2& p,
-	Wall& w )
+std::pair < bool, Vec2 >
+Convex::sat( const Convex& a, const Convex& b )
 {
-	Scalar overlap = SCALAR_MAX;
+	std::pair < bool, Vec2 > ret;
+	ret.first = false;
+	ret.second = Vec2(0);
 
-	int n1 = c1.points.size();
-	int n2 = c2.points.size();
+	Scalar overlap = SCALAR_MAX;
+	Vec2 correction;
 
 	// First polygon reference
-	for ( int j = 0; j < n1; ++j ) {
-		Wall ref( c1.points[j], c1.normals[j] );
+	int n_a = a.points.size();
+	for ( int i = 0; i < n_a; ++i ) {
+		Wall ref( a.points[i], a.normals[i] );
 
-		// Minimum against the reference wall
-		Scalar min2 = SCALAR_MAX;
-		Vec2 minp;
-		for ( int i = 0; i < n2; ++i ) {
-			Scalar dist = ref.distance( c2.points[i] );
-			if ( dist < min2 ) {
-				min2 = dist;
-				minp = c2.points[i];
-			}
+		// Minimum against reference wall
+		Scalar min_b = SCALAR_MAX;
+		for ( const Vec2& p : b.points ) {
+			min_b = std::min( min_b, ref.distance( p ) );
 		}
 
-		if ( 0 < min2 ) {
-			return false;
+		// Early exit
+		if ( 0 < min_b ) {
+			return ret;
 		}
-		else {
-			Scalar overlap_c = -min2;
-			if ( overlap_c < overlap ) {
-				overlap = overlap_c;
-				swap = false;
-				p = minp;
-				w = ref;
-			}
+
+		// Keep minimum overlap
+		if ( -min_b < overlap ) {
+			overlap = -min_b;
+			correction = ref.normal * overlap;
 		}
 	}
 
 	// Second polygon reference
-	for ( int j = 0; j < n2; ++j ) {
-		Wall ref( c2.points[j], c2.normals[j] );
+	int n_b = b.points.size();
+	for ( int i = 0; i < n_b; ++i ) {
+		Wall ref( b.points[i], b.normals[i] );
 
-		Scalar min1 = SCALAR_MAX;
-		Vec2 minp;
-		for ( int i = 0; i < n1; ++i ) {
-			Scalar dist = ref.distance( c1.points[i] );
-			if ( dist < min1 ) {
-				min1 = dist;
-				minp = c1.points[i];
-			}
+		Scalar min_a = SCALAR_MAX;
+		for ( const Vec2& p : a.points ) {
+			min_a = std::min( min_a, ref.distance( p ) );
 		}
 
-		if ( 0 < min1 ) {
-			return false;
+		if ( 0 < min_a ) {
+			return ret;
 		}
-		else {
-			Scalar overlap_c = -min1;
-			if ( overlap_c < overlap ) {
-				overlap = overlap_c;
-				swap = true;
-				p = minp;
-				w = ref;
-			}
+
+		if ( -min_a < overlap ) {
+			overlap = -min_a;
+			// Always report correction to second polygon
+			correction = ref.normal * (-overlap);
 		}
 	}
 
-	return true;
+	ret.first = true;
+	ret.second = correction;
+	return ret;
 }
 
 /*

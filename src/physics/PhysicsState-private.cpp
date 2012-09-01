@@ -3,7 +3,8 @@
 #include <algorithm> // for std::remove_if
 #include "spatial/PD_BruteForce.h"
 #include "spatial/RD_BruteForce.h"
-#include "spatial/Vec3.h" // for solver // TODO: move
+
+// TODO: these are for sat-caltrops.
 #include "spatial/Segment.h"
 #include "spatial/Ray.h"
 
@@ -17,11 +18,15 @@ Steps the simulation.
 void PhysicsState::step()
 {
 	integrate_position();
+
 	expire();
 	find_verlet_islands();
 	detect_collisions();
+	find_rigid_islands();
 	relax_verlet_islands();
-	//integrate();
+
+	// TODO: integrate is split so we can see stuff
+	// integrate();
 	integrate_velocity();
 }
 
@@ -54,9 +59,13 @@ Removes and deletes expired physics objects.
 */
 void PhysicsState::expire()
 {
-	// This invalidates old indices.
+	// TODO: indices?
 	rgs.erase( std::remove_if( rgs.begin(), rgs.end(), Expire < Rigid* >() ), rgs.end() );
+	// TODO: contacts are "collision data" and get removed in collision-data.
+	// cts.remove_if( Expire < Contact* >() );
+
 	eus.remove_if( Expire < Euler* >() );
+
 	vls.remove_if( Expire < Verlet* >() );
 	dcs.remove_if( Expire < Distance* >() );
 	acs.remove_if( Expire < Angular* >() );
@@ -68,6 +77,7 @@ PhysicsState::find_verlet_islands
 
 Finds all connected components of the
 { Verlet particle, Distance constraint } graph.
+
 This is a slightly modified CC algorithm:
 	1. Edge-less vertices are not considered components.
 	2. "Frozen" vertices belong to as many components as they have edges.
@@ -82,16 +92,15 @@ void PhysicsState::find_verlet_islands()
 
 	verlet_islands.clear();
 
-	// Pre-processing
+	// Pre-processing: reset all component ID tags
 	for ( Verlet* vl : vls ) {
-		// Ignore edge-less points
-		if ( vl->edges.empty() ) vl->marked = true;
-
-		// Ignore frozen points
-		if ( ! vl->linear_enable ) vl->marked = true;
-
-		// Reset all component ID tags
 		vl->component_id = -1;
+	}
+
+	// Pre-processing: ignore edge-less and frozen vertices
+	for ( Verlet* vl : vls ) {
+		if ( vl->edges.empty() ) vl->marked = true;
+		if ( ! vl->linear_enable ) vl->marked = true;
 	}
 
 	// Undirected connected components algorithm
@@ -135,7 +144,7 @@ VerletGraph PhysicsState::mark_connected( Verlet* root )
 	std::vector < Verlet* >& vls = ret.first;
 	std::vector < Distance* >& dcs = ret.second;
 
-	// Start the BFS
+	// Breadth-first search
 	std::queue < Verlet*, std::list < Verlet* > > unseen;
 	unseen.push( root );
 	vls.push_back( root );
@@ -199,7 +208,14 @@ Clears all collision data from the last frame.
 void PhysicsState::clear_collision_data()
 {
 	rigid_shapes.clear();
-	rigid_contacts.clear();
+
+	// TODO: contact caching goes here (?)
+	// TODO: contact is deleted right here. Problem?
+	for ( Contact* ct : cts ) destroyContact( ct );
+	cts.clear();
+
+	// TODO: why not clear rigid and verlet islands here?
+
 	// verlet_wall_contacts.clear();
 }
 
@@ -235,21 +251,6 @@ PhysicsState::detect_rigid_collisions
 */
 void PhysicsState::detect_rigid_collisions()
 {
-	// TODO: island indexing
-	// Constraint just stores Rigid*.
-	/*
-		PS::expire
-		frame-id set. indexes rgs
-		PS::detect_rigid_collisions
-		PS::find_rigid_islands
-		each island sets component-id and per-island-id.
-	*/
-	for ( unsigned int i = 0; i < rgs.size(); ++i ) {
-		// Store the local ID in the Rigid body,
-		// so that Constraint can just store Rigid*.
-		rgs[i]->local_id = i;
-	}
-
 	RD_BruteForce < int > rd; // The integer indexes rigid_shapes
 	for ( unsigned int i = 0; i < rigid_shapes.size(); ++i ) {
 		Rigid* rg = rigid_shapes[i].first;
@@ -276,13 +277,9 @@ void PhysicsState::detect_rigid_collisions()
 			// Bodies and shapes: (rg,pg) and (rg2,pg2).
 
 			// THE SEPARATING AXIS THEOREM ALGORITHM
-			bool swap; Vec2 p; Wall w;
-			if ( ! Convex::sat( pg, pg2, swap, p, w ) ) continue;
-
-			// Correction to B
-			Vec2 correction( p, w.nearest( p ) );
-			correction *= 2.0;
-			if ( swap ) correction = -correction;
+			auto sat = Convex::sat( pg, pg2 );
+			if ( ! sat.first ) continue;
+			Vec2 correction = sat.second * 2.0;
 
 			// THE CALTROPS ALGORITHM
 			Convex& a = pg;
@@ -294,13 +291,9 @@ void PhysicsState::detect_rigid_collisions()
 
 			for ( int i = 0; i < bn; ++i ) {
 				int h = i-1; if ( h < 0 ) h += bn;
-				// Vec2& m = b.normals[h];
-				// Vec2& n = b.normals[i];
-				// Vec2 vn = (m+n).unit(); // This breaks digons
 				Vec2 vn = correction.unit();
 				Vec2& v = b.points[i];
 
-				// Scalar caltrop_length = 50.0; // This is bullshit
 				Scalar caltrop_length = correction.length();
 
 				// This is the caltrop
@@ -325,14 +318,11 @@ void PhysicsState::detect_rigid_collisions()
 						if ( Wall( q, n.rperp() ).contains( v ) ) break;
 						// Yes, s "contains" v.
 						Wall w( p, n );
-						Contact c;
-							c.a = rg;
-							c.b = rg2;
-							c.overlap = - w.distance( v );
-							c.normal = w.normal;
-							c.a_p = w.nearest( v );
-							c.b_p = v;
-						rigid_contacts.push_back( c );
+						Contact* ct = createContact( rg, rg2 );
+							ct->overlap = - w.distance( v );
+							ct->normal = w.normal;
+							ct->a_p = w.nearest( v );
+							ct->b_p = v;
 						break; // Only one intersection.
 					}
 				}
@@ -342,13 +332,9 @@ void PhysicsState::detect_rigid_collisions()
 
 			for ( int i = 0; i < an; ++i ) {
 				int h = i-1; if ( h < 0 ) h += an;
-				// Vec2& m = a.normals[h];
-				// Vec2& n = a.normals[i];
-				// Vec2 vn = (m+n).unit(); // This breaks digons
 				Vec2 vn = correction.unit();
 				Vec2& v = a.points[i];
 
-				// Scalar caltrop_length = 50.0; // This is bullshit
 				Scalar caltrop_length = correction.length();
 
 				// This is the caltrop
@@ -373,14 +359,11 @@ void PhysicsState::detect_rigid_collisions()
 						if ( Wall( q, n.rperp() ).contains( v ) ) break;
 						// Yes, s "contains" v.
 						Wall w( p, n );
-						Contact c;
-							c.a = rg2;
-							c.b = rg;
-							c.overlap = - w.distance( v );
-							c.normal = w.normal;
-							c.a_p = w.nearest( v );
-							c.b_p = v;
-						rigid_contacts.push_back( c );
+						Contact* ct = createContact( rg2, rg );
+							ct->overlap = - w.distance( v );
+							ct->normal = w.normal;
+							ct->a_p = w.nearest( v );
+							ct->b_p = v;
 						break; // Only one intersection.
 					}
 				}
@@ -389,6 +372,116 @@ void PhysicsState::detect_rigid_collisions()
 
 		rd.insert( box, i );
 	}
+}
+
+/*
+================================
+PhysicsState::find_rigid_islands
+
+Finds all connected components of the
+{ Rigid body, Constraint } graph.
+
+This is a slightly modified CC algorithm:
+	1. Edge-less vertices are not considered components.
+	2. "Frozen" vertices belong to as many components as they have edges.
+
+Invariant: no Rigid bodies are marked
+================================
+*/
+void PhysicsState::find_rigid_islands()
+{
+	rigid_islands.clear();
+
+	// Pre-processing: reset all component ID tags
+	// for ( Rigid* rg : rgs ) {
+	// 	rg->component_id = -1;
+	// }
+
+	// Pre-processing: ignore edge-less and frozen vertices
+	for ( Rigid* rg : rgs ) {
+		if ( rg->edges.empty() ) rg->marked = true;
+		if ( !rg->linear_enable && !rg->angular_enable ) rg->marked = true;
+	}
+
+	// Undirected connected components algorithm
+	for ( Rigid* rg : rgs ) {
+		if ( rg->marked ) continue;
+		rigid_islands.push_back( mark_connected( rg ) );
+	}
+
+	// TODO: why do we need this for Rigid?
+	// int n = rigid_islands.size();
+	// for ( int i = 0; i < n; ++i ) {
+	// 	RigidGraph& ig = rigid_islands[i];
+	// 	for ( Rigid* rg : ig.first ) rg->component_id = i;
+	// }
+
+	// for ( Rigid* rg : rgs ) assert( rg->marked );
+
+	// Post-condition
+	for ( Rigid* rg : rgs ) rg->marked = false;
+}
+
+/*
+================================
+PhysicsState::mark_connected
+
+Returns all Rigid bodies and Constraints in
+the connected component of the specified Rigid body.
+
+This is a slightly modified CC algorithm (see find_rigid_islands):
+We never call mark_connected on frozen or edge-less vertices, and
+frozen vertices belong to multiple components.
+
+Post-condition: all Verlet particles returned are marked
+================================
+*/
+RigidGraph PhysicsState::mark_connected( Rigid* root )
+{
+	RigidGraph ret;
+	std::vector < Rigid* >& rgs = ret.first;
+	std::vector < Constraint* >& cts = ret.second;
+
+	// Breadth-first search
+	std::queue < Rigid*, std::list < Rigid* > > unseen;
+	unseen.push( root );
+	rgs.push_back( root );
+	root->marked = true;
+
+	while ( ! unseen.empty() ) {
+		Rigid* v = unseen.front();
+		unseen.pop();
+
+		for ( Constraint* ct : v->edges ) {
+			// assert( ct->a == v || ct->b == v );
+			Rigid* w = ( ct->a == v ) ? ct->b : ct->a;
+
+			// Include and mark, but do not expand, frozen nodes.
+			// We add frozen nodes even though they are marked:
+			// this means that we consider frozen nodes with multiple neighbors
+			// to belong to multiple connected components.
+			if ( !w->linear_enable && !w->angular_enable ) {
+				rgs.push_back( w );
+			}
+			// Normal BFS on non-frozen nodes.
+			else if ( ! w->marked ) {
+				unseen.push( w );
+				rgs.push_back( w );
+				w->marked = true;
+			}
+
+			// This finds all edges twice
+			cts.push_back( ct );
+		}
+	}
+
+	// Remove duplicate edges
+	std::sort( cts.begin(), cts.end() );
+	cts.erase( std::unique( cts.begin(), cts.end() ), cts.end() );
+
+	// for ( Rigid* rg : rgs ) assert( rg->marked );
+
+	return ret;
 }
 
 /*
@@ -491,8 +584,8 @@ design a wind system
 	global drag
 	vector wind
 	fluid wind (coarse realtime)
-	fluid wind (fine precomputed "aura
-)remove stokes resistance at physics object level
+	fluid wind (fine precomputed "aura)
+remove stokes resistance at physics object level
 ================================
 */
 void PhysicsState::apply_wind_forces()
@@ -517,38 +610,58 @@ Interactive Dynamics (Catto 2005)
 */
 void PhysicsState::apply_contact_forces()
 {
-	int s = rigid_contacts.size();
+	solve_rigid_islands(); return;
+}
+
+/*
+================================
+PhysicsState::solve_rigid_islands
+================================
+*/
+void PhysicsState::solve_rigid_islands()
+{
+	for ( RigidGraph& rgg : rigid_islands ) {
+		solve_rigid_island( rgg );
+	}
+}
+
+/*
+================================
+PhysicsState::solve_rigid_island
+
+Interactive Dynamics (Catto 2005)
+
+TODO:
+Consider storing Rigid position and velocity as Vec3 to begin with.
+
+TODO:
+Constraint
+	error
+	bounds
+================================
+*/
+void PhysicsState::solve_rigid_island( RigidGraph& rgg )
+{
+	// This shadows this->rgs and this->cts.
+	std::vector < Rigid* >& rgs = rgg.first;
+	std::vector < Constraint* >& cts = rgg.second;
+
 	int n = rgs.size();
+	int s = cts.size();
 
-	// Compute the Jacobian matrix, J
-	auto J_sp_row = std::vector < Vec3 >( s );
-	auto J_sp = std::vector < std::vector < Vec3 > >( 2, J_sp_row );
-
-	auto J_map_row = std::vector < int >( s );
-	auto J_map = std::vector < std::vector < int > >( 2, J_map_row );
-
-	for ( int i = 0; i < s; ++i ) {
-		Contact& c = rigid_contacts[i];
-
-		J_sp[0][i] = Vec3( -c.normal, -(c.a_p - c.a->position)^c.normal );
-		J_sp[1][i] = Vec3(  c.normal,  (c.b_p - c.b->position)^c.normal );
-
-		J_map[0][i] = c.a->local_id;
-		J_map[1][i] = c.b->local_id;
+	// Set local_id
+	for ( int i = 0; i < n; ++i ) {
+		rgs[i]->local_id = i;
 	}
 
-	// Consider changing the layout of Rigid:
-	// Vec3 position, Vec3 velocity; // z is angular
-
-	// Compute the velocity vector, V
-	// V = map position_state rgs
+	// Velocity vector, V
 	auto V = std::vector < Vec3 >( n );
 	for ( int i = 0; i < n; ++i ) {
 		Rigid* rg = rgs[i];
 		V[i] = Vec3( rg->velocity, rg->angular_velocity );
 	}
 
-	// Compute the inverse mass matrix, M
+	// Inverse mass matrix, M
 	auto M = std::vector < Vec3 >( n );
 	for ( int i = 0; i < n; ++i ) {
 		Rigid* rg = rgs[i];
@@ -557,73 +670,87 @@ void PhysicsState::apply_contact_forces()
 			rg->angular_enable ? 1.0 / rg->moment : 0 );
 	}
 
-	// Compute the constraint velocity vector, H
-	// TODO: H is eta in the paper, Eta = bias + J V2bar
+	// Jacobian matrix, J
+	auto J_sp = std::vector < std::pair < Vec3, Vec3 > >( s );
+	auto J_map = std::vector < std::pair < int, int > >( s );
+	for ( int i = 0; i < s; ++i ) {
+		Constraint* ct = cts[i];
+		J_sp[i] = ct->jacobian();
+		J_map[i] = std::pair < int, int >(
+			ct->a->local_id,
+			ct->b->local_id );
+	}
+
+	// Constraint velocity vector, H (eta)
 	auto H = std::vector < Scalar >( s );
 	for ( int i = 0; i < s; ++i ) {
 		H[i] =
-			J_sp[0][i].dot( V[ J_map[0][i] ] ) +
-			J_sp[1][i].dot( V[ J_map[1][i] ] );
+			J_sp[i].first.dot( V[ J_map[i].first ] ) +
+			J_sp[i].second.dot( V[ J_map[i].second ] );
 
 		H[i] = -H[i];
 
+		// TODO: Move these into Constants.h
 		static const Scalar PHYSICS_SLOP = 0.1;
 		static const Scalar PHYSICS_BIAS = 0.5;
 
-		Scalar error = rigid_contacts[i].overlap - PHYSICS_SLOP;
-		error = error > 0 ? error : 0;
-		H[i] += PHYSICS_BIAS * error;
+		// TODO: Constraint error
+		Contact* ct = (Contact*) cts[i];
+		Scalar error = ct->overlap - PHYSICS_SLOP;
+		if ( error < 0 ) error = 0;
+		H[i] += error * PHYSICS_BIAS;
 	}
 
-	// Compute B = M J
-	auto B_sp = std::vector < std::vector < Vec3 > >( 2, J_sp_row );
+	// B = M J
+	auto B_sp = std::vector < std::pair < Vec3, Vec3 > >( s );
 	for ( int i = 0; i < s; ++i ) {
-		B_sp[0][i] = J_sp[0][i].prod( M[ J_map[0][i] ] );
-		B_sp[1][i] = J_sp[1][i].prod( M[ J_map[1][i] ] );
+		B_sp[i].first = J_sp[i].first.prod( M[ J_map[i].first ] );
+		B_sp[i].second = J_sp[i].second.prod( M[ J_map[i].second ] );
 	}
 
-	// Solve for lambda	
-	// TODO: a is initialized to B L with warm starting
+	// Constraint force vector, L
+	// TODO: a = B L with warm starting
 	auto a = std::vector < Vec3 >( n );
 	auto d = std::vector < Scalar >( s );
 	auto L = std::vector < Scalar >( s );
 	auto L_0 = std::vector < Scalar >( s );
-	// L_0 = H;
-	// L = L_0;
-	// // compute a = B L
-	// for ( int i = 0; i < s; ++i ) {
-	// 	a[ J_map[0][i] ] += B_sp[0][i] * ( L[i] );
-	// 	a[ J_map[1][i] ] += B_sp[1][i] * ( L[i] );
-	// }
-	// initialize diagonal
+	// Initialize diagonal
 	for ( int i = 0; i < s; ++i ) {
 		d[i] =
-			B_sp[0][i].dot( J_sp[0][i] ) +
-			B_sp[1][i].dot( J_sp[1][i] );
+			B_sp[i].first.dot( J_sp[i].first ) +
+			B_sp[i].second.dot( J_sp[i].second );
 	}
-	for ( int m = 0; m < 10; ++m ) { // iteration
+	// Estimate the number of iterations needed
+	int m = (int) std::ceil( std::sqrt( s ) );
+	// Solve for L
+	for ( int j = 0; j < m; ++j ) {
 		for ( int i = 0; i < s; ++i ) {
-			int b0 = J_map[0][i];
-			int b1 = J_map[1][i];
-			Scalar delta = ( H[i] - J_sp[0][i].dot( a[b0] ) - J_sp[1][i].dot( a[b1] ) ) / d[i];
+			int b1 = J_map[i].first;
+			int b2 = J_map[i].second;
+			Scalar delta = ( H[i] - (
+				J_sp[i].first.dot( a[b1] ) +
+				J_sp[i].second.dot( a[b2] ) ) ) / d[i];
 			L_0[i] = L[i];
-			Scalar tmp = L_0[i] + delta;
-			// TODO: bounds provided by Contact-is-Constraint
+			Scalar tmp =  L_0[i] + delta;
+			// TODO: bounds provided by Constraint
 			L[i] = tmp > 0.0 ? tmp : 0.0;
 			delta = L[i] - L_0[i];
-			a[b0] += B_sp[0][i] * delta; // scale
-			a[b1] += B_sp[1][i] * delta; // scale
+			a[b1] += B_sp[i].first * delta; // scale
+			a[b2] += B_sp[i].second * delta; // scale
 		}
 	}
 
 	// Compute F_c = Jt L
-	auto F = std::vector < Vec3 >( n, 0 );
+	auto F = std::vector < Vec3 >( n );
 	for ( int i = 0; i < s; ++i ) {
-		F[ J_map[0][i] ] += J_sp[0][i] * ( L[i] ); // scale
-		F[ J_map[1][i] ] += J_sp[1][i] * ( L[i] ); // scale
+		F[ J_map[i].first ] += J_sp[i].first * L[i]; // scale
+		F[ J_map[i].second ] += J_sp[i].second * L[i]; // scale
 	}
 
-	// Compute P_c = M F_c
+	// Update V += R_c, R_c = M F_c
+	// for ( int i = 0; i < n; ++i ) {
+	// 	V[i] += F[i].prod( M[i] );
+	// }
 	auto P = std::vector < Vec3 >( n );
 	for ( int i = 0; i < n; ++i ) {
 		P[i] = F[i].prod( M[i] );
@@ -634,11 +761,16 @@ void PhysicsState::apply_contact_forces()
 		V[i] += P[i];
 	}
 
-	// Read V back into rigid bodies
+	// Set new velocity
 	for ( int i = 0; i < n; ++i ) {
 		Rigid* rg = rgs[i];
 		rg->setVelocity( Vec2( V[i].x, V[i].y ) );
 		rg->setAngularVelocity( V[i].z );
+	}
+
+	// Clear local_id
+	for ( int i = 0; i < n; ++i ) {
+		rgs[i]->local_id = -1;
 	}
 }
 

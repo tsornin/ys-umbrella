@@ -1,13 +1,20 @@
 #ifndef PHYSICS_CONTACT_H
 #define PHYSICS_CONTACT_H
 
-class Rigid;
+#include "Constraint.h" // superclass Constraint
 
-struct Contact
+class Contact : public Constraint
 {
-public: // Constraint common
-	Rigid* a;
-	Rigid* b;
+public: // Constraint
+	Contact( Rigid* a, Rigid* b );
+	virtual ~Contact() {}
+
+	virtual std::pair < Vec3, Vec3 > jacobian();
+
+	// TODO:
+	// virtual Scalar error();
+
+	friend class PhysicsState;
 
 public: // Contact specific
 	Vec2 normal; // Points away from body A

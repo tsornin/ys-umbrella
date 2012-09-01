@@ -39,15 +39,7 @@ public: // Other
 	std::pair < bool, std::pair < Vec2, Scalar > > correction( const Vec2& p ) const;
 	std::pair < bool, std::pair < Vec2, Scalar > > correction( const Vec2& p, const Vec2& bias ) const;
 
-	static bool sat(
-		// in
-		const Convex& c1,
-		const Convex& c2,
-		// out
-		bool& swap,
-		Vec2& p,
-		Wall& w
-		);
+	static std::pair < bool, Vec2 > sat( const Convex& a, const Convex& b );
 
 public: // Self
 	bool verify();

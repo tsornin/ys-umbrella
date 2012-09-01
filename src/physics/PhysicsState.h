@@ -4,6 +4,7 @@
 #include <list>
 #include <vector>
 #include "game/BlankState.h" // superclass BlankState
+#include "common/MeshOBJ.h"
 #include "Constants.h"
 #include "Euler.h"
 #include "Rigid.h"
@@ -11,11 +12,14 @@
 #include "Distance.h"
 #include "Angular.h"
 #include "Contact.h"
-#include "common/MeshOBJ.h"
 
 typedef std::pair <
-	std::vector < Verlet* >,	
+	std::vector < Verlet* >,
 	std::vector < Distance* > > VerletGraph;
+
+typedef std::pair <
+	std::vector < Rigid* >,
+	std::vector < Constraint* > > RigidGraph;
 
 /*
 ================================
@@ -48,6 +52,9 @@ public: // Physics engine
 	Rigid* createRigid( const MeshOBJ& obj, RigidType rt = 0 );
 	void destroyRigid( Rigid* rg );
 
+	Contact* createContact( Rigid* a, Rigid* b );
+	void destroyContact( Contact* ct );
+	
 	Euler* createEuler( EulerType et = 0 );
 	void destroyEuler( Euler* eu );
 
@@ -66,23 +73,32 @@ public: // Physics engine
 
 private: // Physics timestep
 	void step();
+		// TODO: index reset
 		void expire();
+
 		void find_verlet_islands();
 			VerletGraph mark_connected( Verlet* root );
+
 		void detect_collisions();
 			void clear_collision_data();
 			void transform_convex();
 			void detect_rigid_collisions();
 
+		void find_rigid_islands();
+			RigidGraph mark_connected( Rigid* root );
 			// Think about adding eu-rg and vl-rg later.
 				// run dser and dsvr here.
 
+		// TODO: this is the same as "apply_contact_forces for rigid bodies"
 		void relax_verlet_islands();
+
 		void integrate();
 			void integrate_velocity();
 				void apply_gravity_forces();
 				void apply_wind_forces();
 				void apply_contact_forces();
+					void solve_rigid_islands();
+					void solve_rigid_island( RigidGraph& rgg );
 			void integrate_position();
 
 	int nextPID();
@@ -95,8 +111,9 @@ private: // Members
 
 	// Rigid bodies
 	std::vector < Rigid* > rgs;
+	std::vector < Contact* > cts;
+	std::vector < RigidGraph > rigid_islands;
 	std::vector < std::pair < Rigid*, Convex > > rigid_shapes;
-	std::vector < Contact > rigid_contacts;
 
 	// Euler particles
 	std::list < Euler* > eus;

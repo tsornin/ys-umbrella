@@ -42,6 +42,45 @@ void PhysicsState::destroyRigid( Rigid* rg )
 
 /*
 ================================
+PhysicsState::createContact
+
+Creates a new Contact constraint.
+
+NOTE: This function is private.
+================================
+*/
+Contact* PhysicsState::createContact( Rigid* a, Rigid* b )
+{
+	Contact* ct = new Contact( a, b );
+	cts.push_back( ct );
+
+	// Graph setup
+	ct->a->edges.insert( ct );
+	ct->b->edges.insert( ct );
+
+	return ct;
+}
+
+/*
+================================
+PhysicsState::destroyContact
+
+TODO: ???
+
+NOTE: This function is private.
+================================
+*/
+void PhysicsState::destroyContact( Contact* ct )
+{
+	ct->a->edges.erase( ct );
+	ct->b->edges.erase( ct );
+
+	// TODO: ???
+	delete ct;
+}
+
+/*
+================================
 PhysicsState::createEuler
 
 Creates a new Euler particle.
@@ -264,6 +303,9 @@ Returns all Verlet particles and Distance constraints in
 the connected component of the specified Verlet particle.
 
 Invariant: no Verlet particles are marked
+
+TODO: This is broken
+(ever since mark_connected changed to stop on frozen Verlet particles)
 ================================
 */
 VerletGraph PhysicsState::connected( Verlet* root )
