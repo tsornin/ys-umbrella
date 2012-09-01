@@ -1,11 +1,12 @@
 #ifndef PHYSICS_CONSTRAINT_H
 #define PHYSICS_CONSTRAINT_H
 
+#include "PhysicsTags.h"
 #include <set>
 #include "spatial/Vec3.h"
 #include "Rigid.h"
 
-class Constraint
+class Constraint : public PhysicsTags
 {
 protected:
 	Constraint( Rigid* a, Rigid* b );
@@ -22,7 +23,6 @@ protected: // Members
 		*b; // target vertex (incident)
 
 private: // Physics engine graph data
-	std::set < Constraint* > edges;
 };
 
 #endif

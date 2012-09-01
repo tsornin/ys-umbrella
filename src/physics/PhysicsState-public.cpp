@@ -52,6 +52,7 @@ NOTE: This function is private.
 Contact* PhysicsState::createContact( Rigid* a, Rigid* b )
 {
 	Contact* ct = new Contact( a, b );
+	ct->pid = nextPID();
 	cts.push_back( ct );
 
 	// Graph setup

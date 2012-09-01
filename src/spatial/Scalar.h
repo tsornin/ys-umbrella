@@ -41,7 +41,7 @@ Scalar arithmetic_mean( Scalar a, Scalar b );
 
 bool equals( Scalar a, Scalar b );
 
-template< typename T >
+template < typename T >
 bool bound( T& n, const T& a, const T& b ) {
 	const T n_prev = n;
 	n = std::max( n, a );

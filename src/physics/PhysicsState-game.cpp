@@ -116,7 +116,7 @@ void PhysicsState::draw( Engine* game )
 
 	// TODO: Display islands.
 	// TODO: don't do this. also, get rid of #include AABB
-
+return;
 	for ( VerletGraph& vlg : verlet_islands ) {
 		AABB box = vlg.first.front()->getAABB();
 		for ( Verlet* vl : vlg.first ) {
@@ -155,4 +155,6 @@ void PhysicsState::setCaption( std::ostringstream& buffer )
 
 	buffer << ", " << vls.size() << "-" << dcs.size() << "-" << acs.size();
 	buffer << "/" << verlet_islands.size();
+
+	buffer << ", next_pid: " << next_pid;
 }

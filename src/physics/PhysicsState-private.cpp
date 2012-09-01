@@ -215,6 +215,8 @@ void PhysicsState::clear_collision_data()
 	cts.clear();
 
 	// TODO: why not clear rigid and verlet islands here?
+	rigid_islands.clear();
+	verlet_islands.clear();
 
 	// verlet_wall_contacts.clear();
 }
@@ -610,7 +612,7 @@ Interactive Dynamics (Catto 2005)
 */
 void PhysicsState::apply_contact_forces()
 {
-	solve_rigid_islands(); return;
+	solve_rigid_islands();
 }
 
 /*
@@ -623,6 +625,10 @@ void PhysicsState::solve_rigid_islands()
 	for ( RigidGraph& rgg : rigid_islands ) {
 		solve_rigid_island( rgg );
 	}
+
+	// TODO: delete this (repro bug)
+	// RigidGraph rgg;
+	// solve_rigid_island( rgg );
 }
 
 /*
@@ -640,11 +646,30 @@ Constraint
 	bounds
 ================================
 */
+bool pid_lt( PhysicsTags* a, PhysicsTags* b ) { return a->pid < b->pid; }
+
 void PhysicsState::solve_rigid_island( RigidGraph& rgg )
 {
 	// This shadows this->rgs and this->cts.
 	std::vector < Rigid* >& rgs = rgg.first;
 	std::vector < Constraint* >& cts = rgg.second;
+
+	// There is a serious bug here (reproducibility).
+	// Under the monolithic solver, the simulation is always the same.
+	// Under the island solver, the simulation is different the first few times.
+	// (?!)
+	std::sort( rgs.begin(), rgs.end(), pid_lt );
+	std::sort( cts.begin(), cts.end(), pid_lt );
+
+	/*
+	Reproducibility (?!)
+
+	My guess is std::set < Rigid* > and std:set < Constraint* >.
+	Under monolithic, we never use std::set, or order by ptr.
+	Under island solver, the BFS's use of std::set < ptr >
+	causes the rgs and cts list to come back in undefined
+	(up to allocation ptr values) order.
+	*/
 
 	int n = rgs.size();
 	int s = cts.size();
@@ -748,17 +773,8 @@ void PhysicsState::solve_rigid_island( RigidGraph& rgg )
 	}
 
 	// Update V += R_c, R_c = M F_c
-	// for ( int i = 0; i < n; ++i ) {
-	// 	V[i] += F[i].prod( M[i] );
-	// }
-	auto P = std::vector < Vec3 >( n );
 	for ( int i = 0; i < n; ++i ) {
-		P[i] = F[i].prod( M[i] );
-	}
-
-	// Update V += P_c
-	for ( int i = 0; i < n; ++i ) {
-		V[i] += P[i];
+		V[i] += F[i].prod( M[i] );
 	}
 
 	// Set new velocity
