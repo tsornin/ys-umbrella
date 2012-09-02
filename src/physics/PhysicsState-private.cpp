@@ -4,7 +4,7 @@
 #include "spatial/PD_BruteForce.h"
 #include "spatial/RD_BruteForce.h"
 
-// TODO: these are for sat-caltrops.
+// TODO: cleanup sat-caltrops
 #include "spatial/Segment.h"
 #include "spatial/Ray.h"
 
@@ -12,33 +12,28 @@
 ================================
 PhysicsState::step
 
-Steps the simulation.
+Steps the simulation once.
 ================================
 */
 void PhysicsState::step()
 {
-	integrate_position();
-
 	expire();
-	find_verlet_islands();
-	detect_collisions();
-	find_rigid_islands();
-	relax_verlet_islands();
+	clear_collision_data();
 
-	// TODO: integrate is split so we can see stuff
-	// integrate();
-	integrate_velocity();
+	rigid_step();
+	euler_step();
+	verlet_step();
 }
 
 /*
 ================================
-Expire
+PhysicsState::expire
 
-Functor for std::remove_if,
-called from PhysicsState::expire
+Removes and deletes expired physics objects.
+
+TODO: use std::vector for all physics object collections
 ================================
 */
-
 template < typename T >
 struct Expire {
 	bool operator() ( T& t ) {
@@ -50,152 +45,15 @@ struct Expire {
 	}
 };
 
-/*
-================================
-PhysicsState::expire
-
-Removes and deletes expired physics objects.
-================================
-*/
 void PhysicsState::expire()
 {
-	// TODO: indices?
 	rgs.erase( std::remove_if( rgs.begin(), rgs.end(), Expire < Rigid* >() ), rgs.end() );
-	// TODO: contacts are "collision data" and get removed in collision-data.
-	// cts.remove_if( Expire < Contact* >() );
 
 	eus.remove_if( Expire < Euler* >() );
 
 	vls.remove_if( Expire < Verlet* >() );
 	dcs.remove_if( Expire < Distance* >() );
 	acs.remove_if( Expire < Angular* >() );
-}
-
-/*
-================================
-PhysicsState::find_verlet_islands
-
-Finds all connected components of the
-{ Verlet particle, Distance constraint } graph.
-
-This is a slightly modified CC algorithm:
-	1. Edge-less vertices are not considered components.
-	2. "Frozen" vertices belong to as many components as they have edges.
-
-Invariant: no Verlet particles are marked
-================================
-*/
-void PhysicsState::find_verlet_islands()
-{
-	// TODO: any freeze toggle should also set this.
-	// if ( ! dirty_verlet_islands ) return;
-
-	verlet_islands.clear();
-
-	// Pre-processing: reset all component ID tags
-	for ( Verlet* vl : vls ) {
-		vl->component_id = -1;
-	}
-
-	// Pre-processing: ignore edge-less and frozen vertices
-	for ( Verlet* vl : vls ) {
-		if ( vl->edges.empty() ) vl->marked = true;
-		if ( ! vl->linear_enable ) vl->marked = true;
-	}
-
-	// Undirected connected components algorithm
-	for ( Verlet* vl : vls ) {
-		if ( vl->marked ) continue;
-		verlet_islands.push_back( mark_connected( vl ) );
-	}
-
-	// Tag every Verlet with its component ID
-	int n = verlet_islands.size();
-	for ( int i = 0; i < n; ++i ) {
-		VerletGraph& vg = verlet_islands[i];
-		for ( Verlet* vl : vg.first ) vl->component_id = i;
-	}
-
-	// for ( Verlet* vl : vls ) assert( vl->marked );
-
-	// Post-condition
-	for ( Verlet* vl : vls ) vl->marked = false;
-
-	dirty_verlet_islands = false;
-}
-
-/*
-================================
-PhysicsState::mark_connected
-
-Returns all Verlet particles and Distance constraints in
-the connected component of the specified Verlet particle.
-
-This is a slightly modified CC algorithm (see find_verlet_islands):
-We never call mark_connected on frozen or edge-less vertices, and
-frozen vertices belong to multiple components.
-
-Post-condition: all Verlet particles returned are marked
-================================
-*/
-VerletGraph PhysicsState::mark_connected( Verlet* root )
-{
-	VerletGraph ret;
-	std::vector < Verlet* >& vls = ret.first;
-	std::vector < Distance* >& dcs = ret.second;
-
-	// Breadth-first search
-	std::queue < Verlet*, std::list < Verlet* > > unseen;
-	unseen.push( root );
-	vls.push_back( root );
-	root->marked = true;
-
-	while ( ! unseen.empty() ) {
-		Verlet* v = unseen.front();
-		unseen.pop();
-
-		for ( Distance* dc : v->edges ) {
-			// assert( dc->a == v || dc->b == v );
-			Verlet* w = ( dc->a == v ) ? dc->b : dc->a;
-
-			// Include and mark, but do not expand, frozen nodes.
-			// We add frozen nodes even though they are marked:
-			// this means that we consider frozen nodes with multiple neighbors
-			// to belong to multiple connected components.
-			if ( ! w->linear_enable ) {
-				vls.push_back( w );
-			}
-			// Normal BFS on non-frozen nodes.
-			else if ( ! w->marked ) {
-				unseen.push( w );
-				vls.push_back( w );
-				w->marked = true;
-			}
-
-			// This finds all edges twice
-			dcs.push_back( dc );
-		}
-	}
-
-	// Remove duplicate edges
-	std::sort( dcs.begin(), dcs.end() );
-	dcs.erase( std::unique( dcs.begin(), dcs.end() ), dcs.end() );
-
-	// for ( Verlet* vl : vls ) assert( vl->marked );
-
-	return ret;
-}
-
-/*
-================================
-PhysicsState::detect_collisions
-================================
-*/
-void PhysicsState::detect_collisions()
-{
-	clear_collision_data();
-	transform_convex();
-	detect_rigid_collisions();
 }
 
 /*
@@ -209,30 +67,42 @@ void PhysicsState::clear_collision_data()
 {
 	rigid_shapes.clear();
 
-	// TODO: contact caching goes here (?)
-	// TODO: contact is deleted right here. Problem?
+	// TODO: contact caching (?)
 	for ( Contact* ct : cts ) destroyContact( ct );
 	cts.clear();
 
-	// TODO: why not clear rigid and verlet islands here?
 	rigid_islands.clear();
 	verlet_islands.clear();
-
-	// verlet_wall_contacts.clear();
 }
 
 /*
 ================================
-PhysicsState::transform_convex
+PhysicsState::rigid_step
+
+Steps the Rigid body simulation.
+================================
+*/
+void PhysicsState::rigid_step()
+{
+	rigid_transform_convex();
+	rigid_detect_rigid();
+	rigid_find_islands();
+	rigid_integrate();
+}
+
+/*
+================================
+PhysicsState::rigid_transform_convex
 
 Makes copies of all Rigid-owned Convex shapes,
-transformed into world space and tagged with owners.
+transformed into world space and tagged with their owners.
 This happens every frame; there are no deletion problems.
 
 TODO: A more sophisticated on-demand transforming scheme?
+Is it possible to broad-phase before transforming?
 ================================
 */
-void PhysicsState::transform_convex()
+void PhysicsState::rigid_transform_convex()
 {
 	for ( Rigid* rg : rgs ) {
 		// Skip non-colliding Rigid bodies
@@ -248,10 +118,14 @@ void PhysicsState::transform_convex()
 
 /*
 ================================
-PhysicsState::detect_rigid_collisions
+PhysicsState::rigid_detect_rigid
+
+Detects all collisions between Rigid bodies.
+
+TODO: sat-caltrops cleanup
 ================================
 */
-void PhysicsState::detect_rigid_collisions()
+void PhysicsState::rigid_detect_rigid()
 {
 	RD_BruteForce < int > rd; // The integer indexes rigid_shapes
 	for ( unsigned int i = 0; i < rigid_shapes.size(); ++i ) {
@@ -378,7 +252,7 @@ void PhysicsState::detect_rigid_collisions()
 
 /*
 ================================
-PhysicsState::find_rigid_islands
+PhysicsState::rigid_find_islands
 
 Finds all connected components of the
 { Rigid body, Constraint } graph.
@@ -390,14 +264,9 @@ This is a slightly modified CC algorithm:
 Invariant: no Rigid bodies are marked
 ================================
 */
-void PhysicsState::find_rigid_islands()
+void PhysicsState::rigid_find_islands()
 {
 	rigid_islands.clear();
-
-	// Pre-processing: reset all component ID tags
-	// for ( Rigid* rg : rgs ) {
-	// 	rg->component_id = -1;
-	// }
 
 	// Pre-processing: ignore edge-less and frozen vertices
 	for ( Rigid* rg : rgs ) {
@@ -411,16 +280,10 @@ void PhysicsState::find_rigid_islands()
 		rigid_islands.push_back( mark_connected( rg ) );
 	}
 
-	// TODO: why do we need this for Rigid?
-	// int n = rigid_islands.size();
-	// for ( int i = 0; i < n; ++i ) {
-	// 	RigidGraph& ig = rigid_islands[i];
-	// 	for ( Rigid* rg : ig.first ) rg->component_id = i;
-	// }
-
+	// Post-condition
 	// for ( Rigid* rg : rgs ) assert( rg->marked );
 
-	// Post-condition
+	// Invariant
 	for ( Rigid* rg : rgs ) rg->marked = false;
 }
 
@@ -460,8 +323,8 @@ RigidGraph PhysicsState::mark_connected( Rigid* root )
 
 			// Include and mark, but do not expand, frozen nodes.
 			// We add frozen nodes even though they are marked:
-			// this means that we consider frozen nodes with multiple neighbors
-			// to belong to multiple connected components.
+			// this means that we consider frozen nodes with multiple
+			// neighbors to belong to multiple connected components.
 			if ( !w->linear_enable && !w->angular_enable ) {
 				rgs.push_back( w );
 			}
@@ -481,6 +344,7 @@ RigidGraph PhysicsState::mark_connected( Rigid* root )
 	std::sort( cts.begin(), cts.end() );
 	cts.erase( std::unique( cts.begin(), cts.end() ), cts.end() );
 
+	// Post-condition
 	// for ( Rigid* rg : rgs ) assert( rg->marked );
 
 	return ret;
@@ -488,115 +352,60 @@ RigidGraph PhysicsState::mark_connected( Rigid* root )
 
 /*
 ================================
-PhysicsState::relax_verlet_islands
-
-Applies relaxation to each connected component of Verlet particles.
-
-Repeatedly applies distance constraints between Verlet particles,
-converging toward the solution and implicitly modifying velocity.
+PhysicsState::rigid_integrate
 ================================
 */
-void PhysicsState::relax_verlet_islands()
+void PhysicsState::rigid_integrate()
 {
-	for ( VerletGraph vg : verlet_islands ) {
-		// std::vector < Verlet* >& vls = vg.first;
-		std::vector < Distance* >& dcs = vg.second;
+	rigid_integrate_velocity();
+	rigid_integrate_position();
+}
 
-		// Estimate the number of iterations needed
-		int m = (int) std::ceil( std::sqrt( dcs.size() ) );
+/*
+================================
+PhysicsState::rigid_integrate_velocity
+================================
+*/
+void PhysicsState::rigid_integrate_velocity()
+{
+	// External forces
+	rigid_apply_gravity_forces();
+	rigid_apply_wind_forces();
 
-		// Relax distance constraints with wall contacts
-		for ( int i = 0; i < m; ++i ) {
-			for ( Distance* dc : dcs ) {
-				dc->apply();
-			}
+	// Constraint forces
+	rigid_solve_islands();
+}
 
-			// TODO: equal_range can be moved outside one for block.
-			// Every component has at least one vertex
-			// int id = vls.front()->component_id;
-			// auto range = verlet_wall_contacts.equal_range( id );
-			// for ( auto it = range.first; it != range.second; ++it ) {
-			// 	// Seems like this works best with biased Convex::contains
-			// 	WallContact& wc = it->second;
-			// 	Verlet* vl = wc.first;
-			// 	Wall& w = wc.second;
+/*
+================================
+PhysicsState::rigid_apply_gravity_forces
 
-			// 	auto ret = w.contains( vl->getPosition() );
-			// 	if ( ret.first ) vl->addPosition( ret.second );
-			// }
-		}
+TODO: design a gravity system
+	global gravity
+	per-body gravity multiplier
+	gravity regions with PS::gravity( Vec2 )
+================================
+*/
+void PhysicsState::rigid_apply_gravity_forces()
+{
+	for ( Rigid* rg : rgs ) {
+		rg->addVelocity( rg->gravity );
 	}
 }
 
 /*
 ================================
-PhysicsState::integrate
+PhysicsState::rigid_apply_wind_forces
 
-Applies forces to velocity and velocity to position, creating collisions.
-================================
-*/
-void PhysicsState::integrate()
-{
-	integrate_velocity();
-	integrate_position();
-}
-
-/*
-================================
-PhysicsState::integrate_velocity
-
-Applies forces (gravity, wind) to velocities
-in preparation for the position update.
-================================
-*/
-void PhysicsState::integrate_velocity()
-{
-	apply_gravity_forces();
-	apply_wind_forces();
-	apply_contact_forces();
-}
-
-/*
-================================
-PhysicsState::apply_gravity_forces
-
-TODO:
-design a gravity system
-	0. global gravity
-	1. per-particle gravity
-	2. getGravityAt - gravity regions
-stop manually applying gravity at Entity level
-================================
-*/
-void PhysicsState::apply_gravity_forces()
-{
-	for ( Rigid* rg : rgs ) rg->addVelocity( rg->gravity );
-
-	for ( Euler* eu : eus ) eu->addVelocity( eu->gravity );
-
-	for ( Verlet* vl : vls ) vl->addPosition( vl->gravity );
-}
-
-/*
-================================
-PhysicsState::apply_wind_forces
-
-TODO:
-design a wind system
+TODO: design a wind system
 	global drag
 	vector wind
-	fluid wind (coarse realtime)
-	fluid wind (fine precomputed "aura)
-remove stokes resistance at physics object level
+	per-body wind multiplier
+	coarse real-time fluid wind
 ================================
 */
-void PhysicsState::apply_wind_forces()
+void PhysicsState::rigid_apply_wind_forces()
 {
-	// Apply wind to bodies using PhysicsState::getWindAt.
-	//velocity = Vec2::interp( velocity, wind(position), linear_damping )
-
-	// TODO: Wind forces to Rigid are a bit different.
-	// 2. Add forces per projected Convex?
 	for ( Rigid* rg : rgs ) {
 		rg->velocity *= rg->linear_damping;
 		rg->angular_velocity *= rg->angular_damping;
@@ -605,41 +414,31 @@ void PhysicsState::apply_wind_forces()
 
 /*
 ================================
-PhysicsState::apply_contact_forces
+PhysicsState::rigid_solve_islands
 
-Interactive Dynamics (Catto 2005)
+Computes and applies constraint forces for each Rigid island.
 ================================
 */
-void PhysicsState::apply_contact_forces()
-{
-	solve_rigid_islands();
-}
-
-/*
-================================
-PhysicsState::solve_rigid_islands
-================================
-*/
-void PhysicsState::solve_rigid_islands()
+void PhysicsState::rigid_solve_islands()
 {
 	for ( RigidGraph& rgg : rigid_islands ) {
-		solve_rigid_island( rgg );
+		rigid_solve_island( rgg );
 	}
 }
 
 /*
 ================================
-PhysicsState::solve_rigid_island
+PhysicsState::rigid_solve_island
 
-Computes and applies constraint forces for an island of Rigid bodies.
-
+Computes and applies constraint forces for the specified Rigid island.
 PDF: Interactive Dynamics (Catto 2005)
 
-TODO:
-Consider storing Rigid position and velocity as Vec3 to begin with.
+Invariant: local_id is -1
+
+TODO: Vec3 Rigid::get_velocity_state. set_velocity_state
 ================================
 */
-void PhysicsState::solve_rigid_island( RigidGraph& rgg )
+void PhysicsState::rigid_solve_island( RigidGraph& rgg )
 {
 	// This shadows this->rgs and this->cts.
 	std::vector < Rigid* >& rgs = rgg.first;
@@ -781,17 +580,299 @@ void PhysicsState::solve_rigid_island( RigidGraph& rgg )
 
 /*
 ================================
-PhysicsState::integrate_position
-
-Applies velocities to positions, possibly creating collisions.
+PhysicsState::rigid_integrate_position
 ================================
 */
-void PhysicsState::integrate_position()
+void PhysicsState::rigid_integrate_position()
 {
-	for ( Rigid* rg : rgs ) rg->update();
-	for ( Euler* eu : eus ) eu->update();
-	for ( Verlet* vl : vls ) vl->update();
+	for ( Rigid* rg : rgs ) {
+		rg->update();
+	}
 }
+
+/*
+================================
+PhysicsState::euler_step
+
+Steps the Euler particle simulation.
+================================
+*/
+void PhysicsState::euler_step()
+{
+	euler_detect_rigid();
+	euler_integrate();
+}
+
+/*
+================================
+PhysicsState::euler_detect_rigid
+
+Detects and resolves all collisions between Euler particles and Rigid bodies.
+================================
+*/
+void PhysicsState::euler_detect_rigid()
+{
+	// TODO: euler_detect_rigid
+}
+
+/*
+================================
+PhysicsState::euler_integrate
+================================
+*/
+void PhysicsState::euler_integrate()
+{
+	euler_integrate_velocity();
+	euler_integrate_position();
+}
+
+/*
+================================
+PhysicsState::euler_integrate_velocity
+================================
+*/
+void PhysicsState::euler_integrate_velocity()
+{
+	euler_apply_gravity_forces();
+	euler_apply_wind_forces();
+}
+
+/*
+================================
+PhysicsState::euler_apply_gravity_forces
+================================
+*/
+void PhysicsState::euler_apply_gravity_forces()
+{
+	for ( Euler* eu : eus ) {
+		eu->addVelocity( eu->gravity );
+	}
+}
+
+/*
+================================
+PhysicsState::euler_apply_wind_forces
+================================
+*/
+void PhysicsState::euler_apply_wind_forces()
+{
+	// TODO: Euler damping is still in Euler::update
+}
+
+/*
+================================
+PhysicsState::euler_integrate_position
+================================
+*/
+void PhysicsState::euler_integrate_position()
+{
+	for ( Euler* eu : eus ) {
+		eu->update();
+	}
+}
+
+/*
+================================
+PhysicsState::verlet_step
+================================
+*/
+void PhysicsState::verlet_step()
+{
+	verlet_find_islands();
+	verlet_detect_rigid();
+	verlet_integrate();
+}
+
+/*
+================================
+PhysicsState::verlet_find_islands
+
+Finds all connected components of the
+{ Verlet particle, Distance constraint } graph.
+
+This is a slightly modified CC algorithm:
+	1. Edge-less vertices are not considered components.
+	2. "Frozen" vertices belong to as many components as they have edges.
+
+Invariant: no Verlet particles are marked
+================================
+*/
+void PhysicsState::verlet_find_islands()
+{
+	// TODO: any freeze toggle should also set this.
+	// if ( ! dirty_verlet_islands ) return;
+
+	verlet_islands.clear();
+
+	// Pre-processing: reset all component ID tags
+	for ( Verlet* vl : vls ) {
+		vl->component_id = -1;
+	}
+
+	// Pre-processing: ignore edge-less and frozen vertices
+	for ( Verlet* vl : vls ) {
+		if ( vl->edges.empty() ) vl->marked = true;
+		if ( ! vl->linear_enable ) vl->marked = true;
+	}
+
+	// Undirected connected components algorithm
+	for ( Verlet* vl : vls ) {
+		if ( vl->marked ) continue;
+		verlet_islands.push_back( mark_connected( vl ) );
+	}
+
+	// Tag every Verlet with its component ID
+	int n = verlet_islands.size();
+	for ( int i = 0; i < n; ++i ) {
+		VerletGraph& vlg = verlet_islands[i];
+		for ( Verlet* vl : vlg.first ) vl->component_id = i;
+	}
+
+	// Post-condition
+	// for ( Verlet* vl : vls ) assert( vl->marked );
+
+	// Invariant
+	for ( Verlet* vl : vls ) vl->marked = false;
+
+	dirty_verlet_islands = false;
+}
+
+/*
+================================
+PhysicsState::mark_connected
+
+Returns all Verlet particles and Distance constraints in
+the connected component of the specified Verlet particle.
+
+This is a slightly modified CC algorithm (see find_verlet_islands):
+We never call mark_connected on frozen or edge-less vertices, and
+frozen vertices belong to multiple components.
+
+Post-condition: all Verlet particles returned are marked
+================================
+*/
+VerletGraph PhysicsState::mark_connected( Verlet* root )
+{
+	VerletGraph ret;
+	std::vector < Verlet* >& vls = ret.first;
+	std::vector < Distance* >& dcs = ret.second;
+
+	// Breadth-first search
+	std::queue < Verlet*, std::list < Verlet* > > unseen;
+	unseen.push( root );
+	vls.push_back( root );
+	root->marked = true;
+
+	while ( ! unseen.empty() ) {
+		Verlet* v = unseen.front();
+		unseen.pop();
+
+		for ( Distance* dc : v->edges ) {
+			// assert( dc->a == v || dc->b == v );
+			Verlet* w = ( dc->a == v ) ? dc->b : dc->a;
+
+			// Include and mark, but do not expand, frozen nodes.
+			// We add frozen nodes even though they are marked:
+			// this means that we consider frozen nodes with multiple
+			// neighbors to belong to multiple connected components.
+			if ( ! w->linear_enable ) {
+				vls.push_back( w );
+			}
+			// Normal BFS on non-frozen nodes.
+			else if ( ! w->marked ) {
+				unseen.push( w );
+				vls.push_back( w );
+				w->marked = true;
+			}
+
+			// This finds all edges twice
+			dcs.push_back( dc );
+		}
+	}
+
+	// Remove duplicate edges
+	std::sort( dcs.begin(), dcs.end() );
+	dcs.erase( std::unique( dcs.begin(), dcs.end() ), dcs.end() );
+
+	// Post-condition
+	// for ( Verlet* vl : vls ) assert( vl->marked );
+
+	return ret;
+}
+
+/*
+================================
+PhysicsState::verlet_detect_rigid
+================================
+*/
+void PhysicsState::verlet_detect_rigid()
+{
+	// TODO: verlet_detect_rigid
+}
+
+/*
+================================
+PhysicsState::verlet_integrate
+================================
+*/
+void PhysicsState::verlet_integrate()
+{
+	// TODO: this should be in a function
+	for ( Verlet* vl : vls ) {
+		vl->addPosition( vl->gravity );
+	}
+
+	verlet_solve_islands();
+	verlet_integrate_position();
+}
+
+/*
+================================
+PhysicsState::verlet_solve_islands
+================================
+*/
+void PhysicsState::verlet_solve_islands()
+{
+	for ( VerletGraph& vlg : verlet_islands ) {
+		verlet_solve_island( vlg );
+	}
+}
+
+/*
+================================
+PhysicsState::verlet_solve_island
+================================
+*/
+void PhysicsState::verlet_solve_island( VerletGraph& vlg )
+{
+	// std::vector < Verlet* >& vls = vlg.first;
+	std::vector < Distance* >& dcs = vlg.second;
+
+	// Estimate the number of iterations needed
+	int m = (int) std::ceil( std::sqrt( dcs.size() ) );
+
+	// TODO: Relax distance constraints with wall contacts.
+
+	for ( int i = 0; i < m; ++i ) {
+		for ( Distance* dc : dcs ) {
+			dc->apply();
+		}
+	}
+}
+
+/*
+================================
+PhysicsState::verlet_integrate_position
+================================
+*/
+void PhysicsState::verlet_integrate_position()
+{
+	// TODO: Verlet damping is still in Verlet::update
+	for ( Verlet* vl : vls ) {
+		vl->update();
+	}
+}
+
 
 /*
 ================================

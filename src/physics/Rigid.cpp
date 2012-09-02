@@ -23,9 +23,12 @@ Rigid::Rigid() :
 	// Collision properties
 	mass( STANDARD_MASS ),
 	moment( STANDARD_MOMENT ),
-	bounce( STANDARD_BOUNCE )
+	bounce( STANDARD_BOUNCE ),
 	// static_friction( STANDARD_KINETIC_FRICTION ),
 	// kinetic_friction( STANDARD_STATIC_FRICTION ),
+	// Physics engine graph data
+	marked( false ),
+	local_id( -1 )
 {
 	
 }

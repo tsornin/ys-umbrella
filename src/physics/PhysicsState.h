@@ -71,35 +71,40 @@ public: // Physics engine
 
 private: // Physics timestep
 	void step();
-		// TODO: index reset
 		void expire();
+		void clear_collision_data();
 
-		void find_verlet_islands();
-			VerletGraph mark_connected( Verlet* root );
+		void rigid_step();
+			void rigid_transform_convex();
+			void rigid_detect_rigid();
+			void rigid_find_islands();
+				RigidGraph mark_connected( Rigid* root );
+			void rigid_integrate();
+				void rigid_integrate_velocity();
+					void rigid_apply_gravity_forces();
+					void rigid_apply_wind_forces();
+					void rigid_solve_islands();
+						void rigid_solve_island( RigidGraph& rgg );
+				void rigid_integrate_position();
 
-		void detect_collisions();
-			void clear_collision_data();
-			void transform_convex();
-			void detect_rigid_collisions();
+		void euler_step();
+			void euler_detect_rigid();
+			void euler_integrate();
+				void euler_integrate_velocity();
+					void euler_apply_gravity_forces();
+					void euler_apply_wind_forces();
+				void euler_integrate_position();
 
-		void find_rigid_islands();
-			RigidGraph mark_connected( Rigid* root );
-
-		// TODO: this is the same as "apply_contact_forces for rigid bodies"
-		void relax_verlet_islands();
-
-		void integrate();
-			void integrate_velocity();
-				void apply_gravity_forces();
-				void apply_wind_forces();
-				void apply_contact_forces();
-					void solve_rigid_islands();
-					void solve_rigid_island( RigidGraph& rgg );
-			void integrate_position();
+		void verlet_step();
+			void verlet_find_islands();
+				VerletGraph mark_connected( Verlet* root );
+			void verlet_detect_rigid();
+			void verlet_integrate();
+				void verlet_solve_islands();
+					void verlet_solve_island( VerletGraph& vlg );
+				void verlet_integrate_position();
 
 	int nextPID();
-
-
 
 private: // Members
 	// (next) Physics ID
