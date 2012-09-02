@@ -67,8 +67,6 @@ public: // Physics engine
 	Angular* createAngular( Distance* m, Distance* n );
 	void destroyAngular( Angular* ac );
 
-	VerletGraph connected( Verlet* root );
-
 	Verlet* nearestVerlet( const Vec2& p, Scalar r );
 
 private: // Physics timestep
@@ -86,8 +84,6 @@ private: // Physics timestep
 
 		void find_rigid_islands();
 			RigidGraph mark_connected( Rigid* root );
-			// Think about adding eu-rg and vl-rg later.
-				// run dser and dsvr here.
 
 		// TODO: this is the same as "apply_contact_forces for rigid bodies"
 		void relax_verlet_islands();

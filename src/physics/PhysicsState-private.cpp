@@ -625,25 +625,18 @@ void PhysicsState::solve_rigid_islands()
 	for ( RigidGraph& rgg : rigid_islands ) {
 		solve_rigid_island( rgg );
 	}
-
-	// TODO: delete this (repro bug)
-	// RigidGraph rgg;
-	// solve_rigid_island( rgg );
 }
 
 /*
 ================================
 PhysicsState::solve_rigid_island
 
-Interactive Dynamics (Catto 2005)
+Computes and applies constraint forces for an island of Rigid bodies.
+
+PDF: Interactive Dynamics (Catto 2005)
 
 TODO:
 Consider storing Rigid position and velocity as Vec3 to begin with.
-
-TODO:
-Constraint
-	error
-	bounds
 ================================
 */
 void PhysicsState::solve_rigid_island( RigidGraph& rgg )
@@ -652,22 +645,17 @@ void PhysicsState::solve_rigid_island( RigidGraph& rgg )
 	std::vector < Rigid* >& rgs = rgg.first;
 	std::vector < Constraint* >& cts = rgg.second;
 
-	// There is a serious bug here (reproducibility).
-	// Under the monolithic solver, the simulation is always the same.
-	// Under the island solver, the simulation is different the first few times.
-	// (?!)
+	// TODO: Reproducibility of simulation
+	// Discovered a bug where the island solver gave different but plausible
+	// results on every simulation reset. The culprit was std::set. The
+	// island solver's use of std::set in find_rigid_islands caused the
+	// list of physics objects to come back in an unknown (up to the
+	// allocator's pointer values) order. This causes a difference in the
+	// simulation because the solver is iterative.
+	// 
+	// Maybe we should re-think using raw pointers?
 	std::sort( rgs.begin(), rgs.end(), PhysicsTags::pid_lt );
 	std::sort( cts.begin(), cts.end(), PhysicsTags::pid_lt );
-
-	/*
-	Reproducibility (?!)
-
-	My guess is std::set < Rigid* > and std:set < Constraint* >.
-	Under monolithic, we never use std::set, or order by ptr.
-	Under island solver, the BFS's use of std::set < ptr >
-	causes the rgs and cts list to come back in undefined
-	(up to allocation ptr values) order.
-	*/
 
 	int n = rgs.size();
 	int s = cts.size();
@@ -717,9 +705,10 @@ void PhysicsState::solve_rigid_island( RigidGraph& rgg )
 		static const Scalar PHYSICS_SLOP = 0.1;
 		static const Scalar PHYSICS_BIAS = 0.5;
 
-		// TODO: Constraint error
-		Contact* ct = (Contact*) cts[i];
-		Scalar error = ct->overlap - PHYSICS_SLOP;
+		// TODO: Is physics slop part of the error?
+		// Contact* ct = (Contact*) cts[i];
+		Scalar error = -cts[i]->eval() - PHYSICS_SLOP;
+		// Scalar error = ct->overlap - PHYSICS_SLOP;
 		if ( error < 0 ) error = 0;
 		H[i] += error * PHYSICS_BIAS;
 	}
@@ -744,8 +733,9 @@ void PhysicsState::solve_rigid_island( RigidGraph& rgg )
 			B_sp[i].second.dot( J_sp[i].second );
 	}
 	// Estimate the number of iterations needed
-	int m = (int) std::ceil( std::sqrt( s ) );
+	int m = (int) std::ceil( std::sqrt( s*2 ) );
 	// Solve for L
+	// TODO: Store the results of virtual Constraint::bounds
 	for ( int j = 0; j < m; ++j ) {
 		for ( int i = 0; i < s; ++i ) {
 			int b1 = J_map[i].first;
@@ -755,8 +745,9 @@ void PhysicsState::solve_rigid_island( RigidGraph& rgg )
 				J_sp[i].second.dot( a[b2] ) ) ) / d[i];
 			L_0[i] = L[i];
 			Scalar tmp =  L_0[i] + delta;
-			// TODO: bounds provided by Constraint
-			L[i] = tmp > 0.0 ? tmp : 0.0;
+			auto bounds = cts[i]->bounds();
+			clamp( tmp, bounds.first, bounds.second );
+			L[i] = tmp;
 			delta = L[i] - L_0[i];
 			a[b1] += B_sp[i].first * delta; // scale
 			a[b2] += B_sp[i].second * delta; // scale

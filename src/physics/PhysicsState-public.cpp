@@ -298,31 +298,6 @@ void PhysicsState::destroyAngular( Angular* ac )
 
 /*
 ================================
-PhysicsState::connected
-
-Returns all Verlet particles and Distance constraints in
-the connected component of the specified Verlet particle.
-
-Invariant: no Verlet particles are marked
-
-TODO: This is broken
-(ever since mark_connected changed to stop on frozen Verlet particles)
-================================
-*/
-VerletGraph PhysicsState::connected( Verlet* root )
-{
-	VerletGraph ret = mark_connected( root );
-
-	// Unmark everything we found
-	for ( Verlet* vl : ret.first ) {
-		vl->marked = false;
-	}
-
-	return ret;
-}
-
-/*
-================================
 PhysicsState::nearestVerlet
 
 Returns the Verlet particle nearest to the specified location.

@@ -9,10 +9,9 @@ public: // Constraint
 	Contact( Rigid* a, Rigid* b );
 	virtual ~Contact() {}
 
+	virtual Scalar eval();
 	virtual std::pair < Vec3, Vec3 > jacobian();
-
-	// TODO:
-	// virtual Scalar error();
+	virtual std::pair < Scalar, Scalar > bounds();
 
 	friend class PhysicsState;
 

@@ -116,24 +116,23 @@ void PhysicsState::draw( Engine* game )
 
 	// TODO: Display islands.
 	// TODO: don't do this. also, get rid of #include AABB
-return;
-	for ( VerletGraph& vlg : verlet_islands ) {
-		AABB box = vlg.first.front()->getAABB();
-		for ( Verlet* vl : vlg.first ) {
-			box += vl->getAABB();
-		}
-		game->rd.drawAABB( box );
-	}
+	// for ( VerletGraph& vlg : verlet_islands ) {
+	// 	AABB box = vlg.first.front()->getAABB();
+	// 	for ( Verlet* vl : vlg.first ) {
+	// 		box += vl->getAABB();
+	// 	}
+	// 	game->rd.drawAABB( box );
+	// }
 
-	// TODO: remember, Rigid::getAABB incurs extra transforms
-	for ( RigidGraph& rgg : rigid_islands ) {
-		AABB box = rgg.first.front()->getAABB();
-		for ( Rigid* rg : rgg.first ) {
-			if ( rg->linear_enable || rg-> angular_enable )
-			box += rg->getAABB();
-		}
-		game->rd.drawAABB( box );
-	}
+	// // TODO: remember, Rigid::getAABB incurs extra transforms
+	// for ( RigidGraph& rgg : rigid_islands ) {
+	// 	AABB box = rgg.first.front()->getAABB();
+	// 	for ( Rigid* rg : rgg.first ) {
+	// 		if ( rg->linear_enable || rg-> angular_enable )
+	// 		box += rg->getAABB();
+	// 	}
+	// 	game->rd.drawAABB( box );
+	// }
 }
 
 /*
