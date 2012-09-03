@@ -74,7 +74,6 @@ void PhysicsState::clear_collision_data()
 	// Index contacts by contact identifier
 	contact_cache.clear();
 	for ( Contact* ct : cts ) {
-		// contact_cache[ ct->key() ] = ct;
 		contact_cache.insert( std::pair < Identifier, Contact* >( ct->key(), ct ) );
 	}
 	// Mark all contacts as expired
