@@ -77,7 +77,7 @@ void PhysicsState::destroyContact( Contact* ct )
 	ct->b->edges.erase( ct );
 
 	// TODO: ???
-	delete ct;
+	ct->expire_enable = true;
 }
 
 /*

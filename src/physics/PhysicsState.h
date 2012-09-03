@@ -3,6 +3,7 @@
 
 #include <list>
 #include <vector>
+#include <unordered_map>
 #include "game/BlankState.h" // superclass BlankState
 #include "common/MeshOBJ.h"
 #include "Constants.h"
@@ -114,7 +115,10 @@ private: // Members
 	std::vector < Rigid* > rgs;
 	std::vector < Contact* > cts;
 	std::vector < RigidGraph > rigid_islands;
-	std::vector < std::pair < Rigid*, Convex > > rigid_shapes;
+
+	typedef std::pair < Rigid*, int > ConvexTag;
+	std::vector < std::pair < ConvexTag, Convex > > rigid_shapes;
+	std::unordered_map < Identifier, Contact* > contact_cache;
 
 	// Euler particles
 	std::list < Euler* > eus;
@@ -123,9 +127,8 @@ private: // Members
 	std::list < Verlet* > vls;
 	std::list < Distance* > dcs;
 	std::list < Angular* > acs;
-	// Connected-components analysis of Verlet-Distance graph
-	bool dirty_verlet_islands;
 	std::vector < VerletGraph > verlet_islands;
+	bool dirty_verlet_islands;
 };
 
 #endif

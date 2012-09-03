@@ -68,8 +68,19 @@ void PhysicsState::clear_collision_data()
 	rigid_shapes.clear();
 
 	// TODO: contact caching (?)
-	for ( Contact* ct : cts ) destroyContact( ct );
-	cts.clear();
+	// for ( Contact* ct : cts ) destroyContact( ct );
+	// cts.clear();
+
+	// Index contacts by contact identifier
+	contact_cache.clear();
+	for ( Contact* ct : cts ) {
+		// contact_cache[ ct->key() ] = ct;
+		contact_cache.insert( std::pair < Identifier, Contact* >( ct->key(), ct ) );
+	}
+	// Mark all contacts as expired
+	for ( Contact* ct : cts ) {
+		ct->expire_enable = true;
+	}
 
 	rigid_islands.clear();
 	verlet_islands.clear();
@@ -100,18 +111,19 @@ This happens every frame; there are no deletion problems.
 
 TODO: A more sophisticated on-demand transforming scheme?
 Is it possible to broad-phase before transforming?
+
+TODO: Masking. Skip zero masks (is the mask in the rigid body, or the shape?)
 ================================
 */
 void PhysicsState::rigid_transform_convex()
 {
 	for ( Rigid* rg : rgs ) {
-		// Skip non-colliding Rigid bodies
-		if ( rg->mask == 0 ) continue;
-
-		for ( const Convex& pg : rg->shapes ) {
-			Convex t( pg );
-			t.transform( rg->position, rg->angle );
-			rigid_shapes.push_back( std::pair < Rigid*, Convex >( rg, t ) );
+		int n = rg->shapes.size();
+		for ( int i = 0; i < n; ++i ) {
+			Convex xf( rg->shapes[i] );
+			xf.transform( rg->position, rg->angle );
+			rigid_shapes.push_back( std::pair < ConvexTag, Convex >(
+				ConvexTag( rg, i ), xf ) );
 		}
 	}
 }
@@ -129,7 +141,8 @@ void PhysicsState::rigid_detect_rigid()
 {
 	RD_BruteForce < int > rd; // The integer indexes rigid_shapes
 	for ( unsigned int i = 0; i < rigid_shapes.size(); ++i ) {
-		Rigid* rg = rigid_shapes[i].first;
+		Rigid* rg = rigid_shapes[i].first.first;
+		int cid = rigid_shapes[i].first.second;
 		Convex& pg = rigid_shapes[i].second;
 
 		AABB box = pg.getAABB();
@@ -137,18 +150,18 @@ void PhysicsState::rigid_detect_rigid()
 
 		// Broadphase happens here
 		for ( int j : rd.query( box ) ) {
-			Rigid* rg2 = rigid_shapes[j].first;
+			Rigid* rg2 = rigid_shapes[j].first.first;
+			int cid2 = rigid_shapes[j].first.second;
 			Convex& pg2 = rigid_shapes[j].second;
 
 			// Avoid self-collision
 			if ( rg == rg2 ) continue;
 
-			if ( rg->linear_enable == false
-				&& rg->angular_enable == false
-				&& rg2->linear_enable == false
-				&& rg2->angular_enable == false ) continue;
+			if ( rg->linear_enable == false && rg->angular_enable == false
+				&& rg2->linear_enable == false && rg2->angular_enable == false )
+				continue;
 
-			// Masking happens here
+			// TODO: Masking happens here
 
 			// Bodies and shapes: (rg,pg) and (rg2,pg2).
 
@@ -165,10 +178,10 @@ void PhysicsState::rigid_detect_rigid()
 
 			correction = -correction;
 
-			for ( int i = 0; i < bn; ++i ) {
-				int h = i-1; if ( h < 0 ) h += bn;
+			for ( int j = 0; j < bn; ++j ) {
+				int h = j-1; if ( h < 0 ) h += bn;
 				Vec2 vn = correction.unit();
-				Vec2& v = b.points[i];
+				Vec2& v = b.points[j];
 
 				Scalar caltrop_length = correction.length();
 
@@ -194,11 +207,41 @@ void PhysicsState::rigid_detect_rigid()
 						if ( Wall( q, n.rperp() ).contains( v ) ) break;
 						// Yes, s "contains" v.
 						Wall w( p, n );
-						Contact* ct = createContact( rg, rg2 );
+
+						Identifier key;
+							key.a_pid = rg->pid;
+							key.a_cid = cid;
+							key.a_fid = i;
+							key.b_pid = rg2->pid;
+							key.b_cid = cid2;
+							key.b_fid = j;
+						// TODO: doing a unordered_map "double-find" out of laziness
+						if ( contact_cache.find( key ) != contact_cache.end() ) {
+						// if ( false ) {
+							// Old contact; update it.
+							Contact* ct = contact_cache[ key ];
 							ct->overlap = - w.distance( v );
 							ct->normal = w.normal;
 							ct->a_p = w.nearest( v );
 							ct->b_p = v;
+
+							ct->expire_enable = false;
+						}
+						else {
+							// New contact; cool story, bro.
+							Contact* ct = createContact( rg, rg2 );
+								ct->overlap = - w.distance( v );
+								ct->normal = w.normal;
+
+								ct->a_p = w.nearest( v );
+								ct->a_cid = cid;
+								ct->a_fid = i;
+
+								ct->b_p = v;
+								ct->b_cid = cid2;
+								ct->b_fid = j;
+						}
+
 						break; // Only one intersection.
 					}
 				}
@@ -206,10 +249,10 @@ void PhysicsState::rigid_detect_rigid()
 
 			correction = -correction;
 
-			for ( int i = 0; i < an; ++i ) {
-				int h = i-1; if ( h < 0 ) h += an;
+			for ( int j = 0; j < an; ++j ) {
+				int h = j-1; if ( h < 0 ) h += an;
 				Vec2 vn = correction.unit();
-				Vec2& v = a.points[i];
+				Vec2& v = a.points[j];
 
 				Scalar caltrop_length = correction.length();
 
@@ -235,11 +278,40 @@ void PhysicsState::rigid_detect_rigid()
 						if ( Wall( q, n.rperp() ).contains( v ) ) break;
 						// Yes, s "contains" v.
 						Wall w( p, n );
-						Contact* ct = createContact( rg2, rg );
+
+						Identifier key;
+							key.a_pid = rg2->pid;
+							key.a_cid = cid2;
+							key.a_fid = i;
+							key.b_pid = rg->pid;
+							key.b_cid = cid;
+							key.b_fid = j;
+						if ( contact_cache.find( key ) != contact_cache.end() ) {
+						// if ( false ) {
+							// Old contact; update it.
+							Contact* ct = contact_cache[ key ];
 							ct->overlap = - w.distance( v );
 							ct->normal = w.normal;
 							ct->a_p = w.nearest( v );
 							ct->b_p = v;
+
+							ct->expire_enable = false;
+						}
+						else {
+							// New contact; cool story, bro.
+							Contact* ct = createContact( rg2, rg );
+								ct->overlap = - w.distance( v );
+								ct->normal = w.normal;
+
+								ct->a_p = w.nearest( v );
+								ct->a_cid = cid2;
+								ct->a_fid = i;
+
+								ct->b_p = v;
+								ct->b_cid = cid;
+								ct->b_fid = j;
+						}
+
 						break; // Only one intersection.
 					}
 				}
@@ -248,6 +320,15 @@ void PhysicsState::rigid_detect_rigid()
 
 		rd.insert( box, i );
 	}
+
+
+	// When creating the contact cache, we marked all Contacts as expired.
+	// During detection, we look for persistent contacts and re-mark them as not expired.
+	// After detection, all expired Contacts are deleted.
+	for ( Contact* ct : cts ) {
+		if ( ct->expired() ) destroyContact( ct );
+	}
+	cts.erase( std::remove_if( cts.begin(), cts.end(), Expire < Contact* >() ), cts.end() );
 }
 
 /*
@@ -501,13 +582,11 @@ void PhysicsState::rigid_solve_island( RigidGraph& rgg )
 		H[i] = -H[i];
 
 		// TODO: Move these into Constants.h
-		static const Scalar PHYSICS_SLOP = 0.1;
-		static const Scalar PHYSICS_BIAS = 0.5;
+		static const Scalar PHYSICS_SLOP = 0.01;
+		static const Scalar PHYSICS_BIAS = 0.1;
 
 		// TODO: Is physics slop part of the error?
-		// Contact* ct = (Contact*) cts[i];
 		Scalar error = -cts[i]->eval() - PHYSICS_SLOP;
-		// Scalar error = ct->overlap - PHYSICS_SLOP;
 		if ( error < 0 ) error = 0;
 		H[i] += error * PHYSICS_BIAS;
 	}
@@ -520,11 +599,20 @@ void PhysicsState::rigid_solve_island( RigidGraph& rgg )
 	}
 
 	// Constraint force vector, L
-	// TODO: a = B L with warm starting
 	auto a = std::vector < Vec3 >( n );
 	auto d = std::vector < Scalar >( s );
 	auto L = std::vector < Scalar >( s );
 	auto L_0 = std::vector < Scalar >( s );
+	// Warm starting
+	for ( int i = 0; i < s; ++i ) {
+		L_0[i] = cts[i]->lambda;
+	}
+	L = L_0;
+	// Initialize a = B L
+	for ( int i = 0; i < s; ++i ) {
+		a[ J_map[i].first ] += B_sp[i].first * L[i]; // scale
+		a[ J_map[i].second ] += B_sp[i].second * L[i]; // scale
+	}
 	// Initialize diagonal
 	for ( int i = 0; i < s; ++i ) {
 		d[i] =
@@ -533,8 +621,7 @@ void PhysicsState::rigid_solve_island( RigidGraph& rgg )
 	}
 	// Estimate the number of iterations needed
 	int m = (int) std::ceil( std::sqrt( s*2 ) );
-	// Solve for L
-	// TODO: Store the results of virtual Constraint::bounds
+	// Solve for L with Projected Gauss-Seidel
 	for ( int j = 0; j < m; ++j ) {
 		for ( int i = 0; i < s; ++i ) {
 			int b1 = J_map[i].first;
@@ -551,6 +638,10 @@ void PhysicsState::rigid_solve_island( RigidGraph& rgg )
 			a[b1] += B_sp[i].first * delta; // scale
 			a[b2] += B_sp[i].second * delta; // scale
 		}
+	}
+	// Store new lambdas
+	for ( int i = 0; i < s; ++i ) {
+		cts[i]->lambda = L[i];
 	}
 
 	// Compute F_c = Jt L

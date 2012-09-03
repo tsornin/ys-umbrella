@@ -24,7 +24,8 @@ protected: // Members
 		*a, // source vertex (reference)
 		*b; // target vertex (incident)
 
-private: // Physics engine graph data
+	// Warm starting
+	Scalar lambda;
 };
 
 #endif
