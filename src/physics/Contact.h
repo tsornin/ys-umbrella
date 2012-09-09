@@ -6,50 +6,44 @@
 
 /*
 ================================
-Contact constraint identifier.
-
-This identifier is unique for contact points up to their varying positions,
-and is used to match new contacts to old (previous step) contacts.
-
-Contact constraints are formed between two Rigid bodies.
-We use three IDs for each Rigid body to uniquely identify a contact:
-	pid:	the ID of the Rigid body in the physics engine
-	cid:	the index of the Convex shape in the Rigid body
-	fid:	the index of the feature involved in the collision
-The feature ID indices either a vertex or an edge.
-By convention, body A is the reference (edge) shape,
-and body B is the incident (vertex) shape.
+A key that uniquely identifies a Rigid body feature.
 ================================
 */
-struct Identifier
+struct FeatureKey
 {
 public:
-	int a_pid;
-	int a_cid;
-	int a_fid;
+	int pid; // global ID of the Rigid body in the physics engine
+	int cid; // index of the Convex shape in the Rigid body
+	int fid; // index of the feature in the Convex shape (a vertex or an edge)
 
-	int b_pid;
-	int b_cid;
-	int b_fid;
-
-	// For std::unordered_map < Identifier, Contact* >
-	friend bool operator == ( const Identifier& id1, const Identifier& id2 ) {
-		return
-			id1.a_pid == id2.a_pid &&
-			id1.a_cid == id2.a_cid &&
-			id1.a_fid == id2.a_fid &&
-			id1.b_pid == id2.b_pid &&
-			id1.b_cid == id2.b_cid &&
-			id1.b_fid == id2.b_fid;
-	}
+	friend bool operator == ( const FeatureKey& fk1, const FeatureKey& fk2 );
 };
 
-// For std::unordered_map < Identifier, Contact* >
+/*
+================================
+A key that uniquely identifies a Contact between two Rigid body features.
+
+Used to match new contacts to old contacts.
+================================
+*/
+struct ContactKey
+{
+public:
+	FeatureKey a; // the reference feature (an edge)
+	FeatureKey b; // the incident feature (a vertex)
+
+	// For std::unordered_map < ContactKey, Contact* >
+	friend bool operator == ( const ContactKey& ck1, const ContactKey& ck2 );
+};
+
+// For std::unordered_map < ContactKey, Contact* >
 namespace std {
-	template <> struct hash < Identifier > {
-		size_t operator() ( const Identifier& x ) const {
-			// TODO: Is this standard user-type hashing procedure?
-			string s( (char*) &x, sizeof( Identifier ) );
+	template <>
+	struct hash < ContactKey >
+	{
+		size_t operator () ( const ContactKey& x ) const {
+			// TODO: Not sure if this is standard user-type hashing procedure.
+			string s( (char*) &x, sizeof( ContactKey ) );
 			return hash < string > () ( s );
 		}
 	};
@@ -78,20 +72,14 @@ public: // Constraint
 
 	friend class PhysicsState;
 
-public: // Contact
-	Identifier key();
-
 public: // Members
 	Vec2 normal; // Points away from body A
 	Scalar overlap; // Positive when penetrating
-
 	Vec2 a_p;
-	int a_cid;
-	int a_fid;
-
 	Vec2 b_p;
-	int b_cid;
-	int b_fid;
+
+	// Contact caching
+	ContactKey key;
 };
 
 #endif

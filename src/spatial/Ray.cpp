@@ -130,7 +130,7 @@ Ray::intersects( const Segment& seg ) const
 	// are on the same side of the ray.
 	Vec2 oa( o, a );
 	Vec2 ob( o, b );
-	// TODO: use gt instead of gteq to admit rays exactly on edge.
+	// Use greater-than to admint rays exactly on edge.
 	if ( oa.rejection( d ) * ob.rejection( d ) > 0 ) {
 		ret.first = false;
 		return ret;

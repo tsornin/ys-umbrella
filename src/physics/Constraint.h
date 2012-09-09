@@ -17,6 +17,7 @@ protected:
 	virtual std::pair < Scalar, Scalar > bounds() = 0;
 
 	friend class PhysicsState;
+	friend class Renderer;
 
 protected: // Members
 	// Vertices

@@ -3,6 +3,9 @@
 
 #include "Vec2.h"
 
+// Shadow
+struct Convex;
+
 /*
 ================================
 Represents an open half-space (a plane).
@@ -19,10 +22,16 @@ public: // Lifecycle
 	Wall();
 	Wall( const Vec2& o, const Vec2& n );
 
-public: // Collision
+public: // Point
 	Scalar distance( const Vec2& p ) const;
 	bool contains( const Vec2& p ) const;
 	Vec2 nearest( const Vec2& p ) const;
+	Scalar shadow( const Vec2& p ) const;
+
+public: // Convex
+	Scalar distance( const Convex& c ) const;
+	bool contains( const Convex& c ) const;
+	std::pair < Scalar, Scalar > shadow( const Convex& c ) const;
 };
 
 #endif

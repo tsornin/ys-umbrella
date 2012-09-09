@@ -178,8 +178,6 @@ std::pair < bool, Vec2 >
 Convex::sat( const Convex& a, const Convex& b )
 {
 	std::pair < bool, Vec2 > ret;
-	ret.first = false;
-	ret.second = Vec2(0);
 
 	Scalar overlap = SCALAR_MAX;
 	Vec2 correction;
@@ -187,16 +185,13 @@ Convex::sat( const Convex& a, const Convex& b )
 	// First polygon reference
 	int n_a = a.points.size();
 	for ( int i = 0; i < n_a; ++i ) {
-		Wall ref( a.points[i], a.normals[i] );
-
 		// Minimum against reference wall
-		Scalar min_b = SCALAR_MAX;
-		for ( const Vec2& p : b.points ) {
-			min_b = std::min( min_b, ref.distance( p ) );
-		}
+		Wall ref( a.points[i], a.normals[i] );
+		Scalar min_b = ref.distance( b );
 
 		// Early exit
 		if ( 0 < min_b ) {
+			ret.first = false;
 			return ret;
 		}
 
@@ -211,13 +206,10 @@ Convex::sat( const Convex& a, const Convex& b )
 	int n_b = b.points.size();
 	for ( int i = 0; i < n_b; ++i ) {
 		Wall ref( b.points[i], b.normals[i] );
-
-		Scalar min_a = SCALAR_MAX;
-		for ( const Vec2& p : a.points ) {
-			min_a = std::min( min_a, ref.distance( p ) );
-		}
+		Scalar min_a = ref.distance( a );
 
 		if ( 0 < min_a ) {
+			ret.first = false;
 			return ret;
 		}
 

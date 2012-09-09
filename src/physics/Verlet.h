@@ -37,6 +37,8 @@ public: // Verlet functions
 	void putPosition( const Vec2& pos );
 
 public: // Accessors
+	bool frozen() const { return !linear_enable; }
+
 	Vec2 getPosition() const { return position; }
 	Vec2 getVelocity() const { return velocity; }
 	bool isLinearEnable() const { return linear_enable; }

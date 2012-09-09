@@ -66,20 +66,7 @@ Clears all collision data from the last frame.
 void PhysicsState::clear_collision_data()
 {
 	rigid_shapes.clear();
-
-	// TODO: contact caching (?)
-	// for ( Contact* ct : cts ) destroyContact( ct );
-	// cts.clear();
-
-	// Index contacts by contact identifier
 	contact_cache.clear();
-	for ( Contact* ct : cts ) {
-		contact_cache.insert( std::pair < Identifier, Contact* >( ct->key(), ct ) );
-	}
-	// Mark all contacts as expired
-	for ( Contact* ct : cts ) {
-		ct->expire_enable = true;
-	}
 
 	rigid_islands.clear();
 	verlet_islands.clear();
@@ -95,7 +82,9 @@ Steps the Rigid body simulation.
 void PhysicsState::rigid_step()
 {
 	rigid_transform_convex();
+	rigid_index_contacts();
 	rigid_detect_rigid();
+	rigid_expire_contacts();
 	rigid_find_islands();
 	rigid_integrate();
 }
@@ -129,201 +118,249 @@ void PhysicsState::rigid_transform_convex()
 
 /*
 ================================
+PhysicsState::rigid_index_contacts
+================================
+*/
+void PhysicsState::rigid_index_contacts()
+{
+	// Index contacts by contact identifier
+	for ( Contact* ct : cts ) {
+		contact_cache[ ct->key ] = ct;
+	}
+
+	// Mark all contacts as expired.
+	// We are now holding on to contacts from the previous step.
+	// Instead of wiping the contacts, we run collision detection
+	// and try to hit the contact cache with new contacts.
+	// Contact cache hits will be un-marked before wiping.
+	for ( Contact* ct : cts ) {
+		ct->expire_enable = true;
+	}
+}
+
+/*
+================================
 PhysicsState::rigid_detect_rigid
 
 Detects all collisions between Rigid bodies.
-
-TODO: sat-caltrops cleanup
 ================================
 */
 void PhysicsState::rigid_detect_rigid()
 {
-	RD_BruteForce < int > rd; // The integer indexes rigid_shapes
-	for ( unsigned int i = 0; i < rigid_shapes.size(); ++i ) {
-		Rigid* rg = rigid_shapes[i].first.first;
-		int cid = rigid_shapes[i].first.second;
-		Convex& pg = rigid_shapes[i].second;
+	// The integer indexes rigid_shapes
+	RD_BruteForce < int > rd;
+	for ( unsigned int ii = 0; ii < rigid_shapes.size(); ++ii ) {
+		Rigid* rg = rigid_shapes[ii].first.first;
+		// int cid = rigid_shapes[ii].first.second;
+		Convex& pg = rigid_shapes[ii].second;
 
 		AABB box = pg.getAABB();
 		box.fatten( 2.0 );
 
-		// Broadphase happens here
-		for ( int j : rd.query( box ) ) {
-			Rigid* rg2 = rigid_shapes[j].first.first;
-			int cid2 = rigid_shapes[j].first.second;
-			Convex& pg2 = rigid_shapes[j].second;
+		// Broad-phase happens here
+		for ( int jj : rd.query( box ) ) {
+			Rigid* rg2 = rigid_shapes[jj].first.first;
+			// int cid2 = rigid_shapes[jj].first.second;
+			// Convex& pg2 = rigid_shapes[jj].second;
 
 			// Avoid self-collision
 			if ( rg == rg2 ) continue;
 
-			if ( rg->linear_enable == false && rg->angular_enable == false
-				&& rg2->linear_enable == false && rg2->angular_enable == false )
-				continue;
+			// Avoid sad matrices
+			if ( rg->frozen() && rg2->frozen() ) continue;
 
 			// TODO: Masking happens here
 
-			// Bodies and shapes: (rg,pg) and (rg2,pg2).
-
-			// THE SEPARATING AXIS THEOREM ALGORITHM
-			auto sat = Convex::sat( pg, pg2 );
-			if ( ! sat.first ) continue;
-			Vec2 correction = sat.second * 2.0;
-
-			// THE CALTROPS ALGORITHM
-			Convex& a = pg;
-			Convex& b = pg2;
-			int an = a.points.size();
-			int bn = b.points.size();
-
-			correction = -correction;
-
-			for ( int j = 0; j < bn; ++j ) {
-				int h = j-1; if ( h < 0 ) h += bn;
-				Vec2 vn = correction.unit();
-				Vec2& v = b.points[j];
-
-				Scalar caltrop_length = correction.length();
-
-				// This is the caltrop
-				Ray r( v - vn * caltrop_length, vn );
-
-				// The key point of caltrops (fixing triangles)
-				// is that v_b doesn't need to be in A to be detected.
-
-				// Fire the ray at each segment.
-				for ( int i = 0; i < an; ++i ) {
-					Vec2& p = a.points[i];
-					Vec2& q = a.points[ (i+1) % an ];
-					Vec2& n = a.normals[i];
-
-					if ( vn * n > 0 ) continue;
-					Segment s( p, q );
-					auto rxs = r.intersects( s );
-					if ( rxs.first ) {
-						if ( rxs.second > caltrop_length ) break;
-						// See if s "contains" v.
-						if ( Wall( p, n.lperp() ).contains( v ) ) break;
-						if ( Wall( q, n.rperp() ).contains( v ) ) break;
-						// Yes, s "contains" v.
-						Wall w( p, n );
-
-						Identifier key;
-							key.a_pid = rg->pid;
-							key.a_cid = cid;
-							key.a_fid = i;
-							key.b_pid = rg2->pid;
-							key.b_cid = cid2;
-							key.b_fid = j;
-						// TODO: doing a unordered_map "double-find" out of laziness
-						if ( contact_cache.find( key ) != contact_cache.end() ) {
-						// if ( false ) {
-							// Old contact; update it.
-							Contact* ct = contact_cache[ key ];
-							ct->overlap = - w.distance( v );
-							ct->normal = w.normal;
-							ct->a_p = w.nearest( v );
-							ct->b_p = v;
-
-							ct->expire_enable = false;
-						}
-						else {
-							// New contact; cool story, bro.
-							Contact* ct = createContact( rg, rg2 );
-								ct->overlap = - w.distance( v );
-								ct->normal = w.normal;
-
-								ct->a_p = w.nearest( v );
-								ct->a_cid = cid;
-								ct->a_fid = i;
-
-								ct->b_p = v;
-								ct->b_cid = cid2;
-								ct->b_fid = j;
-						}
-
-						break; // Only one intersection.
-					}
-				}
-			}
-
-			correction = -correction;
-
-			for ( int j = 0; j < an; ++j ) {
-				int h = j-1; if ( h < 0 ) h += an;
-				Vec2 vn = correction.unit();
-				Vec2& v = a.points[j];
-
-				Scalar caltrop_length = correction.length();
-
-				// This is the caltrop
-				Ray r( v - vn * caltrop_length, vn );
-
-				// The key point of caltrops (fixing triangles)
-				// is that v_a doesn't need to be in B to be detected.
-
-				// Fire the ray at each segment.
-				for ( int i = 0; i < bn; ++i ) {
-					Vec2& p = b.points[i];
-					Vec2& q = b.points[ (i+1) % bn ];
-					Vec2& n = b.normals[i];
-
-					if ( vn * n > 0 ) continue;
-					Segment s( p, q );
-					auto rxs = r.intersects( s );
-					if ( rxs.first ) {
-						if ( rxs.second > caltrop_length ) break;
-						// See if s "contains" v.
-						if ( Wall( p, n.lperp() ).contains( v ) ) break;
-						if ( Wall( q, n.rperp() ).contains( v ) ) break;
-						// Yes, s "contains" v.
-						Wall w( p, n );
-
-						Identifier key;
-							key.a_pid = rg2->pid;
-							key.a_cid = cid2;
-							key.a_fid = i;
-							key.b_pid = rg->pid;
-							key.b_cid = cid;
-							key.b_fid = j;
-						if ( contact_cache.find( key ) != contact_cache.end() ) {
-						// if ( false ) {
-							// Old contact; update it.
-							Contact* ct = contact_cache[ key ];
-							ct->overlap = - w.distance( v );
-							ct->normal = w.normal;
-							ct->a_p = w.nearest( v );
-							ct->b_p = v;
-
-							ct->expire_enable = false;
-						}
-						else {
-							// New contact; cool story, bro.
-							Contact* ct = createContact( rg2, rg );
-								ct->overlap = - w.distance( v );
-								ct->normal = w.normal;
-
-								ct->a_p = w.nearest( v );
-								ct->a_cid = cid2;
-								ct->a_fid = i;
-
-								ct->b_p = v;
-								ct->b_cid = cid;
-								ct->b_fid = j;
-						}
-
-						break; // Only one intersection.
-					}
-				}
-			}
+			// Narrow-phase
+			rigid_caltrops(
+				rigid_shapes[ii].first, rigid_shapes[ii].second,
+				rigid_shapes[jj].first, rigid_shapes[jj].second );
 		}
 
-		rd.insert( box, i );
+		// Broad-phase happens here
+		// Insert after query, so we don't query ourselves.
+		rd.insert( box, ii );
+	}
+}
+
+/*
+================================
+PhysicsState::rigid_caltrops
+
+Narrow phase.
+================================
+*/
+void PhysicsState::rigid_caltrops(
+	ConvexTag& ta, Convex& a, ConvexTag& tb, Convex& b )
+{
+	// Make sure these shapes are overlapping
+	auto sat = Convex::sat( a, b );
+	if ( ! sat.first ) return;
+
+	// Caltrop measurements
+	Vec2 caltrop_unit( sat.second * 2.0 );
+	Scalar caltrop_length = caltrop_unit.normalize();
+
+	// Y-wall (with minimum overlap shadows)
+	Vec2 y = sat.second.unit();
+	Wall wy( Vec2(0), y.lperp() );
+
+	// X-wall
+	Vec2 x = y.rperp();
+	Wall wx( Vec2(0), x.lperp() );
+
+	// Produce the AABBs for the basis ( n.rperp(), n )
+	int na = a.points.size();
+	auto sya = wy.shadow( a );
+	auto sxa = wx.shadow( a );
+
+	int nb = b.points.size();
+	auto syb = wy.shadow( b );
+	auto sxb = wx.shadow( b );
+
+	// Caltrops on B against A
+	caltrop_unit = -caltrop_unit;
+	for ( int ib = 0; ib < nb; ++ib ) {
+		Vec2& pb = b.points[ ib ];
+
+		// Y-culling
+		Scalar sypb = wy.shadow( pb );
+		if ( sypb > sya.second ) continue;
+
+		// X culling
+		Scalar sxpb = wx.shadow( pb );
+		if ( sxpb < sxa.first || sxa.second < sxpb ) continue;
+
+		// This is the caltrop
+		Ray r( pb - caltrop_unit * caltrop_length, caltrop_unit );
+
+		// Fire the caltrop at each segment
+		for ( int ia = 0; ia < na; ++ia ) {
+			Vec2& n = a.normals[ ia ];
+			if ( caltrop_unit * n > 0 ) continue;
+
+			Vec2& p = a.points[ ia ];
+			Vec2& q = a.points[ (ia+1) % na ];
+			Segment s( p, q );
+
+			auto rxs = r.intersects( s );
+			if ( ! rxs.first ) continue;
+			// We actually found a Ray-Convex intersection here,
+			// so from now on all filters use break instead of continue.
+
+			if ( rxs.second > caltrop_length ) break;
+
+			// Only admit caltrops whose endpoints project onto the segment
+			if ( Wall( p, n.lperp() ).contains( pb ) ) break;
+			if ( Wall( q, n.rperp() ).contains( pb ) ) break;
+
+			ContactKey key;
+				key.a.pid = ta.first->pid;
+				key.a.cid = ta.second;
+				key.a.fid = ia;
+				key.b.pid = tb.first->pid;
+				key.b.cid = tb.second;
+				key.b.fid = ib;
+
+			Contact* ct;
+			auto find = contact_cache.find( key );
+			if ( find != contact_cache.end() ) {
+				ct = find->second;
+				ct->expire_enable = false;
+				// ASSERT: ct->key == key
+			}
+			else {
+				ct = createContact( ta.first, tb.first );
+				ct->key = key;
+			}
+
+			Wall w( p, n );
+			ct->overlap = - w.distance( pb );
+			ct->normal = w.normal;
+			ct->a_p = w.nearest( pb );
+			ct->b_p = pb;
+
+			break; // Only one intersection per caltrop
+		}
 	}
 
+	// Caltrops on A against B
+	caltrop_unit = -caltrop_unit;
+	for ( int ia = 0; ia < na; ++ia ) {
+		Vec2& pa = a.points[ ia ];
 
-	// When creating the contact cache, we marked all Contacts as expired.
-	// During detection, we look for persistent contacts and re-mark them as not expired.
-	// After detection, all expired Contacts are deleted.
+		// Y-culling
+		Scalar sypa = wy.shadow( pa );
+		if ( sypa < syb.first ) continue;
+
+		// X culling
+		Scalar sxpa = wx.shadow( pa );
+		if ( sxpa < sxb.first || sxb.second < sxpa ) continue;
+
+		// This is the caltrop
+		Ray r( pa - caltrop_unit * caltrop_length, caltrop_unit );
+
+		// Fire the caltrop at each segment
+		for ( int ib = 0; ib < nb; ++ib ) {
+			Vec2& n = b.normals[ ib ];
+			if ( caltrop_unit * n > 0 ) continue;
+
+			Vec2& p = b.points[ ib ];
+			Vec2& q = b.points[ (ib+1) % nb ];
+			Segment s( p, q );
+
+			auto rxs = r.intersects( s );
+			if ( ! rxs.first ) continue;
+			// We actually found a Ray-Convex intersection here,
+			// so from now on all filters use break instead of continue.
+
+			if ( rxs.second > caltrop_length ) break;
+
+			// Only admit caltrops whose endpoints project onto the segment
+			if ( Wall( p, n.lperp() ).contains( pa ) ) break;
+			if ( Wall( q, n.rperp() ).contains( pa ) ) break;
+
+			ContactKey key;
+				key.a.pid = tb.first->pid;
+				key.a.cid = tb.second;
+				key.a.fid = ib;
+				key.b.pid = ta.first->pid;
+				key.b.cid = ta.second;
+				key.b.fid = ia;
+
+			Contact* ct;
+			auto find = contact_cache.find( key );
+			if ( find != contact_cache.end() ) {
+				ct = find->second;
+				ct->expire_enable = false;
+				// ASSERT: ct->key == key
+			}
+			else {
+				ct = createContact( tb.first, ta.first );
+				ct->key = key;
+			}
+
+			Wall w( p, n );
+			ct->overlap = - w.distance( pa );
+			ct->normal = w.normal;
+			ct->a_p = w.nearest( pa );
+			ct->b_p = pa;
+
+			break; // Only one intersection per caltrop
+		}
+	}
+}
+
+/*
+================================
+PhysicsState::rigid_expire_contacts
+
+Collision detection finds persistent contacts.
+After detection, all Contacts still marked as expired are deleted.
+================================
+*/
+void PhysicsState::rigid_expire_contacts()
+{
 	for ( Contact* ct : cts ) {
 		if ( ct->expired() ) destroyContact( ct );
 	}
@@ -350,8 +387,7 @@ void PhysicsState::rigid_find_islands()
 
 	// Pre-processing: ignore edge-less and frozen vertices
 	for ( Rigid* rg : rgs ) {
-		if ( rg->edges.empty() ) rg->marked = true;
-		if ( !rg->linear_enable && !rg->angular_enable ) rg->marked = true;
+		if ( rg->edges.empty() || rg->frozen() ) rg->marked = true;
 	}
 
 	// Undirected connected components algorithm
@@ -533,8 +569,15 @@ void PhysicsState::rigid_solve_island( RigidGraph& rgg )
 	// simulation because the solver is iterative.
 	// 
 	// Maybe we should re-think using raw pointers?
-	std::sort( rgs.begin(), rgs.end(), PhysicsTags::pid_lt );
-	std::sort( cts.begin(), cts.end(), PhysicsTags::pid_lt );
+	bool random = false;
+	if ( random ) {
+		std::random_shuffle( rgs.begin(), rgs.end() );
+		std::random_shuffle( cts.begin(), cts.end() );
+	}
+	else {
+		std::sort( rgs.begin(), rgs.end(), PhysicsTags::pid_lt );
+		std::sort( cts.begin(), cts.end(), PhysicsTags::pid_lt );
+	}
 
 	int n = rgs.size();
 	int s = cts.size();
@@ -581,7 +624,7 @@ void PhysicsState::rigid_solve_island( RigidGraph& rgg )
 		H[i] = -H[i];
 
 		// TODO: Move these into Constants.h
-		static const Scalar PHYSICS_SLOP = 0.01;
+		static const Scalar PHYSICS_SLOP = 0.1;
 		static const Scalar PHYSICS_BIAS = 0.1;
 
 		// TODO: Is physics slop part of the error?
@@ -619,7 +662,7 @@ void PhysicsState::rigid_solve_island( RigidGraph& rgg )
 			B_sp[i].second.dot( J_sp[i].second );
 	}
 	// Estimate the number of iterations needed
-	int m = (int) std::ceil( std::sqrt( s*2 ) );
+	int m = (int) std::ceil( std::sqrt( s + n ) ) * 4;
 	// Solve for L with Projected Gauss-Seidel
 	for ( int j = 0; j < m; ++j ) {
 		for ( int i = 0; i < s; ++i ) {
@@ -801,8 +844,7 @@ void PhysicsState::verlet_find_islands()
 
 	// Pre-processing: ignore edge-less and frozen vertices
 	for ( Verlet* vl : vls ) {
-		if ( vl->edges.empty() ) vl->marked = true;
-		if ( ! vl->linear_enable ) vl->marked = true;
+		if ( vl->edges.empty() || vl->frozen() ) vl->marked = true;
 	}
 
 	// Undirected connected components algorithm

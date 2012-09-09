@@ -71,13 +71,20 @@ public: // Physics engine
 	Verlet* nearestVerlet( const Vec2& p, Scalar r );
 
 private: // Physics timestep
+	typedef std::pair < Rigid*, int > ConvexTag;
+
 	void step();
 		void expire();
 		void clear_collision_data();
 
 		void rigid_step();
 			void rigid_transform_convex();
+			void rigid_index_contacts();
 			void rigid_detect_rigid();
+				void rigid_caltrops(
+					ConvexTag& ta, Convex& a,
+					ConvexTag& tb, Convex& b );
+			void rigid_expire_contacts();
 			void rigid_find_islands();
 				RigidGraph mark_connected( Rigid* root );
 			void rigid_integrate();
@@ -116,9 +123,8 @@ private: // Members
 	std::vector < Contact* > cts;
 	std::vector < RigidGraph > rigid_islands;
 
-	typedef std::pair < Rigid*, int > ConvexTag;
 	std::vector < std::pair < ConvexTag, Convex > > rigid_shapes;
-	std::unordered_map < Identifier, Contact* > contact_cache;
+	std::unordered_map < ContactKey, Contact* > contact_cache;
 
 	// Euler particles
 	std::list < Euler* > eus;

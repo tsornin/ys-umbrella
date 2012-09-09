@@ -1,4 +1,5 @@
 #include "Wall.h"
+#include "Convex.h"
 
 /*
 ================================
@@ -58,4 +59,59 @@ Returns the point on this plane nearest to the specified point.
 Vec2 Wall::nearest( const Vec2& p ) const
 {
 	return p - normal * distance( p );
+}
+
+/*
+================================
+Wall::shadow
+================================
+*/
+Scalar Wall::shadow( const Vec2& p ) const
+{
+	return (p - origin).dot( normal.rperp() );
+}
+
+/*
+================================
+Wall::distance
+================================
+*/
+Scalar Wall::distance( const Convex& c ) const
+{
+	Scalar min = SCALAR_MAX;
+
+	for ( const Vec2& p : c.points ) {
+		min = std::min( min, distance( p ) );
+	}
+
+	return min;
+}
+
+/*
+================================
+Wall::contains
+================================
+*/
+bool Wall::contains( const Convex& c ) const
+{
+	return distance( c ) < 0;
+}
+
+/*
+================================
+Wall::shadow
+================================
+*/
+std::pair < Scalar, Scalar > Wall::shadow( const Convex& c ) const
+{
+	Scalar min = SCALAR_MAX;
+	Scalar max = -SCALAR_MAX;
+
+	for ( const Vec2& p : c.points ) {
+		Scalar s = shadow( p );
+		min = std::min( min, s );
+		max = std::max( max, s );
+	}
+
+	return std::pair < Scalar, Scalar >( min, max );
 }

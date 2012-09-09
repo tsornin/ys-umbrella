@@ -157,19 +157,26 @@ Renderer::drawContact
 */
 void Renderer::drawContact( const Contact& ct )
 {
-	gl_SetColor( RGBA_GREEN );
-
 	glLineWidth( 1.0 );
+
+	// Force
+	gl_SetColor( RGBA_ROSE );
+	glBegin( GL_LINES );
+		gl_SetVertex( ct.a_p );
+		gl_SetVertex( ct.a_p + ct.normal * ct.lambda / ct.b->mass * 50 );
+	glEnd();
+
+	// Constraint
+	gl_SetColor( RGBA_GREEN ); // TODO: cache coloring
 	glBegin( GL_LINES );
 		gl_SetVertex( ct.a_p );
 		gl_SetVertex( ct.b_p );
 	glEnd();
 
+	// Reference point
 	glPointSize( 4.0 );
 	glBegin( GL_POINTS );
-		gl_SetColor( RGBA_GREEN );
 		gl_SetVertex( ct.a_p );
-		gl_SetColor( RGBA_RED );
-		gl_SetVertex( ct.b_p );
 	glEnd();
+
 }

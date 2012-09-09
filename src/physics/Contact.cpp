@@ -1,5 +1,16 @@
 #include "Contact.h"
 
+bool operator == ( const FeatureKey& fk1, const FeatureKey& fk2 ) {
+	return
+		fk1.pid == fk2.pid &&
+		fk1.cid == fk2.cid &&
+		fk1.fid == fk2.fid;
+}
+
+bool operator == ( const ContactKey& ck1, const ContactKey& ck2 ) {
+	return (ck1.a == ck2.a) && (ck1.b == ck2.b);
+}
+
 /*
 ================================
 Contact::Contact
@@ -40,19 +51,4 @@ Contact::bounds
 std::pair < Scalar, Scalar > Contact::bounds()
 {
 	return std::pair < Scalar, Scalar >( 0, SCALAR_MAX );
-}
-
-Identifier Contact::key()
-{
-	Identifier ret;
-
-		ret.a_pid = a->pid;
-		ret.a_cid = a_cid;
-		ret.a_fid = a_fid;
-
-		ret.b_pid = b->pid;
-		ret.b_cid = b_cid;
-		ret.b_fid = b_fid;
-
-	return ret;
 }

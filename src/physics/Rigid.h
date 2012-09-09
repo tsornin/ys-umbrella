@@ -37,11 +37,12 @@ public: // "Entity" functions
 	friend class Renderer;
 
 public: // Rigid functions
-	// TODO: some function to get world-space Convex shapes
 
 public: // Accessors
 	Scalar getX() const { return position.x; }
 	Scalar getY() const { return position.y; }
+
+	bool frozen() const { return !linear_enable && !angular_enable; }
 
 	Vec2 getPosition() const { return position; }
 	Vec2 getVelocity() const { return velocity; }

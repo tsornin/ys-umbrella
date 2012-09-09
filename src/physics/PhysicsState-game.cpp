@@ -102,15 +102,12 @@ void PhysicsState::draw( Engine* game )
 	// }
 
 	for ( Rigid* rg : rgs ) game->rd.drawRigid( *rg );
-
 	for ( Contact* ct : cts ) game->rd.drawContact( *ct );
 
 	for ( Euler* eu : eus ) game->rd.drawEuler( *eu );
 
 	for ( Distance* dc : dcs ) game->rd.drawDistance( *dc );
-
 	// for ( Angular* ac : acs ) game->rd.drawAngular( *ac );
-
 	for ( Verlet* vl : vls ) game->rd.drawVerlet( *vl );
 
 
