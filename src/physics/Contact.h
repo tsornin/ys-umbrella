@@ -68,6 +68,7 @@ public: // Constraint
 
 	virtual Scalar eval();
 	virtual std::pair < Vec3, Vec3 > jacobian();
+	virtual Scalar bias( Scalar jv );
 	virtual std::pair < Scalar, Scalar > bounds();
 
 	friend class PhysicsState;

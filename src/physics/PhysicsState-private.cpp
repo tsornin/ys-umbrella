@@ -560,15 +560,13 @@ void PhysicsState::rigid_solve_island( RigidGraph& rgg )
 	std::vector < Rigid* >& rgs = rgg.first;
 	std::vector < Constraint* >& cts = rgg.second;
 
-	// TODO: Reproducibility of simulation
-	// Discovered a bug where the island solver gave different but plausible
-	// results on every simulation reset. The culprit was std::set. The
-	// island solver's use of std::set in find_rigid_islands caused the
-	// list of physics objects to come back in an unknown (up to the
-	// allocator's pointer values) order. This causes a difference in the
-	// simulation because the solver is iterative.
-	// 
-	// Maybe we should re-think using raw pointers?
+	// TODO: Reproducibility (platforms)
+	// Observed different results on PC vs Mac.
+
+	// TODO: Reproducibility (pointers)
+	// If we use raw pointers, we have no guarantee on the order of results of
+	// rigid_find_islands (since it uses std::set). Order does matter, since
+	// the solver is iterative.
 	bool random = false;
 	if ( random ) {
 		std::random_shuffle( rgs.begin(), rgs.end() );
@@ -617,20 +615,10 @@ void PhysicsState::rigid_solve_island( RigidGraph& rgg )
 	// Constraint velocity vector, H (eta)
 	auto H = std::vector < Scalar >( s );
 	for ( int i = 0; i < s; ++i ) {
-		H[i] =
+		Scalar jv =
 			J_sp[i].first.dot( V[ J_map[i].first ] ) +
 			J_sp[i].second.dot( V[ J_map[i].second ] );
-
-		H[i] = -H[i];
-
-		// TODO: Move these into Constants.h
-		static const Scalar PHYSICS_SLOP = 0.1;
-		static const Scalar PHYSICS_BIAS = 0.1;
-
-		// TODO: Is physics slop part of the error?
-		Scalar error = -cts[i]->eval() - PHYSICS_SLOP;
-		if ( error < 0 ) error = 0;
-		H[i] += error * PHYSICS_BIAS;
+		H[i] = cts[i]->bias( jv ) - jv;
 	}
 
 	// B = M J

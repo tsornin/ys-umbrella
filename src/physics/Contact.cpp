@@ -45,6 +45,34 @@ std::pair < Vec3, Vec3 > Contact::jacobian()
 
 /*
 ================================
+Contact::bias
+================================
+*/
+Scalar Contact::bias( Scalar jv )
+{
+	Scalar ret = 0;
+
+	// Restitution
+	static const Scalar PHYSICS_BOUNCE_THRESHOLD = 2.0;
+	if ( std::fabs( jv ) > PHYSICS_BOUNCE_THRESHOLD ) {
+		Scalar e = geometric_mean( a->getBounce(), b->getBounce() );
+		ret += -jv * e;
+	}
+
+	// Position stabilization
+	static const Scalar PHYSICS_SLOP = 0.1;
+	static const Scalar PHYSICS_BIAS = 0.1;
+
+	Scalar error = -eval() - PHYSICS_SLOP;
+	if ( error > 0 ) {
+		ret += error * PHYSICS_BIAS;
+	}
+
+	return ret;
+}
+
+/*
+================================
 Contact::bounds
 ================================
 */

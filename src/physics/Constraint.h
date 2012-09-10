@@ -14,6 +14,7 @@ protected:
 
 	virtual Scalar eval() = 0;
 	virtual std::pair < Vec3, Vec3 > jacobian() = 0;
+	virtual Scalar bias( Scalar jv ) = 0;
 	virtual std::pair < Scalar, Scalar > bounds() = 0;
 
 	friend class PhysicsState;
