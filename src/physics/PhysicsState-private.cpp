@@ -124,7 +124,7 @@ PhysicsState::rigid_index_contacts
 void PhysicsState::rigid_index_contacts()
 {
 	// Index contacts by contact identifier
-	for ( Contact* ct : cts ) {
+	for ( Contact* ct : contacts ) {
 		contact_cache[ ct->key ] = ct;
 	}
 
@@ -133,7 +133,7 @@ void PhysicsState::rigid_index_contacts()
 	// Instead of wiping the contacts, we run collision detection
 	// and try to hit the contact cache with new contacts.
 	// Contact cache hits will be un-marked before wiping.
-	for ( Contact* ct : cts ) {
+	for ( Contact* ct : contacts ) {
 		ct->expire_enable = true;
 	}
 }
@@ -254,6 +254,7 @@ void PhysicsState::rigid_caltrops(
 			if ( Wall( p, n.lperp() ).contains( pb ) ) break;
 			if ( Wall( q, n.rperp() ).contains( pb ) ) break;
 
+			// Generate unique key for this Contact
 			ContactKey key;
 				key.a.pid = ta.first->pid;
 				key.a.cid = ta.second;
@@ -262,16 +263,19 @@ void PhysicsState::rigid_caltrops(
 				key.b.cid = tb.second;
 				key.b.fid = ib;
 
+			// Hit the Contact cache or make a new Contact
 			Contact* ct;
+			bool cached;
 			auto find = contact_cache.find( key );
 			if ( find != contact_cache.end() ) {
 				ct = find->second;
 				ct->expire_enable = false;
-				// ASSERT: ct->key == key
+				cached = true;
 			}
 			else {
 				ct = createContact( ta.first, tb.first );
 				ct->key = key;
+				cached = false;
 			}
 
 			Wall w( p, n );
@@ -279,6 +283,17 @@ void PhysicsState::rigid_caltrops(
 			ct->normal = w.normal;
 			ct->a_p = w.nearest( pb );
 			ct->b_p = pb;
+
+			// Compute local_lambda after writing to ct
+			// TODO: the logic here could be a lot better
+			if ( !cached ) {
+				ct->lambda = ct->local_lambda();
+			}
+
+			ct->ft->normal_lambda = ct->lambda;
+			ct->ft->tangent = w.normal.lperp();
+			ct->ft->a_p = ct->a_p;
+			ct->ft->b_p = ct->b_p;
 
 			break; // Only one intersection per caltrop
 		}
@@ -289,18 +304,14 @@ void PhysicsState::rigid_caltrops(
 	for ( int ia = 0; ia < na; ++ia ) {
 		Vec2& pa = a.points[ ia ];
 
-		// Y-culling
 		Scalar sypa = wy.shadow( pa );
 		if ( sypa < syb.first ) continue;
 
-		// X culling
 		Scalar sxpa = wx.shadow( pa );
 		if ( sxpa < sxb.first || sxb.second < sxpa ) continue;
 
-		// This is the caltrop
 		Ray r( pa - caltrop_unit * caltrop_length, caltrop_unit );
 
-		// Fire the caltrop at each segment
 		for ( int ib = 0; ib < nb; ++ib ) {
 			Vec2& n = b.normals[ ib ];
 			if ( caltrop_unit * n > 0 ) continue;
@@ -311,12 +322,9 @@ void PhysicsState::rigid_caltrops(
 
 			auto rxs = r.intersects( s );
 			if ( ! rxs.first ) continue;
-			// We actually found a Ray-Convex intersection here,
-			// so from now on all filters use break instead of continue.
 
 			if ( rxs.second > caltrop_length ) break;
 
-			// Only admit caltrops whose endpoints project onto the segment
 			if ( Wall( p, n.lperp() ).contains( pa ) ) break;
 			if ( Wall( q, n.rperp() ).contains( pa ) ) break;
 
@@ -329,15 +337,17 @@ void PhysicsState::rigid_caltrops(
 				key.b.fid = ia;
 
 			Contact* ct;
+			bool cached;
 			auto find = contact_cache.find( key );
 			if ( find != contact_cache.end() ) {
 				ct = find->second;
 				ct->expire_enable = false;
-				// ASSERT: ct->key == key
+				cached = true;
 			}
 			else {
 				ct = createContact( tb.first, ta.first );
 				ct->key = key;
+				cached = false;
 			}
 
 			Wall w( p, n );
@@ -345,6 +355,15 @@ void PhysicsState::rigid_caltrops(
 			ct->normal = w.normal;
 			ct->a_p = w.nearest( pa );
 			ct->b_p = pa;
+
+			if ( !cached ) {
+				ct->lambda = ct->local_lambda();
+			}
+
+			ct->ft->normal_lambda = ct->lambda;
+			ct->ft->tangent = w.normal.lperp();
+			ct->ft->a_p = ct->a_p;
+			ct->ft->b_p = ct->b_p;
 
 			break; // Only one intersection per caltrop
 		}
@@ -361,10 +380,10 @@ After detection, all Contacts still marked as expired are deleted.
 */
 void PhysicsState::rigid_expire_contacts()
 {
-	for ( Contact* ct : cts ) {
+	for ( Contact* ct : contacts ) {
 		if ( ct->expired() ) destroyContact( ct );
 	}
-	cts.erase( std::remove_if( cts.begin(), cts.end(), Expire < Contact* >() ), cts.end() );
+	contacts.erase( std::remove_if( contacts.begin(), contacts.end(), Expire < Contact* >() ), contacts.end() );
 }
 
 /*
@@ -420,6 +439,7 @@ Post-condition: all Verlet particles returned are marked
 RigidGraph PhysicsState::mark_connected( Rigid* root )
 {
 	RigidGraph ret;
+	// NOTE: This shadows this->rgs and this->cts
 	std::vector < Rigid* >& rgs = ret.first;
 	std::vector < Constraint* >& cts = ret.second;
 
@@ -550,13 +570,11 @@ Computes and applies constraint forces for the specified Rigid island.
 PDF: Interactive Dynamics (Catto 2005)
 
 Invariant: local_id is -1
-
-TODO: Vec3 Rigid::get_velocity_state. set_velocity_state
 ================================
 */
 void PhysicsState::rigid_solve_island( RigidGraph& rgg )
 {
-	// This shadows this->rgs and this->cts.
+	// NOTE: This shadows this->rgs and this->cts
 	std::vector < Rigid* >& rgs = rgg.first;
 	std::vector < Constraint* >& cts = rgg.second;
 
@@ -589,16 +607,14 @@ void PhysicsState::rigid_solve_island( RigidGraph& rgg )
 	auto V = std::vector < Vec3 >( n );
 	for ( int i = 0; i < n; ++i ) {
 		Rigid* rg = rgs[i];
-		V[i] = Vec3( rg->velocity, rg->angular_velocity );
+		V[i] = rg->getVelocityState();
 	}
 
 	// Inverse mass matrix, M
 	auto M = std::vector < Vec3 >( n );
 	for ( int i = 0; i < n; ++i ) {
 		Rigid* rg = rgs[i];
-		M[i] = Vec3(
-			Vec2( rg->linear_enable ? 1.0 / rg->mass : 0 ),
-			rg->angular_enable ? 1.0 / rg->moment : 0 );
+		M[i] = rg->getInverseMass();
 	}
 
 	// Jacobian matrix, J
@@ -681,7 +697,9 @@ void PhysicsState::rigid_solve_island( RigidGraph& rgg )
 		F[ J_map[i].second ] += J_sp[i].second * L[i]; // scale
 	}
 
-	// Update V += R_c, R_c = M F_c
+	// Integrate velocity
+	// R_c = M F_c
+	// V += R_c
 	for ( int i = 0; i < n; ++i ) {
 		V[i] += F[i].prod( M[i] );
 	}
@@ -689,8 +707,7 @@ void PhysicsState::rigid_solve_island( RigidGraph& rgg )
 	// Set new velocity
 	for ( int i = 0; i < n; ++i ) {
 		Rigid* rg = rgs[i];
-		rg->setVelocity( Vec2( V[i].x, V[i].y ) );
-		rg->setAngularVelocity( V[i].z );
+		rg->setVelocityState( V[i] );
 	}
 
 	// Clear local_id

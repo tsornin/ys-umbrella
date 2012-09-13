@@ -49,6 +49,8 @@ namespace std {
 	};
 }
 
+class Friction;
+
 /*
 ================================
 Contact constraint.
@@ -58,13 +60,15 @@ between collision shapes of two Rigid bodies.
 
 Instances of this class are managed by the physics engine.
 Contact constraints are transient and should not be used by other classes.
+
+NOTE: This class owns all Friction pointers. See the Friction class comment.
 ================================
 */
 class Contact : public Constraint
 {
 public: // Constraint
 	Contact( Rigid* a, Rigid* b );
-	virtual ~Contact() {}
+	virtual ~Contact();
 
 	virtual Scalar eval();
 	virtual std::pair < Vec3, Vec3 > jacobian();
@@ -72,6 +76,9 @@ public: // Constraint
 	virtual std::pair < Scalar, Scalar > bounds();
 
 	friend class PhysicsState;
+
+public: // Contact
+	Scalar local_lambda();
 
 public: // Members
 	Vec2 normal; // Points away from body A
@@ -81,6 +88,42 @@ public: // Members
 
 	// Contact caching
 	ContactKey key;
+
+	// The owning (and only) pointer to this Contact's
+	// associated Friction constraint.
+	Friction* ft;
+};
+
+/*
+================================
+Friction constraint.
+
+Represents a friction constraint.
+
+NOTE: Friction constraints come and go with Contact constraints.
+Therefore, unlike all other physics objects, Friction objects
+are owned by Contact objects.
+================================
+*/
+class Friction : public Constraint
+{
+public: // Constraint
+	Friction( Rigid* a, Rigid* b );
+	virtual ~Friction() {}
+
+	virtual Scalar eval(); // TODO: is this meaningful for friction?
+	virtual std::pair < Vec3, Vec3 > jacobian();
+	virtual Scalar bias( Scalar jv );
+	virtual std::pair < Scalar, Scalar > bounds();
+
+	friend class PhysicsState;
+
+public: // Members
+	Vec2 tangent;
+	Vec2 a_p;
+	Vec2 b_p;
+
+	Scalar normal_lambda;
 };
 
 #endif

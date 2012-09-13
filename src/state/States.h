@@ -4,6 +4,7 @@
 // Rigid body
 #include "ColumnTestState.h"
 #include "PyramidTestState.h"
+#include "FrictionTestState.h"
 
 // Verlet particle
 #include "StringTestState.h"

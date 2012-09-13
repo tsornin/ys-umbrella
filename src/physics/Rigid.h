@@ -4,6 +4,7 @@
 #include "PhysicsTags.h"
 #include <set>
 #include "spatial/Vec2.h"
+#include "spatial/Vec3.h"
 #include "spatial/Convex.h"
 
 class AABB;
@@ -42,6 +43,15 @@ public: // Accessors
 	Scalar getX() const { return position.x; }
 	Scalar getY() const { return position.y; }
 
+	Vec3 getPositionState() const { return Vec3( position, angle ); }
+	Vec3 getVelocityState() const { return Vec3( velocity, angular_velocity ); }
+
+	Vec3 getInverseMass() const {
+		return Vec3(
+			Vec2( linear_enable ? 1.0 / mass : 0 ),
+			angular_enable ? 1.0 / moment : 0 );
+	}
+
 	bool frozen() const { return !linear_enable && !angular_enable; }
 
 	Vec2 getPosition() const { return position; }
@@ -57,10 +67,14 @@ public: // Accessors
 	Scalar getMass() const { return mass; }
 	Scalar getMoment() const { return moment; }
 	Scalar getBounce() const { return bounce; }
+	Scalar getFriction() const { return friction; }
 
 public: // Mutators (set)
 	void setX( Scalar x ) { position.x = x; }
 	void setY( Scalar y ) { position.y = y; }
+
+	void setPositionState( const Vec3& p ) { position = Vec2( p.x, p.y ); angle = p.z; }
+	void setVelocityState( const Vec3& v ) { velocity = Vec2( v.x, v.y ); angular_velocity = v.z; }
 
 	void setPosition( const Vec2& pos ) { position = pos; }
 	void setVelocity( const Vec2& vel ) { if ( linear_enable ) { velocity = vel; } }
@@ -78,6 +92,7 @@ public: // Mutators (set)
 	void setMass( Scalar m ) { mass = m; }
 	void setMoment( Scalar i ) { moment = i; }
 	void setBounce( Scalar b ) { bounce = b; }
+	void setFriction( Scalar k ) { friction = k; }
 
 public: // Mutators (add)
 	void addPosition( const Vec2& add ) { if ( linear_enable ) { position += add; } }
@@ -113,7 +128,8 @@ private: // Members
 	Scalar
 		mass,
 		moment,
-		bounce;
+		bounce,
+		friction;
 
 private: // Members
 	std::vector < Convex > shapes; // object space

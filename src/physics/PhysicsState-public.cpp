@@ -53,11 +53,13 @@ Contact* PhysicsState::createContact( Rigid* a, Rigid* b )
 {
 	Contact* ct = new Contact( a, b );
 	ct->pid = nextPID();
-	cts.push_back( ct );
+	contacts.push_back( ct );
 
 	// Graph setup
 	ct->a->edges.insert( ct );
 	ct->b->edges.insert( ct );
+
+	ct->ft = createFriction( a, b );
 
 	return ct;
 }
@@ -76,8 +78,38 @@ void PhysicsState::destroyContact( Contact* ct )
 	ct->a->edges.erase( ct );
 	ct->b->edges.erase( ct );
 
-	// TODO: ???
+	destroyFriction( ct->ft );
+
 	ct->expire_enable = true;
+}
+
+/*
+================================
+PhysicsState::createFriction
+================================
+*/
+Friction* PhysicsState::createFriction( Rigid* a, Rigid* b )
+{
+	Friction* ft = new Friction( a, b );
+	ft->pid = nextPID();
+
+	ft->a->edges.insert( ft );
+	ft->b->edges.insert( ft );
+
+	return ft;
+}
+
+/*
+================================
+PhysicsState::destroyFriction
+================================
+*/
+void PhysicsState::destroyFriction( Friction* ft )
+{
+	ft->a->edges.erase( ft );
+	ft->b->edges.erase( ft );
+
+	ft->expire_enable = true;
 }
 
 /*

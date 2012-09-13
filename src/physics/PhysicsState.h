@@ -55,7 +55,10 @@ public: // Physics engine
 
 	Contact* createContact( Rigid* a, Rigid* b );
 	void destroyContact( Contact* ct );
-	
+
+	Friction* createFriction( Rigid* a, Rigid* b );
+	void destroyFriction( Friction* ft );
+
 	Euler* createEuler( EulerType et = 0 );
 	void destroyEuler( Euler* eu );
 
@@ -120,7 +123,8 @@ private: // Members
 
 	// Rigid bodies
 	std::vector < Rigid* > rgs;
-	std::vector < Contact* > cts;
+	std::vector < Contact* > contacts;
+	std::vector < Constraint* > constraints; // TODO: rename this cts.
 	std::vector < RigidGraph > rigid_islands;
 
 	std::vector < std::pair < ConvexTag, Convex > > rigid_shapes;

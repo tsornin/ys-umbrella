@@ -22,8 +22,7 @@ const Scalar STANDARD_RADIUS	= 1.0;
 const Scalar STANDARD_MOMENT	= 1.0; // Moment is mass * radius * radius
 const Scalar STANDARD_BOUNCE	= 0.0;
 const Scalar STANDARD_DENSITY	= 1.0;
-const Scalar STANDARD_KINETIC_FRICTION	= 0.0;
-const Scalar STANDARD_STATIC_FRICTION	= 0.0;
+const Scalar STANDARD_FRICTION	= 0.0;
 
 const Scalar GRAVITY_LO		= 0.3;
 const Scalar GRAVITY_MED	= 0.6;

@@ -39,8 +39,8 @@ void PhysicsState::cleanup()
 	for ( Rigid* rg : rgs ) delete rg;
 	rgs.clear();
 
-	for ( Contact* ct : cts ) delete ct;
-	cts.clear();
+	for ( Contact* ct : contacts ) delete ct;
+	contacts.clear();
 
 	rigid_islands.clear();
 
@@ -102,7 +102,7 @@ void PhysicsState::draw( Engine* game )
 	// }
 
 	for ( Rigid* rg : rgs ) game->rd.drawRigid( *rg );
-	for ( Contact* ct : cts ) game->rd.drawContact( *ct );
+	for ( Contact* ct : contacts ) game->rd.drawContact( *ct );
 
 	for ( Euler* eu : eus ) game->rd.drawEuler( *eu );
 
@@ -143,7 +143,7 @@ void PhysicsState::setCaption( std::ostringstream& buffer )
 
 	buffer << " " << rgs.size();
 	buffer << " (" << rigid_shapes.size() << ")";
-	buffer << "-" << cts.size();
+	buffer << "-" << contacts.size();
 	buffer << "/" << rigid_islands.size();
 
 	buffer << ", " << eus.size();

@@ -20,6 +20,7 @@ int main( int argc, char** argv )
 
 	game.push( PyramidTestState::Instance() );
 	game.push( ColumnTestState::Instance() );
+	game.push( FrictionTestState::Instance() );
 
 	game.run();
 
