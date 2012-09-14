@@ -147,9 +147,6 @@ Friction::jacobian
 */
 std::pair < Vec3, Vec3 > Friction::jacobian()
 {
-	// Apply friction at the same point on both bodies.
-	Vec2 p = (a_p + b_p) * 0.5;
-
 	return std::pair < Vec3, Vec3 >(
 		- Vec3( tangent, (p - a->getPosition()) ^ tangent ),
 		  Vec3( tangent, (p - b->getPosition()) ^ tangent ) );

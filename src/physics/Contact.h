@@ -120,8 +120,7 @@ public: // Constraint
 
 public: // Members
 	Vec2 tangent;
-	Vec2 a_p;
-	Vec2 b_p;
+	Vec2 p;
 
 	Scalar normal_lambda;
 };

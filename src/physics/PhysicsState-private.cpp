@@ -290,10 +290,10 @@ void PhysicsState::rigid_caltrops(
 				ct->lambda = ct->local_lambda();
 			}
 
+			// Apply friction at the same point on both bodies.
 			ct->ft->normal_lambda = ct->lambda;
 			ct->ft->tangent = w.normal.lperp();
-			ct->ft->a_p = ct->a_p;
-			ct->ft->b_p = ct->b_p;
+			ct->ft->p = (ct->a_p + ct->b_p) * 0.5;
 
 			break; // Only one intersection per caltrop
 		}
@@ -362,8 +362,7 @@ void PhysicsState::rigid_caltrops(
 
 			ct->ft->normal_lambda = ct->lambda;
 			ct->ft->tangent = w.normal.lperp();
-			ct->ft->a_p = ct->a_p;
-			ct->ft->b_p = ct->b_p;
+			ct->ft->p = (ct->a_p + ct->b_p) * 0.5;
 
 			break; // Only one intersection per caltrop
 		}
