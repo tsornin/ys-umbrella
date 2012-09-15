@@ -43,7 +43,7 @@ public: // Accessors
 	Scalar getX() const { return position.x; }
 	Scalar getY() const { return position.y; }
 
-	Vec3 getPositionState() const { return Vec3( position, angle ); }
+	Vec3 getPositionState() const { return Vec3( position, angular_position ); }
 	Vec3 getVelocityState() const { return Vec3( velocity, angular_velocity ); }
 
 	Vec3 getInverseMass() const {
@@ -58,7 +58,7 @@ public: // Accessors
 	Vec2 getVelocity() const { return velocity; }
 	bool isLinearEnable() const { return linear_enable; }
 
-	Scalar getAngle() const { return angle; }
+	Scalar getAngle() const { return angular_position; }
 	Scalar getAngularVelocity() const { return angular_velocity; }
 	bool isAngularEnable() const { return angular_enable; }
 
@@ -73,14 +73,14 @@ public: // Mutators (set)
 	void setX( Scalar x ) { position.x = x; }
 	void setY( Scalar y ) { position.y = y; }
 
-	void setPositionState( const Vec3& p ) { position = Vec2( p.x, p.y ); angle = p.z; }
+	void setPositionState( const Vec3& p ) { position = Vec2( p.x, p.y ); angular_position = p.z; }
 	void setVelocityState( const Vec3& v ) { velocity = Vec2( v.x, v.y ); angular_velocity = v.z; }
 
 	void setPosition( const Vec2& pos ) { position = pos; }
 	void setVelocity( const Vec2& vel ) { if ( linear_enable ) { velocity = vel; } }
 	void setLinearEnable( bool le ) { linear_enable = le; }
 
-	void setAngle( const Scalar th ) { angle = th; }
+	void setAngle( const Scalar t ) { angular_position = t; }
 	void setAngularVelocity( const Scalar w ) { if ( angular_enable ) { angular_velocity = w; } }
 	void setAngularEnable( bool ae ) { angular_enable = ae; }
 
@@ -98,20 +98,19 @@ public: // Mutators (add)
 	void addPosition( const Vec2& add ) { if ( linear_enable ) { position += add; } }
 	void addVelocity( const Vec2& add ) { if ( linear_enable ) { velocity += add; } }
 
-	void addAngle( const Scalar th ) { if ( angular_enable ) { angle += th; } }
+	void addAngle( const Scalar t ) { if ( angular_enable ) { angular_position += t; } }
 	void addAngularVelocity( const Scalar w ) { if ( angular_enable ) { angular_velocity += w; } }
 
 private: // Members
 	// Position state
 	Vec2
 		position, // in 2D world-space
-		velocity, // in units/frame
-		previous;
+		velocity; // in units/frame
 	bool linear_enable; // Must enable this to move.
 
 	// Rotation state
 	Scalar
-		angle, // in radians
+		angular_position, // in radians
 		angular_velocity; // in radians/frame
 	bool angular_enable; // Must enable this to rotate.
 

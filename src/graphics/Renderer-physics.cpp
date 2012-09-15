@@ -60,7 +60,7 @@ void Renderer::drawRigid( const Rigid& rg )
 	glMatrixMode( GL_MODELVIEW );
 	glPushMatrix();
 		glTranslatef( rg.position.x, rg.position.y, 0 );
-		glRotatef( to_degrees( rg.angle ), 0, 0, 1 );
+		glRotatef( to_degrees( rg.angular_position ), 0, 0, 1 );
 
 		for ( int i = 0; i < n; ++i ) {
 			drawConvex( rg.shapes[i] );

@@ -109,7 +109,7 @@ void PhysicsState::rigid_transform_convex()
 		int n = rg->shapes.size();
 		for ( int i = 0; i < n; ++i ) {
 			Convex xf( rg->shapes[i] );
-			xf.transform( rg->position, rg->angle );
+			xf.transform( rg->position, rg->angular_position );
 			rigid_shapes.push_back( std::pair < ConvexTag, Convex >(
 				ConvexTag( rg, i ), xf ) );
 		}

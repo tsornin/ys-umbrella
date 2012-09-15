@@ -10,10 +10,10 @@ Rigid::Rigid
 */
 Rigid::Rigid() :
 	// Position state
-	position( 0, 0 ), velocity( 0, 0 ), previous( 0, 0 ),
+	position( 0, 0 ), velocity( 0, 0 ),
 		linear_enable( true ),
 	// Rotation state
-	angle( 0 ), angular_velocity( 0 ),
+	angular_position( 0 ), angular_velocity( 0 ),
 		angular_enable( true ),
 	// Damping
 	linear_damping( STANDARD_LINEAR_DAMPING ),
@@ -138,25 +138,20 @@ void Rigid::input( const InputSet& is )
 /*
 ================================
 Rigid::update
-
-Explicit Euler integration with damping.
 ================================
 */
 void Rigid::update()
 {
 	if ( linear_enable ) {
-		previous = position;
 		position += velocity;
-		// velocity *= linear_damping; // wind resistance
 	}
 	else {
 		velocity = Vec2( 0, 0 );
 	}
 
 	if ( angular_enable ) {
-		angle += angular_velocity;
-		// angular_velocity *= angular_damping; // wind resistance
-		std::fmod( angle, 2*PI );
+		angular_position += angular_velocity;
+		std::fmod( angular_position, 2*PI );
 	}
 	else {
 		angular_velocity = 0;
@@ -187,7 +182,7 @@ AABB Rigid::getAABB() const
 	int n = shapes.size();
 	for ( int i = 0; i < n; ++i ) {
 		Convex pg( shapes[i] );
-		pg.transform( position, angle );
+		pg.transform( position, angular_position );
 		box += pg.getAABB();
 	}
 	return box;
