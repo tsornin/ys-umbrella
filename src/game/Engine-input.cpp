@@ -98,18 +98,12 @@ void Engine::pollInput()
 		case SDL_KEYDOWN: {
 			SDLKey sym = event.key.keysym.sym;
 			std::map < SDLKey, InputKey >::iterator kmi;
-			kmi = keymap1.find( sym );
-			if ( kmi != keymap1.end() ) {
+			if ( (kmi = keymap1.find(sym)) != keymap1.end() ) {
 				is1.set( kmi->second, true );
 			}
-			// kmi = keymap2.find( sym );
-			// if ( kmi != keymap2.end() ) {
-			// 	is2.set( kmi->second, true );
-			// }
 			if ( (kmi = keymap2.find(sym)) != keymap2.end() ) {
 				is2.set( kmi->second, true );
 			}
-
 			specialKeyDown( sym );
 		}
 		break;
@@ -117,14 +111,9 @@ void Engine::pollInput()
 		case SDL_KEYUP: {
 			SDLKey sym = event.key.keysym.sym;
 			std::map < SDLKey, InputKey >::iterator kmi;
-			kmi = keymap1.find( sym );
-			if ( kmi != keymap1.end() ) {
+			if ( (kmi = keymap1.find(sym)) != keymap1.end() ) {
 				is1.set( kmi->second, false );
 			}
-			// kmi = keymap2.find( sym );
-			// if ( kmi != keymap2.end() ) {
-			// 	is2.set( kmi->second, false );
-			// }
 			if ( (kmi = keymap2.find(sym)) != keymap2.end() ) {
 				is2.set( kmi->second, false );
 			}
