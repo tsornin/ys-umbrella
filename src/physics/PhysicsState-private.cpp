@@ -48,6 +48,7 @@ struct Expire {
 void PhysicsState::expire()
 {
 	rgs.erase( std::remove_if( rgs.begin(), rgs.end(), Expire < Rigid* >() ), rgs.end() );
+	cts.erase( std::remove_if( cts.begin(), cts.end(), Expire < Constraint* >() ), cts.end() );
 
 	eus.remove_if( Expire < Euler* >() );
 

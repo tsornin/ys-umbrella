@@ -66,16 +66,17 @@ NOTE: This class owns all Friction pointers. See the Friction class comment.
 */
 class Contact : public Constraint
 {
-public: // Constraint
+private: // Lifecycle
 	Contact( Rigid* a, Rigid* b );
+public:
 	virtual ~Contact();
+	friend class PhysicsState;
 
+public: // Constraint
 	virtual Scalar eval();
 	virtual std::pair < Vec3, Vec3 > jacobian();
 	virtual Scalar bias( Scalar jv );
 	virtual std::pair < Scalar, Scalar > bounds();
-
-	friend class PhysicsState;
 
 public: // Contact
 	Scalar local_lambda();
@@ -103,12 +104,15 @@ Represents a friction constraint.
 NOTE: Friction constraints come and go with Contact constraints.
 Therefore, unlike all other physics objects, Friction objects
 are owned by Contact objects.
+
+TODO: maybe not?
 ================================
 */
 class Friction : public Constraint
 {
 public: // Constraint
 	Friction( Rigid* a, Rigid* b );
+public:
 	virtual ~Friction() {}
 
 	virtual Scalar eval(); // TODO: is this meaningful for friction?

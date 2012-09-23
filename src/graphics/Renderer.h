@@ -23,6 +23,7 @@ class Verlet;
 class Distance;
 class Angular;
 class Contact;
+class MouseConstraint;
 
 // Entity
 class Camera;
@@ -61,6 +62,7 @@ public: // Physics
 	void drawDistance( const Distance& dc );
 	void drawAngular( const Angular& ac );
 	void drawContact( const Contact& ct );
+	void drawMouseConstraint( const MouseConstraint& mc );
 
 public: // Entity
 	void drawCamera( const Camera& cam );

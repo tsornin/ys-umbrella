@@ -187,3 +187,13 @@ AABB Rigid::getAABB() const
 	}
 	return box;
 }
+
+Vec2 Rigid::world( const Vec2& l ) const
+{
+	return position + l.rotation( angular_position );
+}
+
+Vec2 Rigid::local( const Vec2& w ) const
+{
+	return (w - position).rotation( -angular_position );
+}

@@ -56,7 +56,12 @@ private: // Members
 	int mx, my;
 	bool ml, mr;
 	Vec2 cursor, cursor_prev;
-	Verlet* mv;
+	Rigid* crg;
+	Verlet* mvl;
+	Rigid* mrg;
+	MouseConstraint* mct;
+	Friction* mftx;
+	Friction* mfty;
 };
 
 #endif

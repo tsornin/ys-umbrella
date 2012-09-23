@@ -5,6 +5,7 @@
 #include "physics/Distance.h"
 #include "physics/Angular.h"
 #include "physics/Contact.h"
+#include "physics/MouseConstraint.h"
 
 /*
 ================================
@@ -157,17 +158,17 @@ Renderer::drawContact
 */
 void Renderer::drawContact( const Contact& ct )
 {
-	glLineWidth( 1.0 );
-
 	// Force
 	gl_SetColor( RGBA_ROSE );
+	glLineWidth( 1.0 );
 	glBegin( GL_LINES );
 		gl_SetVertex( ct.a_p );
 		gl_SetVertex( ct.a_p + ct.normal * ct.lambda / ct.b->mass * 50 );
 	glEnd();
 
 	// Constraint
-	gl_SetColor( RGBA_GREEN ); // TODO: cache coloring
+	gl_SetColor( RGBA_GREEN );
+	glLineWidth( 1.0 );
 	glBegin( GL_LINES );
 		gl_SetVertex( ct.a_p );
 		gl_SetVertex( ct.b_p );
@@ -179,4 +180,21 @@ void Renderer::drawContact( const Contact& ct )
 		gl_SetVertex( ct.a_p );
 	glEnd();
 
+}
+
+void Renderer::drawMouseConstraint( const MouseConstraint& mc )
+{
+	gl_SetColor( RGBA_YELLOW );
+
+	glLineWidth( 1.0 );
+	glBegin( GL_LINES );
+		gl_SetVertex( mc.a_world );
+		gl_SetVertex( mc.b->world( mc.b_local ) );
+	glEnd();
+
+	glPointSize( 4.0 );
+	glBegin( GL_POINTS );
+		gl_SetVertex( mc.a_world );
+		gl_SetVertex( mc.b->world( mc.b_local ) );
+	glEnd();
 }

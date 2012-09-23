@@ -24,6 +24,14 @@ void PhysicsState::init( Engine* game )
 	BlankState::init( game );
 
 	next_pid = 0;
+
+	anchor = new Rigid();
+	anchor->pid = nextPID();
+	anchor->mask = 0;
+	anchor->setLinearEnable( false );
+	anchor->setAngularEnable( false );
+	rgs.push_back( anchor );
+
 	dirty_verlet_islands = false;
 }
 
@@ -41,6 +49,9 @@ void PhysicsState::cleanup()
 
 	for ( Contact* ct : contacts ) delete ct;
 	contacts.clear();
+
+	for ( Constraint* ct : cts ) delete ct;
+	cts.clear();
 
 	rigid_islands.clear();
 
@@ -103,6 +114,7 @@ void PhysicsState::draw( Engine* game )
 
 	for ( Rigid* rg : rgs ) game->rd.drawRigid( *rg );
 	for ( Contact* ct : contacts ) game->rd.drawContact( *ct );
+	for ( Constraint* ct : cts ) ct->draw( game->rd ); // Constraint is polymorphic
 
 	for ( Euler* eu : eus ) game->rd.drawEuler( *eu );
 
@@ -144,6 +156,7 @@ void PhysicsState::setCaption( std::ostringstream& buffer )
 	buffer << " " << rgs.size();
 	buffer << " (" << rigid_shapes.size() << ")";
 	buffer << "-" << contacts.size();
+	buffer << "-" << cts.size();
 	buffer << "/" << rigid_islands.size();
 
 	buffer << ", " << eus.size();

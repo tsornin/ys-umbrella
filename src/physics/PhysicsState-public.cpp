@@ -1,5 +1,6 @@
 #include "PhysicsState.h"
 #include <iostream>
+
 /*
 ================================
 PhysicsState::createRigid
@@ -30,6 +31,20 @@ Rigid* PhysicsState::createRigid( const MeshOBJ& obj, RigidType rt )
 
 /*
 ================================
+PhysicsState::createRigid
+================================
+*/
+Rigid* PhysicsState::createRigid( RigidType rt )
+{
+	Rigid* rg = new Rigid();
+	rg->pid = nextPID();
+	rg->mask = rt;
+	rgs.push_back( rg );
+	return rg;
+}
+
+/*
+================================
 PhysicsState::destroyRigid
 
 Marks the specified Rigid body for deletion.
@@ -46,7 +61,7 @@ PhysicsState::createContact
 
 Creates a new Contact constraint.
 
-NOTE: This function is private.
+NOTE: This function should be private.
 ================================
 */
 Contact* PhysicsState::createContact( Rigid* a, Rigid* b )
@@ -68,9 +83,7 @@ Contact* PhysicsState::createContact( Rigid* a, Rigid* b )
 ================================
 PhysicsState::destroyContact
 
-TODO: ???
-
-NOTE: This function is private.
+NOTE: This function should be private.
 ================================
 */
 void PhysicsState::destroyContact( Contact* ct )
@@ -110,6 +123,36 @@ void PhysicsState::destroyFriction( Friction* ft )
 	ft->b->edges.erase( ft );
 
 	ft->expire_enable = true;
+}
+
+/*
+================================
+PhysicsState::createMouseConstraint
+================================
+*/
+MouseConstraint* PhysicsState::createMouseConstraint( Rigid* a, Rigid* b )
+{
+	MouseConstraint* mc = new MouseConstraint( a, b );
+	mc->pid = nextPID();
+	cts.push_back( mc );
+
+	mc->a->edges.insert( mc );
+	mc->b->edges.insert( mc );
+
+	return mc;
+}
+
+/*
+================================
+PhysicsState::destroyMouseConstraint
+================================
+*/
+void PhysicsState::destroyMouseConstraint( MouseConstraint* mc )
+{
+	mc->a->edges.erase( mc );
+	mc->b->edges.erase( mc );
+
+	mc->expire_enable = true;
 }
 
 /*
@@ -334,6 +377,8 @@ PhysicsState::nearestVerlet
 
 Returns the Verlet particle nearest to the specified location.
 Returns null if there are no Verlet particles within the specified radius.
+
+TODO: Make this faster?
 ================================
 */
 Verlet* PhysicsState::nearestVerlet( const Vec2& p, Scalar r )
@@ -350,4 +395,16 @@ Verlet* PhysicsState::nearestVerlet( const Vec2& p, Scalar r )
 	}
 
 	return score < r*r ? ret : 0;
+}
+
+Rigid* PhysicsState::nearestRigid( const Vec2& p )
+{
+	for ( auto pair : rigid_shapes ) {
+		Rigid* rg = pair.first.first;
+		Convex& c = pair.second;
+		if ( rg->frozen() ) continue;
+		if ( c.contains( p ) ) return rg;
+	}
+
+	return 0;
 }

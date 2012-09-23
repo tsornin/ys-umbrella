@@ -13,6 +13,7 @@
 #include "Distance.h"
 #include "Angular.h"
 #include "Contact.h"
+#include "MouseConstraint.h"
 
 typedef std::pair <
 	std::vector < Verlet* >,
@@ -51,6 +52,7 @@ protected:
 
 public: // Physics engine
 	Rigid* createRigid( const MeshOBJ& obj, RigidType rt = 0 );
+	Rigid* createRigid( RigidType rt = 0 );
 	void destroyRigid( Rigid* rg );
 
 	Contact* createContact( Rigid* a, Rigid* b );
@@ -58,6 +60,9 @@ public: // Physics engine
 
 	Friction* createFriction( Rigid* a, Rigid* b );
 	void destroyFriction( Friction* ft );
+
+	MouseConstraint* createMouseConstraint( Rigid* a, Rigid* b );
+	void destroyMouseConstraint( MouseConstraint* mc );
 
 	Euler* createEuler( EulerType et = 0 );
 	void destroyEuler( Euler* eu );
@@ -72,6 +77,8 @@ public: // Physics engine
 	void destroyAngular( Angular* ac );
 
 	Verlet* nearestVerlet( const Vec2& p, Scalar r );
+
+	Rigid* nearestRigid( const Vec2& p );
 
 private: // Physics timestep
 	typedef std::pair < Rigid*, int > ConvexTag;
@@ -124,7 +131,7 @@ private: // Members
 	// Rigid bodies
 	std::vector < Rigid* > rgs;
 	std::vector < Contact* > contacts;
-	std::vector < Constraint* > constraints; // TODO: rename this cts.
+	std::vector < Constraint* > cts;
 	std::vector < RigidGraph > rigid_islands;
 
 	std::vector < std::pair < ConvexTag, Convex > > rigid_shapes;
@@ -139,6 +146,9 @@ private: // Members
 	std::list < Angular* > acs;
 	std::vector < VerletGraph > verlet_islands;
 	bool dirty_verlet_islands;
+
+protected:
+	Rigid* anchor;
 };
 
 #endif

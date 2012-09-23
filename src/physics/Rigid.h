@@ -38,6 +38,8 @@ public: // "Entity" functions
 	friend class Renderer;
 
 public: // Rigid functions
+	Vec2 world( const Vec2& p ) const;
+	Vec2 local( const Vec2& p ) const;
 
 public: // Accessors
 	Scalar getX() const { return position.x; }
