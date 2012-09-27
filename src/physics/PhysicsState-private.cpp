@@ -461,7 +461,8 @@ RigidGraph PhysicsState::mark_connected( Rigid* root )
 			// We add frozen nodes even though they are marked:
 			// this means that we consider frozen nodes with multiple
 			// neighbors to belong to multiple connected components.
-			if ( !w->linear_enable && !w->angular_enable ) {
+			if ( w->frozen() ) {
+				// assert( w->marked = true );
 				rgs.push_back( w );
 			}
 			// Normal BFS on non-frozen nodes.
@@ -475,6 +476,10 @@ RigidGraph PhysicsState::mark_connected( Rigid* root )
 			cts.push_back( ct );
 		}
 	}
+
+	// Remove duplicate vertices (frozen nodes)
+	std::sort( rgs.begin(), rgs.end() );
+	rgs.erase( std::unique( rgs.begin(), rgs.end() ), rgs.end() );
 
 	// Remove duplicate edges
 	std::sort( cts.begin(), cts.end() );
@@ -912,7 +917,7 @@ VerletGraph PhysicsState::mark_connected( Verlet* root )
 			// We add frozen nodes even though they are marked:
 			// this means that we consider frozen nodes with multiple
 			// neighbors to belong to multiple connected components.
-			if ( ! w->linear_enable ) {
+			if ( w->frozen() ) {
 				vls.push_back( w );
 			}
 			// Normal BFS on non-frozen nodes.
@@ -926,6 +931,10 @@ VerletGraph PhysicsState::mark_connected( Verlet* root )
 			dcs.push_back( dc );
 		}
 	}
+
+	// Remove duplicate vertices (frozen nodes)
+	std::sort( vls.begin(), vls.end() );
+	vls.erase( std::unique( vls.begin(), vls.end() ), vls.end() );
 
 	// Remove duplicate edges
 	std::sort( dcs.begin(), dcs.end() );

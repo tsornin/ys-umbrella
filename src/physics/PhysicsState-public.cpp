@@ -74,7 +74,15 @@ Contact* PhysicsState::createContact( Rigid* a, Rigid* b )
 	ct->a->edges.insert( ct );
 	ct->b->edges.insert( ct );
 
-	ct->ft = createFriction( a, b );
+	// Just like PhysicsState::createFriction,
+	// but without adding this Friction to the list of persistent Constraints.
+	Friction* ft = new Friction( a, b );
+	ft->pid = nextPID();
+
+	ft->a->edges.insert( ft );
+	ft->b->edges.insert( ft );
+
+	ct->ft = ft;
 
 	return ct;
 }
@@ -91,9 +99,13 @@ void PhysicsState::destroyContact( Contact* ct )
 	ct->a->edges.erase( ct );
 	ct->b->edges.erase( ct );
 
-	destroyFriction( ct->ft );
-
 	ct->expire_enable = true;
+
+	// Just like PhysicsState::destroyFriction,
+	// but without removing this Friction from the list of persistent Constraints.
+	Friction* ft = ct->ft;
+	ft->a->edges.erase( ft );
+	ft->b->edges.erase( ft );
 }
 
 /*
@@ -105,6 +117,7 @@ Friction* PhysicsState::createFriction( Rigid* a, Rigid* b )
 {
 	Friction* ft = new Friction( a, b );
 	ft->pid = nextPID();
+	cts.push_back( ft );
 
 	ft->a->edges.insert( ft );
 	ft->b->edges.insert( ft );

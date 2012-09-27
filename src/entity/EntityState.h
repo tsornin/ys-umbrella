@@ -60,8 +60,9 @@ private: // Members
 	Verlet* mvl;
 	Rigid* mrg;
 	MouseConstraint* mct;
-	Friction* mftx;
-	Friction* mfty;
+	Friction
+		*mftx, *mfty,
+		*mftx2, *mfty2;
 };
 
 #endif

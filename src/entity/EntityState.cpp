@@ -2,6 +2,8 @@
 #include "Entity.h"
 #include "Camera.h"
 
+static const Scalar MOUSE_OFFSET = 10;
+
 /*
 ================================
 EntityState::Instance
@@ -39,11 +41,14 @@ void EntityState::init( Engine* game )
 	mct = 0;
 	mftx = 0;
 	mfty = 0;
+	mftx2 = 0;
+	mfty2 = 0;
 
 	crg = PhysicsState::createRigid();
 	crg->setPosition( cursor );
 	crg->setVelocity( cursor - cursor_prev );
-	crg->setMass( 500000 );
+	crg->setMass( 5001 * 10000.0 );
+	crg->setMoment( 4.16667e+06 * 10000.0 );
 	crg->setFriction( 1 ); // TODO: This is hacky (see Friction::bounds)
 }
 
@@ -72,13 +77,37 @@ void EntityState::input( Engine* game )
 	Entity* t = cam->getTarget();
 	if ( t ) t->input( game->is1 );
 
+	// Compute cursor
+	cursor_prev = cursor;
+	cursor = cam->world( mx, my );
+
 	if ( ml ) {
 		if ( mrg && mct ) {
-			mct->a_world = cursor;
+			mct->a_world = cursor_prev;
 		}
-		if ( mftx ) mftx->p = cursor;
-		if ( mfty ) mfty->p = cursor;
-		if ( mvl ) mvl->setPosition( cursor );
+		if ( mftx && mfty ) {
+			// Vec2 tangent = (cursor - cursor_prev) - mrg->getVelocityAt( cursor_prev );
+			// if ( tangent.length2() < 1.0 ) tangent = Vec2( 1, 0 ); // singularity
+			// tangent.normalize();
+
+			Vec2 tangent = Vec2( 1, 0 );
+
+			mftx->tangent = tangent;
+			mftx->p = cursor_prev;
+
+			mfty->tangent = tangent.lperp();
+			mfty->p = cursor_prev;
+		}
+		if ( mftx2 && mfty2 ) {
+			Vec2 tangent = Vec2( 1, 0 );
+
+			mftx2->tangent = tangent;
+			mftx2->p = cursor_prev + Vec2( MOUSE_OFFSET );
+
+			mfty2->tangent = tangent.lperp();
+			mfty2->p = cursor_prev + Vec2( MOUSE_OFFSET );
+		}
+		if ( mvl ) mvl->setPosition( cursor_prev );
 	}
 	if ( mr ) {
 		
@@ -92,16 +121,13 @@ EntityState::update
 */
 void EntityState::update( Engine* game )
 {
+	crg->setVelocity( cursor - cursor_prev );
+
 	PhysicsState::update( game );
 
 	for ( Entity* en : entities ) en->update();
 
-	// Compute cursor
-	cursor_prev = cursor;
-	cursor = cam->world( mx, my );
-
 	crg->setPosition( cursor );
-	crg->setVelocity( cursor - cursor_prev );
 }
 
 /*
@@ -165,10 +191,16 @@ void EntityState::mouseUp( const SDL_MouseButtonEvent& e )
 		mrg = 0;
 		if ( mct ) PhysicsState::destroyMouseConstraint( mct );
 		mct = 0;
+
 		if ( mftx ) PhysicsState::destroyFriction( mftx );
 		mftx = 0;
 		if ( mfty ) PhysicsState::destroyFriction( mfty );
 		mfty = 0;
+
+		if ( mftx2 ) PhysicsState::destroyFriction( mftx2 );
+		mftx2 = 0;
+		if ( mfty2 ) PhysicsState::destroyFriction( mfty2 );
+		mfty2 = 0;
 	}
 	if ( e.button == SDL_BUTTON_RIGHT ) {
 		mr = false;
@@ -186,15 +218,30 @@ void EntityState::mouseDown( const SDL_MouseButtonEvent& e )
 			// mct->b_local = mrg->local( cursor );
 			// mct->a_world = cursor;
 
+			Scalar normal_lambda = mrg->getMass() * 10;
+			// Scalar normal_lambda = SCALAR_MAX; // Too strong (especially with a big mouse weight)
+
+			// "Double surface friction"
 			mftx = PhysicsState::createFriction( crg, mrg );
 			mftx->tangent = Vec2( 1, 0 );
 			mftx->p = cursor;
-			mftx->normal_lambda = mrg->getMass() * 10;
+			mftx->normal_lambda = normal_lambda;
 
 			mfty = PhysicsState::createFriction( crg, mrg );
 			mfty->tangent = Vec2( 0, 1 );
 			mfty->p = cursor;
-			mfty->normal_lambda = mrg->getMass() * 10;
+			mfty->normal_lambda = normal_lambda;
+
+			// Another "double surface friction"
+			mftx2 = PhysicsState::createFriction( crg, mrg );
+			mftx2->tangent = Vec2( 1, 0 );
+			mftx2->p = cursor + Vec2( MOUSE_OFFSET );
+			mftx2->normal_lambda = normal_lambda;
+
+			mfty2 = PhysicsState::createFriction( crg, mrg );
+			mfty2->tangent = Vec2( 0, 1 );
+			mfty2->p = cursor + Vec2( MOUSE_OFFSET );
+			mfty2->normal_lambda = normal_lambda;
 		}
 		else {
 			mvl = PhysicsState::nearestVerlet( cursor, 50 );

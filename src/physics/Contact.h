@@ -78,6 +78,9 @@ public: // Constraint
 	virtual Scalar bias( Scalar jv );
 	virtual std::pair < Scalar, Scalar > bounds();
 
+	virtual void draw( Renderer& rd ) { rd.drawContact( *this ); rd.drawFriction( *ft ); }
+	friend class Renderer;
+
 public: // Contact
 	Scalar local_lambda();
 
@@ -114,13 +117,15 @@ public: // Constraint
 	Friction( Rigid* a, Rigid* b );
 public:
 	virtual ~Friction() {}
+	friend class PhysicsState;
 
 	virtual Scalar eval(); // TODO: is this meaningful for friction?
 	virtual std::pair < Vec3, Vec3 > jacobian();
 	virtual Scalar bias( Scalar jv );
 	virtual std::pair < Scalar, Scalar > bounds();
 
-	friend class PhysicsState;
+	virtual void draw( Renderer& rd ) { rd.drawFriction( *this ); }
+	friend class Renderer;
 
 public: // Members
 	Vec2 tangent;

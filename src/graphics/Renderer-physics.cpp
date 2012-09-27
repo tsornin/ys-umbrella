@@ -182,6 +182,37 @@ void Renderer::drawContact( const Contact& ct )
 
 }
 
+/*
+================================
+Renderer::drawFriction
+================================
+*/
+void Renderer::drawFriction( const Friction& ft )
+{
+	// TODO: add friction mixing into Friction class
+	// TODO: compute the normal force limit using friction mixing
+
+	// Force
+	glLineWidth( 1.0 );
+	glBegin( GL_LINES );
+		// Normal force limit
+		gl_SetColor( RGBA_ROSE.alpha( 0.5 ) );
+		gl_SetVertex( ft.p - ft.tangent * ft.normal_lambda / ft.b->mass * 50 );
+		gl_SetVertex( ft.p + ft.tangent * ft.normal_lambda / ft.b->mass * 50 );
+		// Force
+		gl_SetColor( RGBA_ROSE );
+		gl_SetVertex( ft.p );
+		gl_SetVertex( ft.p + ft.tangent * ft.lambda / ft.b->mass * 50 );
+	glEnd();
+
+	// Reference point
+	gl_SetColor( RGBA_GREEN );
+	glPointSize( 4.0 );
+	glBegin( GL_POINTS );
+		gl_SetVertex( ft.p );
+	glEnd();
+}
+
 void Renderer::drawMouseConstraint( const MouseConstraint& mc )
 {
 	gl_SetColor( RGBA_YELLOW );

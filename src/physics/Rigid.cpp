@@ -2,7 +2,7 @@
 #include "Constants.h"
 #include "spatial/AABB.h"
 #include "game/InputSet.h"
-
+#include <iostream>
 /*
 ================================
 Rigid::Rigid
@@ -196,4 +196,9 @@ Vec2 Rigid::world( const Vec2& l ) const
 Vec2 Rigid::local( const Vec2& w ) const
 {
 	return (w - position).rotation( -angular_position );
+}
+
+Vec2 Rigid::getVelocityAt( const Vec2& p ) const
+{
+	return velocity + (p - position).lperp() * angular_velocity;
 }

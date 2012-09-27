@@ -54,6 +54,8 @@ public: // Accessors
 			angular_enable ? 1.0 / moment : 0 );
 	}
 
+	Vec2 getVelocityAt( const Vec2& p ) const;
+
 	bool frozen() const { return !linear_enable && !angular_enable; }
 
 	Vec2 getPosition() const { return position; }

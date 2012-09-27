@@ -25,12 +25,12 @@ void PhysicsState::init( Engine* game )
 
 	next_pid = 0;
 
-	anchor = new Rigid();
-	anchor->pid = nextPID();
-	anchor->mask = 0;
-	anchor->setLinearEnable( false );
-	anchor->setAngularEnable( false );
-	rgs.push_back( anchor );
+	// anchor = new Rigid();
+	// anchor->pid = nextPID();
+	// anchor->mask = 0;
+	// anchor->setLinearEnable( false );
+	// anchor->setAngularEnable( false );
+	// rgs.push_back( anchor );
 
 	dirty_verlet_islands = false;
 }
@@ -113,7 +113,7 @@ void PhysicsState::draw( Engine* game )
 	// }
 
 	for ( Rigid* rg : rgs ) game->rd.drawRigid( *rg );
-	for ( Contact* ct : contacts ) game->rd.drawContact( *ct );
+	for ( Contact* ct : contacts ) ct->draw( game->rd ); // Contact contains Friction
 	for ( Constraint* ct : cts ) ct->draw( game->rd ); // Constraint is polymorphic
 
 	for ( Euler* eu : eus ) game->rd.drawEuler( *eu );
@@ -158,6 +158,15 @@ void PhysicsState::setCaption( std::ostringstream& buffer )
 	buffer << "-" << contacts.size();
 	buffer << "-" << cts.size();
 	buffer << "/" << rigid_islands.size();
+
+	for ( RigidGraph& rgg : rigid_islands ) {
+		buffer << " {" << rgg.first.size() << "-" << rgg.second.size() << "}";
+		buffer << " pid:[";
+		for ( Rigid* rg : rgg.first ) {
+			buffer << " " << rg->pid;
+		}
+		buffer << " ]";
+	}
 
 	buffer << ", " << eus.size();
 
