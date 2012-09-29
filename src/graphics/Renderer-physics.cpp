@@ -178,7 +178,6 @@ void Renderer::drawContact( const Contact& ct )
 	glBegin( GL_POINTS );
 		gl_SetVertex( ct.a_p );
 	glEnd();
-
 }
 
 /*

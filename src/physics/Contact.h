@@ -79,7 +79,7 @@ public: // Constraint
 
 	virtual void draw( Renderer& rd ) const {
 		rd.drawContact( *this );
-		rd.drawFriction( *ft );
+		if ( ft ) rd.drawFriction( *ft );
 	}
 	friend class Renderer;
 

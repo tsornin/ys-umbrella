@@ -16,7 +16,7 @@ bool operator == ( const ContactKey& ck1, const ContactKey& ck2 ) {
 Contact::Contact
 ================================
 */
-Contact::Contact( Rigid* a, Rigid* b ) : Constraint( a, b )
+Contact::Contact( Rigid* a, Rigid* b ) : Constraint( a, b ), ft(0)
 {
 	
 }
@@ -28,7 +28,7 @@ Contact::~Contact
 */
 Contact::~Contact()
 {
-	delete ft;
+	if ( ft ) delete ft;
 }
 
 /*
