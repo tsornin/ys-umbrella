@@ -67,9 +67,10 @@ class Contact : public Constraint
 {
 private: // Lifecycle
 	Contact( Rigid* a, Rigid* b );
-public:
 	virtual ~Contact();
+
 	friend class PhysicsState;
+	template < typename T > friend struct Expire;
 
 public: // Constraint
 	virtual Scalar eval() const;

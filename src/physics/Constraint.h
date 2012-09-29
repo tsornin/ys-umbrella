@@ -9,19 +9,20 @@
 
 class Constraint : public PhysicsTags
 {
-protected:
+protected: // Lifecycle
 	Constraint( Rigid* a, Rigid* b );
-public:
 	virtual ~Constraint() {}
 
+	friend class PhysicsState;
+	template < typename T > friend struct Expire;
+
+public: // Constraint
 	virtual Scalar eval() const = 0;
 	virtual std::pair < Vec3, Vec3 > jacobian() const = 0;
 	virtual Scalar bias( Scalar jv ) const = 0;
 	virtual std::pair < Scalar, Scalar > bounds() const = 0;
 
 	virtual void draw( Renderer& rd ) const {}
-
-	friend class PhysicsState;
 	friend class Renderer;
 
 protected: // Members

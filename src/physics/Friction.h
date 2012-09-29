@@ -16,11 +16,13 @@ are owned by Contact objects.
 */
 class Friction : public Constraint
 {
-public: // Lifecycle
+private: // Lifecycle
 	Friction( Rigid* a, Rigid* b );
-public:
 	virtual ~Friction() {}
+
 	friend class PhysicsState;
+	template < typename T > friend struct Expire;
+	friend class Contact;
 
 public: // Constraint
 	virtual Scalar eval() const;
