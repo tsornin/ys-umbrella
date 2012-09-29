@@ -3,6 +3,7 @@
 
 #include "Constraint.h" // superclass Constraint
 #include <string> // TODO: see std::hash < Identifier >
+#include "Friction.h"
 
 /*
 ================================
@@ -49,8 +50,6 @@ namespace std {
 	};
 }
 
-class Friction;
-
 /*
 ================================
 Contact constraint.
@@ -96,42 +95,6 @@ public: // Members
 	// The owning (and only) pointer to this Contact's
 	// associated Friction constraint.
 	Friction* ft;
-};
-
-/*
-================================
-Friction constraint.
-
-Represents a friction constraint.
-
-NOTE: Friction constraints come and go with Contact constraints.
-Therefore, unlike all other physics objects, Friction objects
-are owned by Contact objects.
-
-TODO: maybe not?
-================================
-*/
-class Friction : public Constraint
-{
-public: // Constraint
-	Friction( Rigid* a, Rigid* b );
-public:
-	virtual ~Friction() {}
-	friend class PhysicsState;
-
-	virtual Scalar eval(); // TODO: is this meaningful for friction?
-	virtual std::pair < Vec3, Vec3 > jacobian();
-	virtual Scalar bias( Scalar jv );
-	virtual std::pair < Scalar, Scalar > bounds();
-
-	virtual void draw( Renderer& rd ) { rd.drawFriction( *this ); }
-	friend class Renderer;
-
-public: // Members
-	Vec2 tangent;
-	Vec2 p;
-
-	Scalar normal_lambda;
 };
 
 #endif

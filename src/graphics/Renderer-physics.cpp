@@ -5,7 +5,6 @@
 #include "physics/Distance.h"
 #include "physics/Angular.h"
 #include "physics/Contact.h"
-#include "physics/MouseConstraint.h"
 
 /*
 ================================
@@ -210,22 +209,5 @@ void Renderer::drawFriction( const Friction& ft )
 	glPointSize( 4.0 );
 	glBegin( GL_POINTS );
 		gl_SetVertex( ft.p );
-	glEnd();
-}
-
-void Renderer::drawMouseConstraint( const MouseConstraint& mc )
-{
-	gl_SetColor( RGBA_YELLOW );
-
-	glLineWidth( 1.0 );
-	glBegin( GL_LINES );
-		gl_SetVertex( mc.a_world );
-		gl_SetVertex( mc.b->world( mc.b_local ) );
-	glEnd();
-
-	glPointSize( 4.0 );
-	glBegin( GL_POINTS );
-		gl_SetVertex( mc.a_world );
-		gl_SetVertex( mc.b->world( mc.b_local ) );
 	glEnd();
 }

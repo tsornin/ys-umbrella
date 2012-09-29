@@ -38,7 +38,6 @@ void EntityState::init( Engine* game )
 	cursor_prev = Vec2( 0 );
 	mvl = 0;
 	mrg = 0;
-	mct = 0;
 	mftx = 0;
 	mfty = 0;
 
@@ -80,9 +79,6 @@ void EntityState::input( Engine* game )
 	cursor = cam->world( mx, my );
 
 	if ( ml ) {
-		if ( mrg && mct ) {
-			mct->a_world = cursor_prev;
-		}
 		if ( mftx && mfty ) {
 			Vec2 tangent = Vec2( 1, 0 );
 
@@ -174,9 +170,6 @@ void EntityState::mouseUp( const SDL_MouseButtonEvent& e )
 		mvl = 0;
 		// if ( mrg ) mrg->setAngularEnable( true );
 		mrg = 0;
-		if ( mct ) PhysicsState::destroyMouseConstraint( mct );
-		mct = 0;
-
 		if ( mftx ) PhysicsState::destroyFriction( mftx );
 		mftx = 0;
 		if ( mfty ) PhysicsState::destroyFriction( mfty );
@@ -194,9 +187,6 @@ void EntityState::mouseDown( const SDL_MouseButtonEvent& e )
 		mrg = PhysicsState::nearestRigid( cursor );
 		if ( mrg ) {
 			// mrg->setAngularEnable( false );
-			// mct = PhysicsState::createMouseConstraint( anchor, mrg );
-			// mct->b_local = mrg->local( cursor );
-			// mct->a_world = cursor;
 
 			Scalar normal_lambda = mrg->getMass() * 10;
 

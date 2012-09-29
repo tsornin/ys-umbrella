@@ -57,6 +57,36 @@ void PhysicsState::destroyRigid( Rigid* rg )
 
 /*
 ================================
+PhysicsState::createFriction
+================================
+*/
+Friction* PhysicsState::createFriction( Rigid* a, Rigid* b )
+{
+	Friction* ft = new Friction( a, b );
+	ft->pid = nextPID();
+	cts.push_back( ft );
+
+	ft->a->edges.insert( ft );
+	ft->b->edges.insert( ft );
+
+	return ft;
+}
+
+/*
+================================
+PhysicsState::destroyFriction
+================================
+*/
+void PhysicsState::destroyFriction( Friction* ft )
+{
+	ft->a->edges.erase( ft );
+	ft->b->edges.erase( ft );
+
+	ft->expire_enable = true;
+}
+
+/*
+================================
 PhysicsState::createContact
 
 Creates a new Contact constraint.
@@ -106,66 +136,6 @@ void PhysicsState::destroyContact( Contact* ct )
 	Friction* ft = ct->ft;
 	ft->a->edges.erase( ft );
 	ft->b->edges.erase( ft );
-}
-
-/*
-================================
-PhysicsState::createFriction
-================================
-*/
-Friction* PhysicsState::createFriction( Rigid* a, Rigid* b )
-{
-	Friction* ft = new Friction( a, b );
-	ft->pid = nextPID();
-	cts.push_back( ft );
-
-	ft->a->edges.insert( ft );
-	ft->b->edges.insert( ft );
-
-	return ft;
-}
-
-/*
-================================
-PhysicsState::destroyFriction
-================================
-*/
-void PhysicsState::destroyFriction( Friction* ft )
-{
-	ft->a->edges.erase( ft );
-	ft->b->edges.erase( ft );
-
-	ft->expire_enable = true;
-}
-
-/*
-================================
-PhysicsState::createMouseConstraint
-================================
-*/
-MouseConstraint* PhysicsState::createMouseConstraint( Rigid* a, Rigid* b )
-{
-	MouseConstraint* mc = new MouseConstraint( a, b );
-	mc->pid = nextPID();
-	cts.push_back( mc );
-
-	mc->a->edges.insert( mc );
-	mc->b->edges.insert( mc );
-
-	return mc;
-}
-
-/*
-================================
-PhysicsState::destroyMouseConstraint
-================================
-*/
-void PhysicsState::destroyMouseConstraint( MouseConstraint* mc )
-{
-	mc->a->edges.erase( mc );
-	mc->b->edges.erase( mc );
-
-	mc->expire_enable = true;
 }
 
 /*

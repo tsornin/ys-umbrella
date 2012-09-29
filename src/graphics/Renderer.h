@@ -24,7 +24,6 @@ class Distance;
 class Angular;
 class Contact;
 class Friction;
-class MouseConstraint;
 
 // Entity
 class Camera;
@@ -64,7 +63,6 @@ public: // Physics
 	void drawAngular( const Angular& ac );
 	void drawContact( const Contact& ct );
 	void drawFriction( const Friction& ft );
-	void drawMouseConstraint( const MouseConstraint& mc );
 
 public: // Entity
 	void drawCamera( const Camera& cam );

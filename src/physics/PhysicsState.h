@@ -12,8 +12,8 @@
 #include "Verlet.h"
 #include "Distance.h"
 #include "Angular.h"
+#include "Friction.h"
 #include "Contact.h"
-#include "MouseConstraint.h"
 
 typedef std::pair <
 	std::vector < Verlet* >,
@@ -55,14 +55,11 @@ public: // Physics engine
 	Rigid* createRigid( RigidType rt = 0 );
 	void destroyRigid( Rigid* rg );
 
-	Contact* createContact( Rigid* a, Rigid* b );
-	void destroyContact( Contact* ct );
-
 	Friction* createFriction( Rigid* a, Rigid* b );
 	void destroyFriction( Friction* ft );
 
-	MouseConstraint* createMouseConstraint( Rigid* a, Rigid* b );
-	void destroyMouseConstraint( MouseConstraint* mc );
+	Contact* createContact( Rigid* a, Rigid* b );
+	void destroyContact( Contact* ct );
 
 	Euler* createEuler( EulerType et = 0 );
 	void destroyEuler( Euler* eu );
