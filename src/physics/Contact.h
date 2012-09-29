@@ -72,16 +72,20 @@ public:
 	friend class PhysicsState;
 
 public: // Constraint
-	virtual Scalar eval();
-	virtual std::pair < Vec3, Vec3 > jacobian();
-	virtual Scalar bias( Scalar jv );
-	virtual std::pair < Scalar, Scalar > bounds();
+	virtual Scalar eval() const;
+	virtual std::pair < Vec3, Vec3 > jacobian() const;
+	virtual Scalar bias( Scalar jv ) const;
+	virtual std::pair < Scalar, Scalar > bounds() const;
 
-	virtual void draw( Renderer& rd ) { rd.drawContact( *this ); rd.drawFriction( *ft ); }
+	virtual void draw( Renderer& rd ) const {
+		rd.drawContact( *this );
+		rd.drawFriction( *ft );
+	}
 	friend class Renderer;
 
 public: // Contact
-	Scalar local_lambda();
+	Scalar local_lambda() const;
+	Scalar mix_restitution() const;
 
 public: // Members
 	Vec2 normal; // Points away from body A
@@ -92,8 +96,7 @@ public: // Members
 	// Contact caching
 	ContactKey key;
 
-	// The owning (and only) pointer to this Contact's
-	// associated Friction constraint.
+	// The owning pointer to this Contact's associated Friction constraint.
 	Friction* ft;
 };
 

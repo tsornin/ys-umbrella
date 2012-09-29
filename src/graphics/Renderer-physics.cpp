@@ -188,16 +188,15 @@ Renderer::drawFriction
 */
 void Renderer::drawFriction( const Friction& ft )
 {
-	// TODO: add friction mixing into Friction class
-	// TODO: compute the normal force limit using friction mixing
+	Scalar lambda = ft.normal_lambda * ft.mix_friction();
 
 	// Force
 	glLineWidth( 1.0 );
 	glBegin( GL_LINES );
 		// Normal force limit
 		gl_SetColor( RGBA_ROSE.alpha( 0.5 ) );
-		gl_SetVertex( ft.p - ft.tangent * ft.normal_lambda / ft.b->mass * 50 );
-		gl_SetVertex( ft.p + ft.tangent * ft.normal_lambda / ft.b->mass * 50 );
+		gl_SetVertex( ft.p - ft.tangent * lambda / ft.b->mass * 50 );
+		gl_SetVertex( ft.p + ft.tangent * lambda / ft.b->mass * 50 );
 		// Force
 		gl_SetColor( RGBA_ROSE );
 		gl_SetVertex( ft.p );

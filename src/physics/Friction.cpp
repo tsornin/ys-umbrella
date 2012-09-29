@@ -15,8 +15,9 @@ Friction::Friction( Rigid* a, Rigid* b ) : Constraint( a, b )
 Friction::eval
 ================================
 */
-Scalar Friction::eval()
+Scalar Friction::eval() const
 {
+	// No position stabilization for Friction
 	return 0;
 }
 
@@ -25,7 +26,7 @@ Scalar Friction::eval()
 Friction::jacobian
 ================================
 */
-std::pair < Vec3, Vec3 > Friction::jacobian()
+std::pair < Vec3, Vec3 > Friction::jacobian() const
 {
 	return std::pair < Vec3, Vec3 >(
 		- Vec3( tangent, (p - a->getPosition()) ^ tangent ),
@@ -37,8 +38,9 @@ std::pair < Vec3, Vec3 > Friction::jacobian()
 Friction::bias
 ================================
 */
-Scalar Friction::bias( Scalar jv )
+Scalar Friction::bias( Scalar jv ) const
 {
+	// No position stabilization for Friction
 	return 0;
 }
 
@@ -47,13 +49,22 @@ Scalar Friction::bias( Scalar jv )
 Friction::bounds
 ================================
 */
-std::pair < Scalar, Scalar > Friction::bounds()
+std::pair < Scalar, Scalar > Friction::bounds() const
 {
-	// Friction mixing
-	Scalar k = geometric_mean( a->getFriction(), b->getFriction() );
-
-	// Bound by last frame's lambda (TODO: problem?)
+	// Bound friction using the cached normal force
+	// (doesn't seem to be a problem)
+	Scalar k = mix_friction();
 	Scalar l = k * normal_lambda;
 
 	return std::pair < Scalar, Scalar >( -l, l );
+}
+
+/*
+================================
+Friction::mix_friction
+================================
+*/
+Scalar Friction::mix_friction() const
+{
+	return geometric_mean( a->getFriction(), b->getFriction() );
 }

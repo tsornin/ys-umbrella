@@ -36,7 +36,7 @@ Contact::~Contact()
 Contact::eval
 ================================
 */
-Scalar Contact::eval()
+Scalar Contact::eval() const
 {
 	return -overlap;
 }
@@ -46,7 +46,7 @@ Scalar Contact::eval()
 Contact::jacobian
 ================================
 */
-std::pair < Vec3, Vec3 > Contact::jacobian()
+std::pair < Vec3, Vec3 > Contact::jacobian() const
 {
 	return std::pair < Vec3, Vec3 >(
 		- Vec3( normal, (a_p - a->getPosition()) ^ normal ),
@@ -58,7 +58,7 @@ std::pair < Vec3, Vec3 > Contact::jacobian()
 Contact::bias
 ================================
 */
-Scalar Contact::bias( Scalar jv )
+Scalar Contact::bias( Scalar jv ) const
 {
 	Scalar ret = 0;
 
@@ -66,8 +66,7 @@ Scalar Contact::bias( Scalar jv )
 	static const Scalar PHYSICS_BOUNCE_THRESHOLD = 2.0;
 	// Restitution threshold
 	if ( std::fabs( jv ) > PHYSICS_BOUNCE_THRESHOLD ) {
-		// Restitution mixing
-		Scalar e = std::max( a->getBounce(), b->getBounce() );
+		Scalar e = mix_restitution();
 		ret += -jv * e;
 	}
 
@@ -88,7 +87,7 @@ Scalar Contact::bias( Scalar jv )
 Contact::bounds
 ================================
 */
-std::pair < Scalar, Scalar > Contact::bounds()
+std::pair < Scalar, Scalar > Contact::bounds() const
 {
 	return std::pair < Scalar, Scalar >( 0, SCALAR_MAX );
 }
@@ -103,7 +102,7 @@ it's used to bound the normal force for newly created Friction contacts
 (and since we're doing that, we might as well use it for warm starting too).
 ================================
 */
-Scalar Contact::local_lambda()
+Scalar Contact::local_lambda() const
 {
 	auto J = jacobian();
 	Scalar jv =
@@ -114,8 +113,17 @@ Scalar Contact::local_lambda()
 		J.first.prod( J.first ).dot( a->getInverseMass() ) +
 		J.second.prod( J.second ).dot( b->getInverseMass() );
 
-	// TODO: put restitution mixing into a function
-	Scalar e = std::max( a->getBounce(), b->getBounce() );
+	Scalar e = mix_restitution();
 
 	return -(1+e) * jv / jmjt;
+}
+
+/*
+================================
+Contact::mix_restitution
+================================
+*/
+Scalar Contact::mix_restitution() const
+{
+	return std::max( a->getBounce(), b->getBounce() );
 }

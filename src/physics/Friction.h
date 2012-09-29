@@ -16,19 +16,23 @@ are owned by Contact objects.
 */
 class Friction : public Constraint
 {
-public: // Constraint
+public: // Lifecycle
 	Friction( Rigid* a, Rigid* b );
 public:
 	virtual ~Friction() {}
 	friend class PhysicsState;
 
-	virtual Scalar eval(); // TODO: is this meaningful for friction?
-	virtual std::pair < Vec3, Vec3 > jacobian();
-	virtual Scalar bias( Scalar jv );
-	virtual std::pair < Scalar, Scalar > bounds();
+public: // Constraint
+	virtual Scalar eval() const;
+	virtual std::pair < Vec3, Vec3 > jacobian() const;
+	virtual Scalar bias( Scalar jv ) const;
+	virtual std::pair < Scalar, Scalar > bounds() const;
 
-	virtual void draw( Renderer& rd ) { rd.drawFriction( *this ); }
+	virtual void draw( Renderer& rd ) const { rd.drawFriction( *this ); }
 	friend class Renderer;
+
+public: // Friction
+	Scalar mix_friction() const;
 
 public: // Members
 	Vec2 tangent;

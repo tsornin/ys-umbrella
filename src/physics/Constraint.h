@@ -14,12 +14,12 @@ protected:
 public:
 	virtual ~Constraint() {}
 
-	virtual Scalar eval() = 0;
-	virtual std::pair < Vec3, Vec3 > jacobian() = 0;
-	virtual Scalar bias( Scalar jv ) = 0;
-	virtual std::pair < Scalar, Scalar > bounds() = 0;
+	virtual Scalar eval() const = 0;
+	virtual std::pair < Vec3, Vec3 > jacobian() const = 0;
+	virtual Scalar bias( Scalar jv ) const = 0;
+	virtual std::pair < Scalar, Scalar > bounds() const = 0;
 
-	virtual void draw( Renderer& rd ) {}
+	virtual void draw( Renderer& rd ) const {}
 
 	friend class PhysicsState;
 	friend class Renderer;
