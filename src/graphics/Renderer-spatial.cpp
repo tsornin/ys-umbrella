@@ -69,6 +69,6 @@ void Renderer::drawConvex( const Convex& pg )
 		}
 	glEnd();
 
-	// Draw bounding box
+	// // Draw bounding box
 	// drawAABB( pg.getAABB() );
 }

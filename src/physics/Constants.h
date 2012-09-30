@@ -28,4 +28,8 @@ const Scalar GRAVITY_LO		= 0.3;
 const Scalar GRAVITY_MED	= 0.6;
 const Scalar GRAVITY_HI		= 0.9;
 
+const Scalar PHYSICS_CONTACT_VELOCITY_THRESHOLD = 2.0;
+const Scalar PHYSICS_CONTACT_SLOP = 0.1;
+const Scalar PHYSICS_CONTACT_BIAS = 0.1;
+
 #endif

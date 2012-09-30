@@ -1,4 +1,5 @@
 #include "Contact.h"
+#include "Constants.h"
 
 bool operator == ( const FeatureKey& fk1, const FeatureKey& fk2 ) {
 	return
@@ -63,20 +64,15 @@ Scalar Contact::bias( Scalar jv ) const
 	Scalar ret = 0;
 
 	// Restitution
-	static const Scalar PHYSICS_BOUNCE_THRESHOLD = 2.0;
-	// Restitution threshold
-	if ( std::fabs( jv ) > PHYSICS_BOUNCE_THRESHOLD ) {
+	if ( std::fabs( jv ) > PHYSICS_CONTACT_VELOCITY_THRESHOLD ) {
 		Scalar e = mix_restitution();
 		ret += -jv * e;
 	}
 
 	// Position stabilization
-	static const Scalar PHYSICS_SLOP = 0.1;
-	static const Scalar PHYSICS_BIAS = 0.1;
-
-	Scalar error = -eval() - PHYSICS_SLOP;
+	Scalar error = -eval() - PHYSICS_CONTACT_SLOP;
 	if ( error > 0 ) {
-		ret += error * PHYSICS_BIAS;
+		ret += error * PHYSICS_CONTACT_BIAS;
 	}
 
 	return ret;
