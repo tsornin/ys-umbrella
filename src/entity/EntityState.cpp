@@ -78,6 +78,15 @@ void EntityState::input( Engine* game )
 	cursor_prev = cursor;
 	cursor = cam->world( mx, my );
 
+	if ( mrg != PhysicsState::nearestRigid( cursor_prev ) ) {
+		// if ( mrg ) mrg->setAngularEnable( true );
+		mrg = 0;
+		if ( mftx ) PhysicsState::destroyFriction( mftx );
+		mftx = 0;
+		if ( mfty ) PhysicsState::destroyFriction( mfty );
+		mfty = 0;
+	}
+
 	if ( ml ) {
 		if ( mftx && mfty ) {
 			Vec2 tangent = Vec2( 1, 0 );
