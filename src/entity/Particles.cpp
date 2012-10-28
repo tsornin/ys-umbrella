@@ -5,7 +5,7 @@ Particle::Particle( EntityState& es ) : Entity( es ),
 	frames_elapsed( 0 ),
 	life_remaining( 0 )
 {
-
+	
 }
 
 Particle::~Particle()

@@ -2,34 +2,34 @@
 
 Flame::Flame( EntityState& es ) : Particle( es )
 {
-	//eu->setGravity( Vec2( 0, 10 ) );
+	eu->setBounce( 0 );
+	eu->setGravity( Vec2( 0, GRAVITY_LO / 2 ) );
 }
 
 Flames::Flames( EntityState& es ) : Particles < Flame >( es )
 {
-
+	
 }
 
 Fire::Fire( EntityState& es ) : Emitter < Flame >( es )
 {
 	target = es.flames;
 
-	// spawn at center
-	position_jitter = Vec2( 0.0, 0.0 );
+	position_jitter = Vec2( 8.0, 8.0 );
 	velocity_base = Vec2( 0.0, 0.0 );
-	velocity_jitter = Vec2( 5.0, 5.0 );
-	follow = Vec2( 1.0, 1.0 );
+	velocity_jitter = Vec2( 0.0, 0.0 );
+	follow = Vec2( 0.1, 0.1 );
 
-	duration_base = 30;
-	duration_jitter = 10;
+	duration_base = 32;
+	duration_jitter = 0;
 
-	frequency_base = 2;
-	frequency_jitter = 1;
+	frequency_base = -1;
+	frequency_jitter = 3;
 
 	gaussian = true;
 }
 
 Fires::Fires( EntityState& es ) : Particles < Fire >( es )
 {
-
+	
 }

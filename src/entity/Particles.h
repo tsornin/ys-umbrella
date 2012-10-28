@@ -71,7 +71,7 @@ struct Expire {
 template < typename T >
 Particles < T >::Particles( EntityState& es ) : Entity( es )
 {
-
+	
 }
 
 template < typename T >
@@ -99,6 +99,7 @@ template < typename T >
 T* Particles < T >::createParticle()
 {
 	T* t = new T( es );
+	// t->eid = es.nextEID();
 	user_ts.insert( t );
 	return t;
 }
@@ -168,7 +169,7 @@ template < typename T >
 Emitter < T >::Emitter( EntityState& es ) : Particle( es ),
 	active( true )
 {
-
+	
 }
 
 template < typename T >
