@@ -804,7 +804,9 @@ PhysicsState::euler_apply_wind_forces
 */
 void PhysicsState::euler_apply_wind_forces()
 {
-	// TODO: Euler damping is still in Euler::update
+	for ( Euler* eu : eus ) {
+		eu->velocity *= eu->linear_damping;
+	}
 }
 
 /*

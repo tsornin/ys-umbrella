@@ -10,7 +10,7 @@ Euler::Euler
 */
 Euler::Euler() :
 	// Position state
-	position( 0, 0 ), velocity( 0, 0 ), previous( 0, 0 ),
+	position( 0, 0 ), velocity( 0, 0 ),
 		linear_enable( true ),
 	// Damping
 	linear_damping( STANDARD_LINEAR_DAMPING ),
@@ -61,16 +61,12 @@ void Euler::input( const InputSet& is )
 /*
 ================================
 Euler::update
-
-Explicit Euler integration with damping.
 ================================
 */
 void Euler::update()
 {
 	if ( linear_enable ) {
-		previous = position;
 		position += velocity;
-		velocity *= linear_damping; // wind resistance
 	}
 	else {
 		velocity = Vec2( 0, 0 );

@@ -67,8 +67,7 @@ private: // Members
 	// Position state
 	Vec2
 		position, // in 2D world-space
-		velocity, // in units/frame
-		previous;
+		velocity; // in units/frame
 	bool linear_enable; // Must enable this to move.
 
 	// Damping
