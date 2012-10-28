@@ -54,10 +54,10 @@ public:
 	================================
 	*/
 	Vec2& operator += ( const Vec2& v ) { x += v.x; y += v.y; return *this; }
-	Vec2& operator -= ( const Vec2& v ) { x -= v.x; y -= v.y; return *this; }
+	Vec2& operator -= ( const Vec2& v ) { return operator += ( -v ); }
 
 	Vec2& operator *= ( const Scalar& s ) { x *= s; y *= s; return *this; }
-	Vec2& operator /= ( const Scalar& s ) { x /= s; y /= s; return *this; }
+	Vec2& operator /= ( const Scalar& s ) { return operator *= ( ((Scalar) 1 )/s ); }
 
 	/*
 	================================
