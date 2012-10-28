@@ -71,6 +71,54 @@ bool Convex::contains( const Vec2& p ) const
 
 /*
 ================================
+Convex::nearest
+
+Returns the point on this polygon nearest to the specified point.
+================================
+*/
+Vec2 Convex::nearest( const Vec2& p ) const
+{
+	Vec2 ret;
+	Scalar score = SCALAR_MAX;
+
+	int n = points.size();
+	for ( int i = 0; i < n; ++i ) {
+		// View each edge as a segment
+		Segment s( points[ i ], points[ (i+1) % n ] );
+
+		// Pick the closest result
+		Vec2 ret_c = s.nearest( p, normals[i].lperp() );
+		Scalar score_c = (p - ret_c).length2();
+		if ( score_c < score ) {
+			score = score_c;
+			ret = ret_c;
+		}
+	}
+
+	return ret;
+}
+
+/*
+================================
+Convex::getAABB
+
+Computes the AABB of this polygon.
+================================
+*/
+AABB Convex::getAABB() const
+{
+	AABB ret( points[0] );
+
+	int n = points.size();
+	for ( int i = 0; i < n; ++i ) {
+		ret += points[i];
+	}
+
+	return ret;
+}
+
+/*
+================================
 Convex::correction (overloaded)
 
 Returns:
@@ -222,54 +270,6 @@ Convex::sat( const Convex& a, const Convex& b )
 
 	ret.first = true;
 	ret.second = correction;
-	return ret;
-}
-
-/*
-================================
-Convex::nearest
-
-Returns the point on this polygon nearest to the specified point.
-================================
-*/
-Vec2 Convex::nearest( const Vec2& p ) const
-{
-	Vec2 ret;
-	Scalar score = SCALAR_MAX;
-
-	int n = points.size();
-	for ( int i = 0; i < n; ++i ) {
-		// View each edge as a segment
-		Segment s( points[ i ], points[ (i+1) % n ] );
-
-		// Pick the closest result
-		Vec2 ret_c = s.nearest( p, normals[i].lperp() );
-		Scalar score_c = (p - ret_c).length2();
-		if ( score_c < score ) {
-			score = score_c;
-			ret = ret_c;
-		}
-	}
-
-	return ret;
-}
-
-/*
-================================
-Convex::getAABB
-
-Computes the AABB of this polygon.
-================================
-*/
-AABB Convex::getAABB() const
-{
-	AABB ret( points[0] );
-
-	int n = points.size();
-	for ( int i = 0; i < n; ++i ) {
-		ret += points[i];
-	}
-
 	return ret;
 }
 
