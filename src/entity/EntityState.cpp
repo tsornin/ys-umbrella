@@ -1,6 +1,7 @@
 #include "EntityState.h"
 #include "Entity.h"
 #include "Camera.h"
+#include "Particle-types.h"
 
 static const Scalar MOUSE_OFFSET = 10;
 
@@ -29,6 +30,11 @@ void EntityState::init( Engine* game )
 	next_eid = 0;
 
 	add( cam = new Camera( *this ) );
+	add( fires = new Fires( *this ) );
+	add( flames = new Flames( *this ) );
+
+	cam->addTarget( 0 );
+	cam->addTarget( fires->createParticle() ); // TODO: this is a leak
 
 	mx = 0;
 	my = 0;
@@ -153,6 +159,10 @@ void EntityState::setCaption( std::ostringstream& buffer )
 
 	buffer << " || Entity:";
 	buffer << " " << entities.size();
+
+	Entity* t = cam->getTarget();
+	int eid = t ? t->eid : -1;
+	buffer << " [" << eid << "]";
 }
 
 /*

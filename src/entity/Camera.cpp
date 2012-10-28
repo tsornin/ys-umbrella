@@ -31,7 +31,7 @@ static double zoom_distance( int zoom ) {
 Camera::Camera
 ================================
 */
-Camera::Camera( EntityState& em ) : Entity( em ),
+Camera::Camera( EntityState& es ) : Entity( es ),
 	eu( es.createEuler( 0 ) ),
 	// TODO: magic numbers
 	fov_y( 51.13 ),

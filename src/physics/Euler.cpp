@@ -35,7 +35,7 @@ void Euler::input( const InputSet& is )
 {
 	// TODO: Totally arbitrary
 	Scalar acc = GRAVITY_HI / 2;
-	
+
 	// Speed modifiers
 	Scalar multiplier = 1.0;
 	bool lo = is.get( IK_SL );
@@ -45,10 +45,10 @@ void Euler::input( const InputSet& is )
 		if ( hi ) multiplier = 4.0;
 	}
 	acc *= multiplier;
-	
+
 	// Freeze toggling
 	if ( is.rising( IK_A ) ) linear_enable = !linear_enable;
-	
+
 	// Linear movement
 	if ( linear_enable ) {
 		if ( is.get( IK_U ) )	velocity.y += acc;

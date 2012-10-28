@@ -36,7 +36,7 @@ TODO: use std::vector for all physics object collections
 */
 template < typename T >
 struct Expire {
-	bool operator() ( T& t ) {
+	bool operator () ( T& t ) {
 		if ( t->expired() ) {
 			delete t;
 			return true;

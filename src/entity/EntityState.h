@@ -6,6 +6,13 @@
 
 class Entity;
 
+// TODO: Since EntityState forward-declares Entity,
+// all top-level entities must also be forward-declared here.
+// Doesn't this seem kind of backwards?
+class Camera;
+class Fires;
+class Flames;
+
 /*
 ================================
 Entity Manager.
@@ -52,6 +59,8 @@ private: // Members
 
 	// All top-level entities are also available here
 	Camera* cam;
+	Fires* fires;
+	Flames* flames; friend class Fire;
 
 	int mx, my;
 	bool ml, mr;

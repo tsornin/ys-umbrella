@@ -1,5 +1,5 @@
-#ifndef CAMERA_H
-#define CAMERA_H
+#ifndef ENTITY_CAMERA_H
+#define ENTITY_CAMERA_H
 
 #include "Entity.h" // superclass Entity
 
