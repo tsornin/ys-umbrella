@@ -150,19 +150,19 @@ void PhysicsState::rigid_detect_rigid()
 {
 	// The integer indexes rigid_shapes
 	RD_BruteForce < int > rd;
-	for ( unsigned int ii = 0; ii < rigid_shapes.size(); ++ii ) {
-		Rigid* rg = rigid_shapes[ii].first.first;
-		// int cid = rigid_shapes[ii].first.second;
-		Convex& pg = rigid_shapes[ii].second;
+	for ( unsigned int i = 0; i < rigid_shapes.size(); ++i ) {
+		Rigid* rg = rigid_shapes[i].first.first;
+		// int cid = rigid_shapes[i].first.second;
+		Convex& pg = rigid_shapes[i].second;
 
 		AABB box = pg.getAABB();
 		box.fatten( 2.0 );
 
 		// Broad-phase happens here
-		for ( int jj : rd.query( box ) ) {
-			Rigid* rg2 = rigid_shapes[jj].first.first;
-			// int cid2 = rigid_shapes[jj].first.second;
-			// Convex& pg2 = rigid_shapes[jj].second;
+		for ( int j : rd.query( box ) ) {
+			Rigid* rg2 = rigid_shapes[j].first.first;
+			// int cid2 = rigid_shapes[j].first.second;
+			// Convex& pg2 = rigid_shapes[j].second;
 
 			// Avoid self-collision
 			if ( rg == rg2 ) continue;
@@ -174,13 +174,13 @@ void PhysicsState::rigid_detect_rigid()
 
 			// Narrow-phase
 			rigid_caltrops(
-				rigid_shapes[ii].first, rigid_shapes[ii].second,
-				rigid_shapes[jj].first, rigid_shapes[jj].second );
+				rigid_shapes[i].first, rigid_shapes[i].second,
+				rigid_shapes[j].first, rigid_shapes[j].second );
 		}
 
 		// Broad-phase happens here
 		// Insert after query, so we don't query ourselves.
-		rd.insert( box, ii );
+		rd.insert( box, i );
 	}
 }
 
@@ -760,7 +760,39 @@ Detects and resolves all collisions between Euler particles and Rigid bodies.
 */
 void PhysicsState::euler_detect_rigid()
 {
-	// TODO: euler_detect_rigid
+	PD_BruteForce < Euler* > pd;
+	for ( Euler* eu : eus ) {
+		// TODO: Masking
+		pd.insert( eu->getPosition(), eu );
+	}
+
+	for ( unsigned int i = 0; i < rigid_shapes.size(); ++i ) {
+		Rigid* rg = rigid_shapes[i].first.first;
+		// int cid = rigid_shapes[i].first.second;
+		Convex& pg = rigid_shapes[i].second;
+
+		AABB box = pg.getAABB();
+		box.fatten( 2.0 );
+
+		// Broad-phase happens here
+		for ( Euler* eu : pd.query( box ) ) {
+			// TODO: Masking
+
+			// TODO: rg->getVelocityAt( eu->getVelocity() ) is more accurate
+			Vec2 bias = eu->getVelocity() - rg->getVelocity();
+			auto c = pg.correction( eu->getPosition(), bias );
+			if ( c.first ) {
+				Vec2& normal = c.second.first;
+				Vec2 correction = c.second.first * c.second.second;
+
+				eu->addPosition( correction * PHYSICS_CONTACT_BIAS );
+
+				if ( eu->velocity * normal < 0 )
+					eu->velocity -= eu->velocity.projection_unit( normal );
+				// TODO: bounce
+			}
+		}
+	}
 }
 
 /*
