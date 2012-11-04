@@ -66,5 +66,15 @@ Friction::mix_friction
 */
 Scalar Friction::mix_friction() const
 {
-	return geometric_mean( a->getFriction(), b->getFriction() );
+	return Friction::mix_friction( a->getFriction(), b->getFriction() );
+}
+
+/*
+================================
+Friction::mix_friction
+================================
+*/
+Scalar Friction::mix_friction( Scalar k1, Scalar k2 )
+{
+	return std::max( k1, k2 );
 }

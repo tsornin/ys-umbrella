@@ -35,6 +35,7 @@ public: // Constraint
 
 public: // Friction
 	Scalar mix_friction() const;
+	static Scalar mix_friction( Scalar k1, Scalar k2 );
 
 public: // Members
 	Vec2 tangent;

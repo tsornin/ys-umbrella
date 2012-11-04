@@ -171,6 +171,7 @@ void PhysicsState::rigid_detect_rigid()
 			if ( rg->frozen() && rg2->frozen() ) continue;
 
 			// TODO: Masking happens here
+			if ( !(rg->mask & rg2->mask) ) continue;
 
 			// Narrow-phase
 			rigid_caltrops(
@@ -762,7 +763,7 @@ void PhysicsState::euler_detect_rigid()
 {
 	PD_BruteForce < Euler* > pd;
 	for ( Euler* eu : eus ) {
-		// TODO: Masking
+		if ( !eu->mask ) continue;
 		pd.insert( eu->getPosition(), eu );
 	}
 
@@ -771,12 +772,9 @@ void PhysicsState::euler_detect_rigid()
 		// int cid = rigid_shapes[i].first.second;
 		Convex& pg = rigid_shapes[i].second;
 
-		AABB box = pg.getAABB();
-		box.fatten( 2.0 );
-
 		// Broad-phase happens here
-		for ( Euler* eu : pd.query( box ) ) {
-			// TODO: Masking
+		for ( Euler* eu : pd.query( pg.getAABB().fatter( 2.0 ) ) ) {
+			if ( !(eu->mask & rg->mask) ) continue;
 
 			// TODO: rg->getVelocityAt( eu->getVelocity() ) is more accurate
 			Vec2 bias = eu->getVelocity() - rg->getVelocity();
@@ -785,11 +783,14 @@ void PhysicsState::euler_detect_rigid()
 				Vec2& normal = c.second.first;
 				Vec2 correction = c.second.first * c.second.second;
 
+				// Squishy position correction
 				eu->addPosition( correction * PHYSICS_CONTACT_BIAS );
 
-				if ( eu->velocity * normal < 0 )
-					eu->velocity -= eu->velocity.projection_unit( normal );
-				// TODO: bounce
+				// Restitution
+				if ( eu->velocity * normal < 0 ) {
+					Scalar e = Contact::mix_restitution( eu->getBounce(), rg->getBounce() );
+					eu->velocity -= eu->velocity.projection_unit( normal ) * (1+e);
+				}
 			}
 		}
 	}

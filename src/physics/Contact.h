@@ -86,7 +86,9 @@ public: // Constraint
 
 public: // Contact
 	Scalar local_lambda() const;
+
 	Scalar mix_restitution() const;
+	static Scalar mix_restitution( Scalar k1, Scalar k2 );
 
 public: // Members
 	Vec2 normal; // Points away from body A

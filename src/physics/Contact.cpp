@@ -121,5 +121,15 @@ Contact::mix_restitution
 */
 Scalar Contact::mix_restitution() const
 {
-	return std::max( a->getBounce(), b->getBounce() );
+	return Contact::mix_restitution( a->getBounce(), b->getBounce() );
+}
+
+/*
+================================
+Contact::mix_restitution
+================================
+*/
+Scalar Contact::mix_restitution( Scalar k1, Scalar k2 )
+{
+	return std::max( k1, k2 );
 }

@@ -4,11 +4,12 @@ Flame::Flame( EntityState& es ) : Particle( es )
 {
 	eu->setBounce( 0 );
 	eu->setGravity( Vec2( 0, GRAVITY_LO / 2 ) );
+	eu->mask = 1;
 }
 
 Flames::Flames( EntityState& es ) : Particles < Flame >( es )
 {
-	
+
 }
 
 Fire::Fire( EntityState& es ) : Emitter < Flame >( es )
@@ -31,5 +32,5 @@ Fire::Fire( EntityState& es ) : Emitter < Flame >( es )
 
 Fires::Fires( EntityState& es ) : Particles < Fire >( es )
 {
-	
+
 }
