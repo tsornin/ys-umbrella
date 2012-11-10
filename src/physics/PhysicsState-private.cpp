@@ -48,6 +48,7 @@ struct Expire {
 void PhysicsState::expire()
 {
 	rgs.erase( std::remove_if( rgs.begin(), rgs.end(), Expire < Rigid* >() ), rgs.end() );
+	contacts.erase( std::remove_if( contacts.begin(), contacts.end(), Expire < Contact* >() ), contacts.end() );
 	cts.erase( std::remove_if( cts.begin(), cts.end(), Expire < Constraint* >() ), cts.end() );
 
 	eus.remove_if( Expire < Euler* >() );
@@ -389,7 +390,6 @@ void PhysicsState::rigid_expire_contacts()
 	for ( Contact* ct : contacts ) {
 		if ( ct->expired() ) destroyContact( ct );
 	}
-	contacts.erase( std::remove_if( contacts.begin(), contacts.end(), Expire < Contact* >() ), contacts.end() );
 }
 
 /*

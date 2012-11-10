@@ -159,6 +159,7 @@ void PhysicsState::setCaption( std::ostringstream& buffer )
 	buffer << "-" << cts.size();
 	buffer << "/" << rigid_islands.size();
 
+/*
 	for ( RigidGraph& rgg : rigid_islands ) {
 		buffer << " {" << rgg.first.size() << "-" << rgg.second.size() << "}";
 		buffer << " pid:[";
@@ -167,6 +168,7 @@ void PhysicsState::setCaption( std::ostringstream& buffer )
 		}
 		buffer << " ]";
 	}
+*/
 
 	buffer << ", " << eus.size();
 

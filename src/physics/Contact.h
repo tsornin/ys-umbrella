@@ -99,7 +99,7 @@ public: // Members
 	// Contact caching
 	ContactKey key;
 
-	// The owning pointer to this Contact's associated Friction constraint.
+	// This Contact's associated Friction constraint.
 	Friction* ft;
 };
 

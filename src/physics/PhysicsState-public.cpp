@@ -52,6 +52,17 @@ Marks the specified Rigid body for deletion.
 */
 void PhysicsState::destroyRigid( Rigid* rg )
 {
+	while ( !rg->edges.empty() ) {
+		// TODO:
+		// WARNING:
+		// This is only correct because destroyContact and destroyFriction look similar.
+		// Since Constraint is polymorphic, we should do something like ct->destroy( *this ).
+		Constraint* ct = *(rg->edges.begin());
+		ct->a->edges.erase( ct );
+		ct->b->edges.erase( ct );
+		ct->expire_enable = true;
+	}
+
 	rg->expire_enable = true;
 }
 
@@ -104,18 +115,12 @@ Contact* PhysicsState::createContact( Rigid* a, Rigid* b )
 	ct->a->edges.insert( ct );
 	ct->b->edges.insert( ct );
 
+	// TODO: Floating point
 	if ( a->getFriction() == 0.0 || b->getFriction() == 0.0 ) {
 		ct->ft = 0;
 	}
 	else {
-		// Almost the same as PhysicsState::createFriction
-		Friction* ft = new Friction( a, b );
-		ft->pid = nextPID();
-
-		ft->a->edges.insert( ft );
-		ft->b->edges.insert( ft );
-
-		ct->ft = ft;
+		ct->ft = createFriction( a, b );
 	}
 
 	return ct;
@@ -133,14 +138,12 @@ void PhysicsState::destroyContact( Contact* ct )
 	ct->a->edges.erase( ct );
 	ct->b->edges.erase( ct );
 
-	ct->expire_enable = true;
-
-	// Almost the same as PhysicsState::destroyFriction
 	Friction* ft = ct->ft;
 	if ( ft ) {
-		ft->a->edges.erase( ft );
-		ft->b->edges.erase( ft );
+		destroyFriction( ft );
 	}
+
+	ct->expire_enable = true;
 }
 
 /*

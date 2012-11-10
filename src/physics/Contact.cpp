@@ -29,7 +29,7 @@ Contact::~Contact
 */
 Contact::~Contact()
 {
-	if ( ft ) delete ft;
+	
 }
 
 /*
