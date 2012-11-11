@@ -31,7 +31,7 @@ class Rigid :
 {
 private: // Lifecycle
 	Rigid();
-	Rigid( const std::vector < Convex >& pgs );
+	Rigid( const std::vector < Convex >& cs );
 	friend class PhysicsState;
 
 public: // "Entity" functions

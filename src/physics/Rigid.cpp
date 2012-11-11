@@ -38,10 +38,10 @@ Creates a Rigid body with mass properties
 computed from the specified Convex shapes.
 ================================
 */
-Rigid::Rigid( const std::vector < Convex >& pgs ) :
+Rigid::Rigid( const std::vector < Convex >& cs ) :
 	Rigid()
 {
-	shapes = pgs;
+	shapes = cs;
 
 	int n = shapes.size();
 
@@ -179,9 +179,9 @@ AABB Rigid::getAABB() const
 	// The plus operator is planned to become the Minkowski Sum.
 	int n = shapes.size();
 	for ( int i = 0; i < n; ++i ) {
-		Convex pg( shapes[i] );
-		pg.transform( position, angular_position );
-		box += pg.getAABB();
+		Convex c( shapes[i] );
+		c.transform( position, angular_position );
+		box += c.getAABB();
 	}
 	return box;
 }

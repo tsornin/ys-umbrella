@@ -108,8 +108,8 @@ void PhysicsState::draw( Engine* game )
 	// // Display the bounding boxes of the convex list.
 	// // (The AABB's of Rigid::shapes are in object space, which isn't useful)
 	// for ( auto& pair : vxs ) {
-	// 	Convex& vx = pair.second;
-	// 	game->rd.drawAABB( vx.getAABB() );
+	// 	Convex& c = pair.second;
+	// 	game->rd.drawAABB( c.getAABB() );
 	// }
 
 	for ( Rigid* rg : rgs ) game->rd.drawRigid( *rg );

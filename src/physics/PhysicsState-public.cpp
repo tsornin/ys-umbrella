@@ -11,7 +11,7 @@ Creates a new Rigid body shaped like the specified MeshOBJ.
 Rigid* PhysicsState::createRigid( const MeshOBJ& obj )
 {
 	// Copy OBJ data
-	std::vector < Convex > pgs;
+	std::vector < Convex > cs;
 	for ( unsigned int i = 0; i < obj.faces.size(); ++i ) {
 		std::vector < Vec2 > points;
 		const FaceOBJ& f = obj.faces[i];
@@ -19,10 +19,10 @@ Rigid* PhysicsState::createRigid( const MeshOBJ& obj )
 			VertexOBJ v = obj.getVertex( f.vis[i] );
 			points.push_back( Vec2( v.x, v.y ) * obj.scale );
 		}
-		pgs.push_back( Convex( points ) );
+		cs.push_back( Convex( points ) );
 	}
 
-	Rigid* rg = new Rigid( pgs );
+	Rigid* rg = new Rigid( cs );
 	rg->pid = nextPID();
 	rgs.push_back( rg );
 
