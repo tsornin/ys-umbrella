@@ -2,7 +2,7 @@
 #define PHYSICS_DISTANCE_CONSTRAINT_H
 
 #include "PhysicsTags.h"
-#include <set> // for std::set < Angular* >
+#include "PhysicsGraph.h"
 #include "spatial/Scalar.h"
 
 class AABB;
@@ -37,7 +37,10 @@ Instance of this class are managed by the physics engine.
 Used PhysicsState::createDistance to create a Distance constraint.
 ================================
 */
-class Distance : public PhysicsTags
+class Distance :
+	public PhysicsTags,
+	public PhysicsGraph < Verlet, Distance >::Edge,
+	public PhysicsGraph < Distance, Angular >::Vertex
 {
 private: // Lifecycle
 	Distance( Verlet* a, Verlet* b );
@@ -57,18 +60,10 @@ public: // Mutators
 	void setType( DCType t ) { type = t; }
 
 private: // Members
-	// Vertices
-	Verlet
-		*a, // source vertex
-		*b; // target vertex
-
 	// Constraint properties
 	Scalar rest_length;
 	Scalar power; // in range [ 0, 1 ]
 	DCType type;
-
-private: // Physics engine graph data
-	std::set < Angular* > edges;
 };
 
 #endif

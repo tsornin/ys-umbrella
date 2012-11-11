@@ -2,6 +2,7 @@
 #define PHYSICS_ANGULAR_CONSTRAINT_H
 
 #include "PhysicsTags.h"
+#include "PhysicsGraph.h"
 
 class Verlet;
 class Distance;
@@ -16,7 +17,9 @@ Instances of this class are managed by the physics engine.
 Use PhysicsState::createAngular to create an Angular constraint.
 ================================
 */
-class Angular : public PhysicsTags
+class Angular :
+	public PhysicsTags,
+	public PhysicsGraph < Distance, Angular >::Edge
 {
 public: // Lifecycle
 	Angular( Distance* m, Distance* n );
@@ -25,15 +28,10 @@ public: // Lifecycle
 	friend class Renderer;
 
 private: // Members
-	// Vertices
-	Distance
-		*m, // source vertex
-		*n; // target vertex
-
-	Verlet *a, *b, *c;
+	Verlet *vla, *vlb, *vlc;
 
 	// ???
-	Verlet *l, *r;
+	Verlet *vll, *vlr;
 	Distance
 		*al, *ar,
 		*bl, *br,

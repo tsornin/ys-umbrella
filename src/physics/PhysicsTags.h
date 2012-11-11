@@ -41,4 +41,8 @@ public: // Members
 	Handler* owner;
 };
 
+// TODO: Get rid of XTypes
+typedef unsigned int PhysicsMask;
+// TODO: Get rid of getters/setters
+
 #endif

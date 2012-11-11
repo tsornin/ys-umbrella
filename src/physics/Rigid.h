@@ -2,6 +2,7 @@
 #define PHYSICS_RIGID_H
 
 #include "PhysicsTags.h"
+#include "PhysicsGraph.h"
 #include <set>
 #include "spatial/Vec2.h"
 #include "spatial/Vec3.h"
@@ -24,7 +25,9 @@ Rigid bodies with no shapes are errors
 (should have used an Euler particle instead).
 ================================
 */
-class Rigid : public PhysicsTags
+class Rigid :
+	public PhysicsTags,
+	public PhysicsGraph < Rigid, Constraint >::Vertex
 {
 private: // Lifecycle
 	Rigid();
@@ -136,11 +139,32 @@ private: // Members
 
 private: // Members
 	std::vector < Convex > shapes; // object space
-
-private: // Physics engine graph data
-	std::set < Constraint* > edges;
-	bool marked;
-	int local_id;
 };
+
+
+
+// New access control
+// NOTE: velocity-LE invariant set by update()
+/*{
+public:
+	position;
+	velocity;
+	linear_enable;
+
+	angular_position;
+	angular_velocity;
+	angular_enable;
+
+	gravity;
+
+private:
+	linear_damping; // clamp [ 0, 1 ]
+	angular_damping; // clamp [ 0, 1 ]
+
+	mass; // clamp ( 0, oo )
+	moment; // clamp ( 0, oo )
+	bounce; // clamp [ 0, 1 ]
+	friction; // clamp [ 0, oo )
+}*/
 
 #endif

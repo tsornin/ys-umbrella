@@ -1,4 +1,5 @@
 #include "Distance.h"
+#include "Angular.h" // for superclass PhysicsGraph < Distance, Angular >::Vertex
 #include "spatial/Vec2.h"
 #include "spatial/AABB.h"
 #include "Verlet.h"
@@ -9,8 +10,7 @@ Distance::Distance
 ================================
 */
 Distance::Distance( Verlet* a, Verlet* b ) :
-	// Vertices
-	a(a), b(b),
+	PhysicsGraph < Verlet, Distance >::Edge( a, b ),
 	// Constraint properties
 	power( 1.0 ),
 	type( DC_HARD )

@@ -26,6 +26,9 @@ Rigid* PhysicsState::createRigid( const MeshOBJ& obj, RigidType rt )
 	rg->pid = nextPID();
 	rg->mask = rt;
 	rgs.push_back( rg );
+
+	rg->insertVertex();
+
 	return rg;
 }
 
@@ -40,6 +43,9 @@ Rigid* PhysicsState::createRigid( RigidType rt )
 	rg->pid = nextPID();
 	rg->mask = rt;
 	rgs.push_back( rg );
+
+	rg->insertVertex();
+
 	return rg;
 }
 
@@ -52,16 +58,16 @@ Marks the specified Rigid body for deletion.
 */
 void PhysicsState::destroyRigid( Rigid* rg )
 {
-	while ( !rg->edges.empty() ) {
+	for ( Constraint* ct : rg->edges ) {
 		// TODO:
 		// WARNING:
+		// Contact and Friction both appear in our list.
 		// This is only correct because destroyContact and destroyFriction look similar.
 		// Since Constraint is polymorphic, we should do something like ct->destroy( *this ).
-		Constraint* ct = *(rg->edges.begin());
-		ct->a->edges.erase( ct );
-		ct->b->edges.erase( ct );
 		ct->expire_enable = true;
 	}
+
+	rg->eraseVertex();
 
 	rg->expire_enable = true;
 }
@@ -77,8 +83,7 @@ Friction* PhysicsState::createFriction( Rigid* a, Rigid* b )
 	ft->pid = nextPID();
 	cts.push_back( ft );
 
-	ft->a->edges.insert( ft );
-	ft->b->edges.insert( ft );
+	ft->insertEdge();
 
 	return ft;
 }
@@ -90,8 +95,7 @@ PhysicsState::destroyFriction
 */
 void PhysicsState::destroyFriction( Friction* ft )
 {
-	ft->a->edges.erase( ft );
-	ft->b->edges.erase( ft );
+	ft->eraseEdge();
 
 	ft->expire_enable = true;
 }
@@ -111,9 +115,7 @@ Contact* PhysicsState::createContact( Rigid* a, Rigid* b )
 	ct->pid = nextPID();
 	contacts.push_back( ct );
 
-	// Graph setup
-	ct->a->edges.insert( ct );
-	ct->b->edges.insert( ct );
+	ct->insertEdge();
 
 	// TODO: Floating point
 	if ( a->getFriction() == 0.0 || b->getFriction() == 0.0 ) {
@@ -135,8 +137,7 @@ NOTE: This function should be private.
 */
 void PhysicsState::destroyContact( Contact* ct )
 {
-	ct->a->edges.erase( ct );
-	ct->b->edges.erase( ct );
+	ct->eraseEdge();
 
 	Friction* ft = ct->ft;
 	if ( ft ) {
@@ -188,8 +189,10 @@ Verlet* PhysicsState::createVerlet( VerletType vt )
 	Verlet* vl = new Verlet();
 	vl->pid = nextPID();
 	vl->mask = vt;
-	vl->marked = false;
 	vls.push_back( vl );
+
+	vl->insertVertex();
+
 	return vl;
 }
 
@@ -207,17 +210,8 @@ void PhysicsState::destroyVerlet( Verlet* vl )
 {
 	dirty_verlet_islands = true;
 
-	// Call destroyDistance on all our edges.
-	// We can't iterate our edges, though,
-	// since destroyDistance deletes them.
-	while ( !vl->edges.empty() ) {
-		destroyDistance( *(vl->edges.begin()) );
-	}
+	vl->eraseVertex();
 
-	// No vertex edge-list removal
-	// (Verlet is the bottom of the dual-graph food chain)
-
-	// Flag for deletion
 	vl->expire_enable = true;
 }
 
@@ -239,9 +233,8 @@ Distance* PhysicsState::createDistance( Verlet* a, Verlet* b, DistanceType dt )
 	dc->mask = dt;
 	dcs.push_back( dc );
 
-	// Graph setup
-	dc->a->edges.insert( dc );
-	dc->b->edges.insert( dc );
+	dc->insertEdge();
+	dc->insertVertex();
 
 	return dc;
 }
@@ -260,19 +253,9 @@ void PhysicsState::destroyDistance( Distance* dc )
 {
 	dirty_verlet_islands = true;
 
-	// Call destroyAngular on all our edges.
-	// We can't iterate our edges, though,
-	// since destroyAngular deletes them.
-	while ( !dc->edges.empty() ) {
-		destroyAngular( *(dc->edges.begin()) );
-	}
+	dc->eraseEdge();
+	dc->eraseVertex();
 
-	// Vertex edge-list removal
-	// (this is why destroyVerlet can't iterate edges)
-	dc->a->edges.erase( dc );
-	dc->b->edges.erase( dc );
-
-	// Flag for deletion
 	dc->expire_enable = true;
 }
 
@@ -290,6 +273,9 @@ TODO: Verify that the specified Distnace constraints aren't already constrained.
 */
 Angular* PhysicsState::createAngular( Distance* m, Distance* n )
 {
+	return 0; // TODO: operation currently not supported
+
+/*
 	dirty_verlet_islands = true;
 
 	if ( m->b != n->a ) return 0;
@@ -332,6 +318,7 @@ Angular* PhysicsState::createAngular( Distance* m, Distance* n )
 	ac->n->edges.insert( ac );
 
 	return ac;
+*/
 }
 
 /*
@@ -341,6 +328,10 @@ PhysicsState::destroyAngular
 */
 void PhysicsState::destroyAngular( Angular* ac )
 {
+	// TODO: operation currently not supported
+	return;
+
+/*
 	dirty_verlet_islands = true;
 
 	// No higher destroy calls
@@ -360,6 +351,7 @@ void PhysicsState::destroyAngular( Angular* ac )
 
 	// Flag for deletion
 	ac->expire_enable = true;
+*/
 }
 
 /*

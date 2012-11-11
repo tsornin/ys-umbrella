@@ -408,6 +408,9 @@ Invariant: no Rigid bodies are marked
 */
 void PhysicsState::rigid_find_islands()
 {
+	rigid_islands = PhysicsGraph < Rigid, Constraint >::find_islands( rgs );
+
+	/*
 	rigid_islands.clear();
 
 	// Pre-processing: ignore edge-less and frozen vertices
@@ -426,6 +429,7 @@ void PhysicsState::rigid_find_islands()
 
 	// Invariant
 	for ( Rigid* rg : rgs ) rg->marked = false;
+	*/
 }
 
 /*

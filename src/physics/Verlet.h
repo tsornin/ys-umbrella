@@ -2,6 +2,7 @@
 #define PHYSICS_VERLET_H
 
 #include "PhysicsTags.h"
+#include "PhysicsGraph.h"
 #include <set> // for std::set < Distance* >
 #include "spatial/Vec2.h"
 
@@ -22,7 +23,9 @@ to specify a starting position during initialization
 (setPosition implicitly modifies velocity).
 ================================
 */
-class Verlet : public PhysicsTags
+class Verlet :
+	public PhysicsTags,
+	public PhysicsGraph < Verlet, Distance >::Vertex
 {
 private: // Lifecycle
 	Verlet();
@@ -80,11 +83,6 @@ private: // Members
 	Scalar
 		mass,
 		bounce;
-
-private: // Physics engine graph data
-	std::set < Distance* > edges;
-	bool marked;
-	int component_id;
 };
 
 #endif

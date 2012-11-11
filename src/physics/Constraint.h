@@ -2,12 +2,14 @@
 #define PHYSICS_CONSTRAINT_H
 
 #include "PhysicsTags.h"
-#include <set>
+#include "PhysicsGraph.h"
 #include "spatial/Vec3.h"
 #include "Rigid.h"
 #include "graphics/Renderer.h"
 
-class Constraint : public PhysicsTags
+class Constraint :
+	public PhysicsTags,
+	public PhysicsGraph < Rigid, Constraint >::Edge
 {
 protected: // Lifecycle
 	Constraint( Rigid* a, Rigid* b );
@@ -26,11 +28,6 @@ public: // Constraint
 	friend class Renderer;
 
 protected: // Members
-	// Vertices
-	Rigid
-		*a, // source vertex (reference)
-		*b; // target vertex (incident)
-
 	// Warm starting
 	Scalar lambda;
 };

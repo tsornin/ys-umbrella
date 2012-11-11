@@ -84,4 +84,25 @@ private: // Members
 		bounce;
 };
 
+/*
+// New access control
+// NOTE: velocity-LE invariant set by update()
+{
+public:
+	position;
+	velocity;
+	linear_enable;
+	gravity;
+
+private:
+	linear_damping; // clamp [ 0, 1 ]
+	mass; // clamp ( 0, oo )
+	bounce; // clamp [ 0, 1 ]
+
+public:
+	setLinearDamping();
+	setMass();
+	setBounce();
+}
+*/
 #endif

@@ -1,4 +1,5 @@
 #include "Verlet.h"
+#include "Distance.h" // for superclass PhysicsGraph < Verlet, Distance >::Vertex
 #include "Constants.h"
 #include "spatial/AABB.h"
 
@@ -17,10 +18,7 @@ Verlet::Verlet() :
 	gravity( 0 ),
 	// Collision properties
 	mass( STANDARD_MASS ),
-	bounce( 0 ),
-	// Physics engine graph data
-	marked( false ),
-	component_id( -1 )
+	bounce( 0 )
 {
 	
 }

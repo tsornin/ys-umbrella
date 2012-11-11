@@ -1,8 +1,9 @@
 #include "Rigid.h"
+#include "Constraint.h" // for superclass PhysicsGraph < Rigid, Constraint >::Vertex
 #include "Constants.h"
 #include "spatial/AABB.h"
 #include "game/InputSet.h"
-#include <iostream>
+
 /*
 ================================
 Rigid::Rigid
@@ -24,10 +25,7 @@ Rigid::Rigid() :
 	mass( STANDARD_MASS ),
 	moment( STANDARD_MOMENT ),
 	bounce( STANDARD_BOUNCE ),
-	friction( STANDARD_FRICTION ),
-	// Physics engine graph data
-	marked( false ),
-	local_id( -1 )
+	friction( STANDARD_FRICTION )
 {
 	
 }
