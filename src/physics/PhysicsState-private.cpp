@@ -53,9 +53,9 @@ void PhysicsState::expire()
 
 	eus.remove_if( Expire < Euler* >() );
 
-	vls.remove_if( Expire < Verlet* >() );
-	dcs.remove_if( Expire < Distance* >() );
-	acs.remove_if( Expire < Angular* >() );
+	vls.erase( std::remove_if( vls.begin(), vls.end(), Expire < Verlet* >() ), vls.end() );
+	dcs.erase( std::remove_if( dcs.begin(), dcs.end(), Expire < Distance* >() ), dcs.end() );
+	acs.erase( std::remove_if( acs.begin(), acs.end(), Expire < Angular* >() ), acs.end() );
 }
 
 /*
@@ -396,109 +396,13 @@ void PhysicsState::rigid_expire_contacts()
 ================================
 PhysicsState::rigid_find_islands
 
-Finds all connected components of the
+Finds all "islands" (connected components) of the
 { Rigid body, Constraint } graph.
-
-This is a slightly modified CC algorithm:
-	1. Edge-less vertices are not considered components.
-	2. "Frozen" vertices belong to as many components as they have edges.
-
-Invariant: no Rigid bodies are marked
 ================================
 */
 void PhysicsState::rigid_find_islands()
 {
 	rigid_islands = PhysicsGraph < Rigid, Constraint >::find_islands( rgs );
-
-	/*
-	rigid_islands.clear();
-
-	// Pre-processing: ignore edge-less and frozen vertices
-	for ( Rigid* rg : rgs ) {
-		if ( rg->edges.empty() || rg->frozen() ) rg->marked = true;
-	}
-
-	// Undirected connected components algorithm
-	for ( Rigid* rg : rgs ) {
-		if ( rg->marked ) continue;
-		rigid_islands.push_back( mark_connected( rg ) );
-	}
-
-	// Post-condition
-	// for ( Rigid* rg : rgs ) assert( rg->marked );
-
-	// Invariant
-	for ( Rigid* rg : rgs ) rg->marked = false;
-	*/
-}
-
-/*
-================================
-PhysicsState::mark_connected
-
-Returns all Rigid bodies and Constraints in
-the connected component of the specified Rigid body.
-
-This is a slightly modified CC algorithm (see find_rigid_islands):
-We never call mark_connected on frozen or edge-less vertices, and
-frozen vertices belong to multiple components.
-
-Post-condition: all Verlet particles returned are marked
-================================
-*/
-RigidGraph PhysicsState::mark_connected( Rigid* root )
-{
-	RigidGraph ret;
-	// NOTE: This shadows this->rgs and this->cts
-	std::vector < Rigid* >& rgs = ret.first;
-	std::vector < Constraint* >& cts = ret.second;
-
-	// Breadth-first search
-	std::queue < Rigid*, std::list < Rigid* > > unseen;
-	unseen.push( root );
-	rgs.push_back( root );
-	root->marked = true;
-
-	while ( ! unseen.empty() ) {
-		Rigid* v = unseen.front();
-		unseen.pop();
-
-		for ( Constraint* ct : v->edges ) {
-			// assert( ct->a == v || ct->b == v );
-			Rigid* w = ( ct->a == v ) ? ct->b : ct->a;
-
-			// Include and mark, but do not expand, frozen nodes.
-			// We add frozen nodes even though they are marked:
-			// this means that we consider frozen nodes with multiple
-			// neighbors to belong to multiple connected components.
-			if ( w->frozen() ) {
-				// assert( w->marked = true );
-				rgs.push_back( w );
-			}
-			// Normal BFS on non-frozen nodes.
-			else if ( ! w->marked ) {
-				unseen.push( w );
-				rgs.push_back( w );
-				w->marked = true;
-			}
-
-			// This finds all edges twice
-			cts.push_back( ct );
-		}
-	}
-
-	// Remove duplicate vertices (frozen nodes)
-	std::sort( rgs.begin(), rgs.end() );
-	rgs.erase( std::unique( rgs.begin(), rgs.end() ), rgs.end() );
-
-	// Remove duplicate edges
-	std::sort( cts.begin(), cts.end() );
-	cts.erase( std::unique( cts.begin(), cts.end() ), cts.end() );
-
-	// Post-condition
-	// for ( Rigid* rg : rgs ) assert( rg->marked );
-
-	return ret;
 }
 
 /*
@@ -874,120 +778,19 @@ void PhysicsState::verlet_step()
 ================================
 PhysicsState::verlet_find_islands
 
-Finds all connected components of the
+Finds all "islands" (connected components) of the
 { Verlet particle, Distance constraint } graph.
-
-This is a slightly modified CC algorithm:
-	1. Edge-less vertices are not considered components.
-	2. "Frozen" vertices belong to as many components as they have edges.
-
-Invariant: no Verlet particles are marked
 ================================
 */
 void PhysicsState::verlet_find_islands()
 {
-	// TODO: any freeze toggle should also set this.
+	// TODO: If we use this flag,
+	// any freezing toggle should also set this flag.
 	// if ( ! dirty_verlet_islands ) return;
 
-	verlet_islands.clear();
-
-	// Pre-processing: reset all component ID tags
-	for ( Verlet* vl : vls ) {
-		vl->component_id = -1;
-	}
-
-	// Pre-processing: ignore edge-less and frozen vertices
-	for ( Verlet* vl : vls ) {
-		if ( vl->edges.empty() || vl->frozen() ) vl->marked = true;
-	}
-
-	// Undirected connected components algorithm
-	for ( Verlet* vl : vls ) {
-		if ( vl->marked ) continue;
-		verlet_islands.push_back( mark_connected( vl ) );
-	}
-
-	// Tag every Verlet with its component ID
-	int n = verlet_islands.size();
-	for ( int i = 0; i < n; ++i ) {
-		VerletGraph& vlg = verlet_islands[i];
-		for ( Verlet* vl : vlg.first ) vl->component_id = i;
-	}
-
-	// Post-condition
-	// for ( Verlet* vl : vls ) assert( vl->marked );
-
-	// Invariant
-	for ( Verlet* vl : vls ) vl->marked = false;
+	verlet_islands = PhysicsGraph < Verlet, Distance >::find_islands( vls );
 
 	dirty_verlet_islands = false;
-}
-
-/*
-================================
-PhysicsState::mark_connected
-
-Returns all Verlet particles and Distance constraints in
-the connected component of the specified Verlet particle.
-
-This is a slightly modified CC algorithm (see find_verlet_islands):
-We never call mark_connected on frozen or edge-less vertices, and
-frozen vertices belong to multiple components.
-
-Post-condition: all Verlet particles returned are marked
-================================
-*/
-VerletGraph PhysicsState::mark_connected( Verlet* root )
-{
-	VerletGraph ret;
-	std::vector < Verlet* >& vls = ret.first;
-	std::vector < Distance* >& dcs = ret.second;
-
-	// Breadth-first search
-	std::queue < Verlet*, std::list < Verlet* > > unseen;
-	unseen.push( root );
-	vls.push_back( root );
-	root->marked = true;
-
-	while ( ! unseen.empty() ) {
-		Verlet* v = unseen.front();
-		unseen.pop();
-
-		for ( Distance* dc : v->edges ) {
-			// assert( dc->a == v || dc->b == v );
-			Verlet* w = ( dc->a == v ) ? dc->b : dc->a;
-
-			// Include and mark, but do not expand, frozen nodes.
-			// We add frozen nodes even though they are marked:
-			// this means that we consider frozen nodes with multiple
-			// neighbors to belong to multiple connected components.
-			if ( w->frozen() ) {
-				vls.push_back( w );
-			}
-			// Normal BFS on non-frozen nodes.
-			else if ( ! w->marked ) {
-				unseen.push( w );
-				vls.push_back( w );
-				w->marked = true;
-			}
-
-			// This finds all edges twice
-			dcs.push_back( dc );
-		}
-	}
-
-	// Remove duplicate vertices (frozen nodes)
-	std::sort( vls.begin(), vls.end() );
-	vls.erase( std::unique( vls.begin(), vls.end() ), vls.end() );
-
-	// Remove duplicate edges
-	std::sort( dcs.begin(), dcs.end() );
-	dcs.erase( std::unique( dcs.begin(), dcs.end() ), dcs.end() );
-
-	// Post-condition
-	// for ( Verlet* vl : vls ) assert( vl->marked );
-
-	return ret;
 }
 
 /*

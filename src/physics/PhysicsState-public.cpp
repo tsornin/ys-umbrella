@@ -117,7 +117,7 @@ Contact* PhysicsState::createContact( Rigid* a, Rigid* b )
 
 	ct->insertEdge();
 
-	// TODO: Floating point
+	// TODO: Floating point == doesn't seem like a good idea
 	if ( a->getFriction() == 0.0 || b->getFriction() == 0.0 ) {
 		ct->ft = 0;
 	}

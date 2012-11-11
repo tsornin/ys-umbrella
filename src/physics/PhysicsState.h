@@ -50,7 +50,7 @@ public: // Singleton pattern
 protected:
 	PhysicsState() {}
 
-public: // Physics engine
+public: // Physics engine - lifecycle
 	Rigid* createRigid( const MeshOBJ& obj, RigidType rt = 0 );
 	Rigid* createRigid( RigidType rt = 0 );
 	void destroyRigid( Rigid* rg );
@@ -73,9 +73,12 @@ public: // Physics engine
 	Angular* createAngular( Distance* m, Distance* n );
 	void destroyAngular( Angular* ac );
 
+public: // Physics engine - stuff
 	Verlet* nearestVerlet( const Vec2& p, Scalar r );
-
 	Rigid* nearestRigid( const Vec2& p );
+
+	// std::vector < Rigid* > island( Rigid* rg );
+	// std::vector < Verlet* > island( Verlet* vl );
 
 private: // Physics timestep
 	typedef std::pair < Rigid*, int > ConvexTag;
@@ -93,7 +96,7 @@ private: // Physics timestep
 					ConvexTag& tb, Convex& b );
 			void rigid_expire_contacts();
 			void rigid_find_islands();
-				RigidGraph mark_connected( Rigid* root );
+				// RigidGraph mark_connected( Rigid* root );
 			void rigid_integrate();
 				void rigid_integrate_velocity();
 					void rigid_apply_gravity_forces();
@@ -112,7 +115,7 @@ private: // Physics timestep
 
 		void verlet_step();
 			void verlet_find_islands();
-				VerletGraph mark_connected( Verlet* root );
+				// VerletGraph mark_connected( Verlet* root );
 			void verlet_detect_rigid();
 			void verlet_integrate();
 				void verlet_solve_islands();
@@ -138,9 +141,9 @@ private: // Members
 	std::list < Euler* > eus;
 
 	// Verlet particles
-	std::list < Verlet* > vls;
-	std::list < Distance* > dcs;
-	std::list < Angular* > acs;
+	std::vector < Verlet* > vls;
+	std::vector < Distance* > dcs;
+	std::vector < Angular* > acs;
 	std::vector < VerletGraph > verlet_islands;
 	bool dirty_verlet_islands;
 

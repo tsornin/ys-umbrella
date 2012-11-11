@@ -87,6 +87,8 @@ public:
 	This is a slightly modified connected-components algorithm:
 		1. Edge-less vertices are not considered components.
 		2. "Frozen" vertices belong to as many components as they have edges.
+
+	Invariant: no Vertexs are marked
 	================================
 	*/
 	static std::vector < Island > find_islands( std::vector < V* >& vs ) {
@@ -134,6 +136,8 @@ public:
 
 	Returns all Vertexs and Edges in
 	the connected component of the specified Vertex.
+
+	Post-condition: all Vertexs returned are marked
 	================================
 	*/
 	static Island mark_connected( V* root ) {

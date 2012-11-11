@@ -14,13 +14,13 @@ int main( int argc, char** argv )
 	// game.push( PhysicsState::Instance() );
 	// game.push( EntityState::Instance() );
 
-	// game.push( BarTestState::Instance() );
-	// game.push( ClothTestState::Instance() );
-	// game.push( StringTestState::Instance() );
-
 	game.push( PyramidTestState::Instance() );
 	game.push( ColumnTestState::Instance() );
 	game.push( FrictionTestState::Instance() );
+
+	// game.push( BarTestState::Instance() );
+	game.push( ClothTestState::Instance() );
+	game.push( StringTestState::Instance() );
 
 	game.run();
 
