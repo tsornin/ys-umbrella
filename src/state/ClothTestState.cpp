@@ -37,7 +37,7 @@ void ClothTestState::init( Engine* game )
 	for ( int j = 0; j < h; ++j ) {
 		vlss.push_back( std::vector < Verlet* >() );
 	for ( int i = 0; i < w; ++i ) {
-		Verlet* vl = PhysicsState::createVerlet( 1 );
+		Verlet* vl = PhysicsState::createVerlet();
 		vl->putPosition( Vec2( i, j ) * step + off );
 		vl->setMass( mass );
 		vl->setGravity( g );
@@ -50,12 +50,12 @@ void ClothTestState::init( Engine* game )
 	for ( int i = 0; i < w; ++i ) {
 		Distance* dc;
 		if ( i != w-1 ) {
-			dc = PhysicsState::createDistance( vlss[j][i], vlss[j][i+1], 1 );
+			dc = PhysicsState::createDistance( vlss[j][i], vlss[j][i+1] );
 			dc->setType( DC_PULL );
 			dc->setPower( 1.0 );
 		}
 		if ( j != h-1 ) {
-			dc = PhysicsState::createDistance( vlss[j][i], vlss[j+1][i], 1 );
+			dc = PhysicsState::createDistance( vlss[j][i], vlss[j+1][i] );
 			dc->setType( DC_PULL );
 			dc->setPower( 1.0 );
 		}

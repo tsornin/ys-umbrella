@@ -7,6 +7,8 @@
 #include "game/BlankState.h" // superclass BlankState
 #include "common/MeshOBJ.h"
 #include "Constants.h"
+#include "PhysicsTags.h"
+#include "PhysicsGraph.h"
 #include "Euler.h"
 #include "Rigid.h"
 #include "Verlet.h"
@@ -14,14 +16,6 @@
 #include "Angular.h"
 #include "Friction.h"
 #include "Contact.h"
-
-typedef std::pair <
-	std::vector < Verlet* >,
-	std::vector < Distance* > > VerletGraph;
-
-typedef std::pair <
-	std::vector < Rigid* >,
-	std::vector < Constraint* > > RigidGraph;
 
 /*
 ================================
@@ -51,8 +45,8 @@ protected:
 	PhysicsState() {}
 
 public: // Physics engine - lifecycle
-	Rigid* createRigid( const MeshOBJ& obj, RigidType rt = 0 );
-	Rigid* createRigid( RigidType rt = 0 );
+	Rigid* createRigid( const MeshOBJ& obj );
+	Rigid* createRigid();
 	void destroyRigid( Rigid* rg );
 
 	Friction* createFriction( Rigid* a, Rigid* b );
@@ -61,13 +55,13 @@ public: // Physics engine - lifecycle
 	Contact* createContact( Rigid* a, Rigid* b );
 	void destroyContact( Contact* ct );
 
-	Euler* createEuler( EulerType et = 0 );
+	Euler* createEuler();
 	void destroyEuler( Euler* eu );
 
-	Verlet* createVerlet( VerletType vt = 0 );
+	Verlet* createVerlet();
 	void destroyVerlet( Verlet* vl );
 
-	Distance* createDistance( Verlet* a, Verlet* b, DistanceType dt = 0 );
+	Distance* createDistance( Verlet* a, Verlet* b );
 	void destroyDistance( Distance* dc );
 
 	Angular* createAngular( Distance* m, Distance* n );
@@ -77,11 +71,13 @@ public: // Physics engine - stuff
 	Verlet* nearestVerlet( const Vec2& p, Scalar r );
 	Rigid* nearestRigid( const Vec2& p );
 
-	// std::vector < Rigid* > island( Rigid* rg );
-	// std::vector < Verlet* > island( Verlet* vl );
+	// RigidIsland island( Rigid* rg );
+	// VerletIsland island( Verlet* vl );
 
 private: // Physics timestep
 	typedef std::pair < Rigid*, int > ConvexTag;
+	typedef PhysicsGraph < Rigid, Constraint >::Island RigidIsland;
+	typedef PhysicsGraph < Verlet, Distance >::Island VerletIsland;
 
 	void step();
 		void expire();
@@ -102,7 +98,7 @@ private: // Physics timestep
 					void rigid_apply_gravity_forces();
 					void rigid_apply_wind_forces();
 					void rigid_solve_islands();
-						void rigid_solve_island( RigidGraph& rgg );
+						void rigid_solve_island( RigidIsland& rgi );
 				void rigid_integrate_position();
 
 		void euler_step();
@@ -119,7 +115,7 @@ private: // Physics timestep
 			void verlet_detect_rigid();
 			void verlet_integrate();
 				void verlet_solve_islands();
-					void verlet_solve_island( VerletGraph& vlg );
+					void verlet_solve_island( VerletIsland& vli );
 				void verlet_integrate_position();
 
 	int nextPID();
@@ -132,7 +128,7 @@ private: // Members
 	std::vector < Rigid* > rgs;
 	std::vector < Contact* > contacts;
 	std::vector < Constraint* > cts;
-	std::vector < RigidGraph > rigid_islands;
+	std::vector < PhysicsGraph < Rigid, Constraint >::Island > rigid_islands;
 
 	std::vector < std::pair < ConvexTag, Convex > > rigid_shapes;
 	std::unordered_map < ContactKey, Contact* > contact_cache;
@@ -144,11 +140,11 @@ private: // Members
 	std::vector < Verlet* > vls;
 	std::vector < Distance* > dcs;
 	std::vector < Angular* > acs;
-	std::vector < VerletGraph > verlet_islands;
+	std::vector < PhysicsGraph < Verlet, Distance >::Island > verlet_islands;
 	bool dirty_verlet_islands;
 
-protected:
-	Rigid* anchor;
+// protected:
+	// Rigid* anchor;
 };
 
 #endif

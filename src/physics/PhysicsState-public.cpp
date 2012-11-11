@@ -8,7 +8,7 @@ PhysicsState::createRigid
 Creates a new Rigid body shaped like the specified MeshOBJ.
 ================================
 */
-Rigid* PhysicsState::createRigid( const MeshOBJ& obj, RigidType rt )
+Rigid* PhysicsState::createRigid( const MeshOBJ& obj )
 {
 	// Copy OBJ data
 	std::vector < Convex > pgs;
@@ -24,7 +24,6 @@ Rigid* PhysicsState::createRigid( const MeshOBJ& obj, RigidType rt )
 
 	Rigid* rg = new Rigid( pgs );
 	rg->pid = nextPID();
-	rg->mask = rt;
 	rgs.push_back( rg );
 
 	rg->insertVertex();
@@ -37,11 +36,10 @@ Rigid* PhysicsState::createRigid( const MeshOBJ& obj, RigidType rt )
 PhysicsState::createRigid
 ================================
 */
-Rigid* PhysicsState::createRigid( RigidType rt )
+Rigid* PhysicsState::createRigid()
 {
 	Rigid* rg = new Rigid();
 	rg->pid = nextPID();
-	rg->mask = rt;
 	rgs.push_back( rg );
 
 	rg->insertVertex();
@@ -154,11 +152,10 @@ PhysicsState::createEuler
 Creates a new Euler particle.
 ================================
 */
-Euler* PhysicsState::createEuler( EulerType et )
+Euler* PhysicsState::createEuler()
 {
 	Euler* eu = new Euler();
 	eu->pid = nextPID();
-	eu->mask = et;
 	eus.push_back( eu );
 	return eu;
 }
@@ -182,13 +179,12 @@ PhysicsState::createVerlet
 Creates a new Verlet particle.
 ================================
 */
-Verlet* PhysicsState::createVerlet( VerletType vt )
+Verlet* PhysicsState::createVerlet()
 {
 	dirty_verlet_islands = true;
 
 	Verlet* vl = new Verlet();
 	vl->pid = nextPID();
-	vl->mask = vt;
 	vls.push_back( vl );
 
 	vl->insertVertex();
@@ -224,13 +220,12 @@ Creates a new Distance constraint.
 TODO: Verify that the specified Verlet particles aren't already constrained.
 ================================
 */
-Distance* PhysicsState::createDistance( Verlet* a, Verlet* b, DistanceType dt )
+Distance* PhysicsState::createDistance( Verlet* a, Verlet* b )
 {
 	dirty_verlet_islands = true;
 
 	Distance* dc = new Distance( a, b );
 	dc->pid = nextPID();
-	dc->mask = dt;
 	dcs.push_back( dc );
 
 	dc->insertEdge();

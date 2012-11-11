@@ -3,11 +3,7 @@
 
 #include "Handler.h"
 
-// TODO: this seems silly
-typedef unsigned int EulerType;
-typedef unsigned int RigidType;
-typedef unsigned int VerletType;
-typedef unsigned int DistanceType;
+typedef unsigned int PhysicsMask;
 
 /*
 ================================
@@ -27,22 +23,18 @@ public: // PhysicsTags
 	static bool pid_lt( PhysicsTags* a, PhysicsTags* b );
 
 public: // Accessors
-	unsigned int getMask() { return mask; }
+	PhysicsMask getMask() { return mask; }
 	Handler* getOwner() { return owner; }
 
 public: // Mutators
-	void setMask( unsigned int m ) { mask = m; }
+	void setMask( PhysicsMask m ) { mask = m; }
 	void setOwner( Handler* h ) { owner = h; }
 
 public: // Members
 	int pid;
-	unsigned int mask;
+	PhysicsMask mask;
 	bool expire_enable;
 	Handler* owner;
 };
-
-// TODO: Get rid of XTypes
-typedef unsigned int PhysicsMask;
-// TODO: Get rid of getters/setters
 
 #endif

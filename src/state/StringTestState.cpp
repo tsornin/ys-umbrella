@@ -34,7 +34,7 @@ void StringTestState::init( Engine* game )
 	// Verlet masses
 	std::vector < Verlet* > vls;
 	for ( int i = 0; i < x; ++i ) {
-		Verlet* vl = PhysicsState::createVerlet( 1 );
+		Verlet* vl = PhysicsState::createVerlet();
 		vl->putPosition( Vec2( i, 0 ) * step + off );
 		vl->setMass( mass );
 		vl->setGravity( g );
@@ -43,7 +43,7 @@ void StringTestState::init( Engine* game )
 
 	// Distance constraints
 	for ( int i = 0; i < x-1; ++i ) {
-		Distance* dc = PhysicsState::createDistance( vls[i], vls[i+1], 1 );
+		Distance* dc = PhysicsState::createDistance( vls[i], vls[i+1] );
 		dc->setType( DC_PULL );
 		dc->setPower( 1.0 );
 	}

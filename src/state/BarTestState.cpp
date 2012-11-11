@@ -35,7 +35,7 @@ void BarTestState::init( Engine* game )
 	// Verlet masses
 	std::vector < Verlet* > vls;
 	for ( int j = 0; j < x; ++j ) {
-		Verlet* vl = PhysicsState::createVerlet( 1 );
+		Verlet* vl = PhysicsState::createVerlet();
 		vl->putPosition( Vec2( j, j ) * step + off );
 		vl->setMass( mass );
 		vl->setGravity( g );
@@ -46,7 +46,7 @@ void BarTestState::init( Engine* game )
 	// Distance constraints
 	std::vector < Distance* > dcs;
 	for ( int j = 0; j < x-1; ++j ) {
-		Distance* dc = PhysicsState::createDistance( vls[j], vls[j+1], 1 );
+		Distance* dc = PhysicsState::createDistance( vls[j], vls[j+1] );
 		dc->setType( DC_HARD );
 		dc->setPower( 1.0 );
 		dcs.push_back( dc );

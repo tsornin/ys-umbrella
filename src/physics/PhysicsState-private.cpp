@@ -476,8 +476,8 @@ Computes and applies constraint forces for each Rigid island.
 */
 void PhysicsState::rigid_solve_islands()
 {
-	for ( RigidGraph& rgg : rigid_islands ) {
-		rigid_solve_island( rgg );
+	for ( RigidIsland& rgi : rigid_islands ) {
+		rigid_solve_island( rgi );
 	}
 }
 
@@ -491,11 +491,11 @@ PDF: Interactive Dynamics (Catto 2005)
 Invariant: local_id is -1
 ================================
 */
-void PhysicsState::rigid_solve_island( RigidGraph& rgg )
+void PhysicsState::rigid_solve_island( RigidIsland& rgi )
 {
 	// NOTE: This shadows this->rgs and this->cts
-	std::vector < Rigid* >& rgs = rgg.first;
-	std::vector < Constraint* >& cts = rgg.second;
+	std::vector < Rigid* >& rgs = rgi.first;
+	std::vector < Constraint* >& cts = rgi.second;
 
 	// TODO: Reproducibility (platforms)
 	// Observed different results on PC vs Mac.
@@ -826,8 +826,8 @@ PhysicsState::verlet_solve_islands
 */
 void PhysicsState::verlet_solve_islands()
 {
-	for ( VerletGraph& vlg : verlet_islands ) {
-		verlet_solve_island( vlg );
+	for ( VerletIsland& vli : verlet_islands ) {
+		verlet_solve_island( vli );
 	}
 }
 
@@ -836,10 +836,10 @@ void PhysicsState::verlet_solve_islands()
 PhysicsState::verlet_solve_island
 ================================
 */
-void PhysicsState::verlet_solve_island( VerletGraph& vlg )
+void PhysicsState::verlet_solve_island( VerletIsland& vli )
 {
-	// std::vector < Verlet* >& vls = vlg.first;
-	std::vector < Distance* >& dcs = vlg.second;
+	// std::vector < Verlet* >& vls = vli.first;
+	std::vector < Distance* >& dcs = vli.second;
 
 	// Estimate the number of iterations needed
 	int m = (int) std::ceil( std::sqrt( dcs.size() ) );

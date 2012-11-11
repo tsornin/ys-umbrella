@@ -32,7 +32,7 @@ Camera::Camera
 ================================
 */
 Camera::Camera( EntityState& es ) : Entity( es ),
-	eu( es.createEuler( 0 ) ),
+	eu( es.createEuler() ),
 	// TODO: magic numbers
 	fov_y( 51.13 ),
 	aspect( 1.5 ),

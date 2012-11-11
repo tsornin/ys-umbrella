@@ -35,18 +35,20 @@ void FrictionTestState::init( Engine* game )
 	o_frame.load( Path( "level/pong/", "frame.obj" ) );
 	o_frame.setScale( 50 );
 
-	Rigid* frame = PhysicsState::createRigid( o_frame, 1 );
+	Rigid* frame = PhysicsState::createRigid( o_frame );
 	frame->setPosition( Vec2( 0, -600 ) );
 	frame->setLinearEnable( false );
 	frame->setAngularEnable( false );
 	// frame->setFriction( 0.5 );
+	frame->setMask( 1 );
 
-	// frame = PhysicsState::createRigid( o_frame, 1 );
+	// frame = PhysicsState::createRigid( o_frame );
 	// frame->setPosition( Vec2( 0, -600 ) );
 	// frame->setAngle( 1.57 );
 	// frame->setLinearEnable( false );
 	// frame->setAngularEnable( false );
 	// // frame->setFriction( 0.5 );
+	frame->setMask( 1 );
 
 	MeshOBJ o_rg;
 	o_rg.load( Path( "level/test/", "4gon.obj" ) );
@@ -54,11 +56,12 @@ void FrictionTestState::init( Engine* game )
 	o_rg.setScale( 50 );
 
 	for ( int j = 0; j < x; ++j ) {
-		Rigid* rg = PhysicsState::createRigid( o_rg, 1 );
+		Rigid* rg = PhysicsState::createRigid( o_rg );
 		rg->setPosition( Vec2( 0, j ) * step + off );
 		rg->setGravity( g );
 		rg->setBounce( 0.5 );
 		rg->setFriction( 0.5 );
 		// rg->setAngularVelocity( 5 );
+		rg->setMask( 1 );
 	}
 }
