@@ -34,7 +34,7 @@ void EntityState::init( Engine* game )
 	add( flames = new Flames( *this ) );
 
 	cam->addTarget( 0 );
-	cam->addTarget( fires->createParticle() ); // TODO: this is a leak
+	// cam->addTarget( fires->createParticle() ); // TODO: this is a leak
 
 	mx = 0;
 	my = 0;
