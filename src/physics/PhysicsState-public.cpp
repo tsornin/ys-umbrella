@@ -268,7 +268,7 @@ Creates a new Angular constraint.
 Returns null unless the given Distance constraints
 share endpoints "m->b" and "n->a".
 
-TODO: Verify that the specified Distnace constraints aren't already constrained.
+TODO: Verify that the specified Distance constraints aren't already constrained.
 ================================
 */
 Angular* PhysicsState::createAngular( Distance* m, Distance* n )

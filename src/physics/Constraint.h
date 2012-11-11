@@ -7,6 +7,11 @@
 #include "Rigid.h"
 #include "graphics/Renderer.h"
 
+/*
+================================
+???
+================================
+*/
 class Constraint :
 	public PhysicsTags,
 	public PhysicsGraph < Rigid, Constraint >::Edge

@@ -34,7 +34,7 @@ a grid of masses-and-constraints forms a cloth, and
 a tree of masses-and-constraints forms a wiggly plant.
 
 Instance of this class are managed by the physics engine.
-Used PhysicsState::createDistance to create a Distance constraint.
+Use PhysicsState::createDistance to create a Distance constraint.
 ================================
 */
 class Distance :

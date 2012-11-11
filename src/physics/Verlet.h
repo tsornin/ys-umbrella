@@ -16,7 +16,7 @@ Verlet particle.
 Provides a dedicated particle type for stable particle simulations.
 
 Instances of this class are managed by the physics engine.
-Used PhysicsState::createVerlet to create a Verlet particle.
+Use PhysicsState::createVerlet to create a Verlet particle.
 
 NOTE: Use Verlet::putPosition, not Verlet::setPosition,
 to specify a starting position during initialization

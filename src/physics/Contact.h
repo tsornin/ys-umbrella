@@ -60,7 +60,7 @@ between collision shapes of two Rigid bodies.
 Instances of this class are managed by the physics engine.
 Contact constraints are transient and should not be used by other classes.
 
-NOTE: This class owns all Friction pointers. See the Friction class comment.
+NOTE: This class owns a Friction pointer. See the Friction class comment.
 ================================
 */
 class Contact : public Constraint
