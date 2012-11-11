@@ -99,6 +99,9 @@ veryclean:
 profile: CXXFLAGS += -pg
 profile: all
 
+valgrind: CXXFLAGS += -O0 -g
+valgrind: all
+
 # TODO: OS X doesn't support -march=native:
 # http://stackoverflow.com/questions/10327939/erroring-on-no-such-instruction-while-assembling-project-on-mac-os-x-lion
 #native: CXXFLAGS += -march=native -O2 -pipe
