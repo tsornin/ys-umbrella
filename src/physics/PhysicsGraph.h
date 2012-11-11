@@ -6,6 +6,12 @@
 #include <queue>
 #include <algorithm>
 
+template < typename T >
+void remove_duplicates( std::vector < T >& xs ) {
+	std::sort( xs.begin(), xs.end() );
+	xs.erase( std::unique( xs.begin(), xs.end() ), xs.end() );
+}
+
 /*
 ================================
 ???
@@ -178,13 +184,11 @@ public:
 			}
 		}
 
-		// Remove duplicate vertices (frozen nodes)
-		std::sort( vs.begin(), vs.end() );
-		vs.erase( std::unique( vs.begin(), vs.end() ), vs.end() );
+		// Frozen nodes might be added multiple times
+		remove_duplicates( vs );
 
-		// Remove duplicate edges
-		std::sort( es.begin(), es.end() );
-		es.erase( std::unique( es.begin(), es.end() ), es.end() );
+		// Edges are added twice
+		remove_duplicates( es );
 
 		// Post-condition
 		// for ( V* v : vs ) assert( v->marked );
