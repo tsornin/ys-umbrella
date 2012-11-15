@@ -15,7 +15,7 @@ Distance::Distance( Verlet* a, Verlet* b ) :
 	power( 1.0 ),
 	type( DC_HARD )
 {
-	rest_length = (b->getPosition() - a->getPosition()).length();
+	rest_length = (b->position - a->position).length();
 }
 
 /*
@@ -28,7 +28,7 @@ http://www.gamasutra.com/resource_guide/20030121/jacobson_01.shtml
 */
 void Distance::apply()
 {
-	Vec2 delta = b->getPosition() - a->getPosition();
+	Vec2 delta = b->position - a->position;
 
 	// Compute delta.length(), but use
 	// Newton-Raphson since "rest_length" is a good initial guess
@@ -52,9 +52,9 @@ void Distance::apply()
 	Scalar diff = ( delta_length - rest_length ) / ( delta_length );
 	diff *= power;
 	// Apply correction weighted by inverse mass.
-	diff /= a->getMass() + b->getMass();
-	a->addPosition( delta * (  diff * b->getMass() ) );
-	b->addPosition( delta * ( -diff * a->getMass() ) );
+	diff /= a->mass + b->mass;
+	a->addPosition( delta * (  diff * b->mass ) );
+	b->addPosition( delta * ( -diff * a->mass ) );
 }
 
 /*

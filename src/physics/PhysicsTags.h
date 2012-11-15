@@ -15,26 +15,20 @@ struct PhysicsTags
 {
 public: // Lifecycle
 	PhysicsTags();
-	friend class PhysicsState;
-
-	bool expired() const;
 
 public: // PhysicsTags
+	bool expired() const;
 	static bool pid_lt( PhysicsTags* a, PhysicsTags* b );
 
-public: // Accessors
-	PhysicsMask getMask() { return mask; }
-	Handler* getOwner() { return owner; }
-
-public: // Mutators
-	void setMask( PhysicsMask m ) { mask = m; }
-	void setOwner( Handler* h ) { owner = h; }
-
 public: // Members
-	int pid;
 	PhysicsMask mask;
-	bool expire_enable;
 	Handler* owner;
+
+private: // Members
+	int pid;
+	bool expire_enable;
+
+	friend class PhysicsState;
 };
 
 #endif

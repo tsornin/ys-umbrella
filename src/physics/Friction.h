@@ -18,22 +18,21 @@ class Friction : public Constraint
 {
 private: // Lifecycle
 	Friction( Rigid* a, Rigid* b );
-	virtual ~Friction() {}
+	Friction( const Friction& ) = delete;
+	Friction& operator = ( const Friction& ) = delete;
+	~Friction() = default;
 
-	friend class PhysicsState;
-	template < typename T > friend struct Expire;
-	friend class Contact;
-
-public: // Constraint
+public: // Constraint functions
 	virtual Scalar eval() const;
 	virtual std::pair < Vec3, Vec3 > jacobian() const;
 	virtual Scalar bias( Scalar jv ) const;
 	virtual std::pair < Scalar, Scalar > bounds() const;
 
-	virtual void draw( Renderer& rd ) const { rd.drawFriction( *this ); }
-	friend class Renderer;
+	virtual void draw( Renderer& rd ) const {
+		rd.drawFriction( *this );
+	}
 
-public: // Friction
+public: // Friction functions
 	Scalar mix_friction() const;
 	static Scalar mix_friction( Scalar k1, Scalar k2 );
 
@@ -42,6 +41,10 @@ public: // Members
 	Vec2 p;
 
 	Scalar normal_lambda;
+
+	friend class PhysicsState;
+	template < typename T > friend struct Expire;
+	friend class Contact;
 };
 
 #endif

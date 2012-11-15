@@ -19,11 +19,12 @@ struct Convex;
 // Physics
 class Euler;
 class Rigid;
+class Constraint;
+class Contact;
+class Friction;
 class Verlet;
 class Distance;
 class Angular;
-class Contact;
-class Friction;
 
 // Entity
 class Camera;
@@ -58,11 +59,11 @@ public: // Spatial
 public: // Physics
 	void drawEuler( const Euler& eu );
 	void drawRigid( const Rigid& rg );
+	void drawContact( const Contact& ct );
+	void drawFriction( const Friction& ft );
 	void drawVerlet( const Verlet& vl );
 	void drawDistance( const Distance& dc );
 	void drawAngular( const Angular& ac );
-	void drawContact( const Contact& ct );
-	void drawFriction( const Friction& ft );
 
 public: // Entity
 	void drawCamera( const Camera& cam );

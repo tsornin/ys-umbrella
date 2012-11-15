@@ -209,7 +209,7 @@ void Emitter < T >::update()
 			t->frames_elapsed = 0;
 			t->life_remaining = duration_base + irand( duration_jitter + 1 );
 
-			Vec2 position_base = this->eu->getPosition();
+			Vec2 position_base = this->eu->position;
 
 			t->eu->setPosition( position_base + Vec2::prod(
 				Vec2( normalRandom(), normalRandom() ), position_jitter ) );
@@ -218,10 +218,10 @@ void Emitter < T >::update()
 				Vec2( normalRandom(), normalRandom() ), velocity_jitter ) );
 
 			// Following
-			t->eu->addVelocity( Vec2::prod( this->eu->getVelocity(), follow ) );
+			t->eu->addVelocity( Vec2::prod( this->eu->velocity, follow ) );
 
 			// "Temporal anti-aliasing" (an integration over a random timestep)
-			t->eu->addPosition( t->eu->getVelocity() * frand() );
+			t->eu->addPosition( t->eu->velocity * frand() );
 		}
 	}
 }

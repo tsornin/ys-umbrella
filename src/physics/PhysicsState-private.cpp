@@ -444,7 +444,7 @@ TODO: design a gravity system
 void PhysicsState::rigid_apply_gravity_forces()
 {
 	for ( Rigid* rg : rgs ) {
-		rg->addVelocity( rg->gravity );
+		rg->velocity += rg->gravity;
 	}
 }
 
@@ -672,7 +672,7 @@ void PhysicsState::euler_detect_rigid()
 	PD_BruteForce < Euler* > pd;
 	for ( Euler* eu : eus ) {
 		if ( !eu->mask ) continue;
-		pd.insert( eu->getPosition(), eu );
+		pd.insert( eu->position, eu );
 	}
 
 	for ( unsigned int i = 0; i < rigid_shapes.size(); ++i ) {
@@ -684,9 +684,9 @@ void PhysicsState::euler_detect_rigid()
 		for ( Euler* eu : pd.query( pg.getAABB().fatter( 2.0 ) ) ) {
 			if ( !(eu->mask & rg->mask) ) continue;
 
-			// TODO: rg->getVelocityAt( eu->getVelocity() ) is more accurate
-			Vec2 bias = eu->getVelocity() - rg->getVelocity();
-			auto c = pg.correction( eu->getPosition(), bias );
+			// TODO: rg->getVelocityAt( eu->position ) is more accurate
+			Vec2 bias = eu->velocity - rg->velocity;
+			auto c = pg.correction( eu->position, bias );
 			if ( c.first ) {
 				Vec2& normal = c.second.first;
 				Vec2 correction = c.second.first * c.second.second;
@@ -696,7 +696,7 @@ void PhysicsState::euler_detect_rigid()
 
 				// Restitution
 				if ( eu->velocity * normal < 0 ) {
-					Scalar e = Contact::mix_restitution( eu->getBounce(), rg->getBounce() );
+					Scalar e = Contact::mix_restitution( eu->bounce, rg->bounce );
 					eu->velocity -= eu->velocity.projection_unit( normal ) * (1+e);
 				}
 			}

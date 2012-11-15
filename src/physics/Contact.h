@@ -2,8 +2,9 @@
 #define PHYSICS_CONTACT_H
 
 #include "Constraint.h" // superclass Constraint
-#include <string> // TODO: see std::hash < Identifier >
-#include "Friction.h"
+#include <string> // TODO: see std::hash < ContactKey >
+
+class Friction;
 
 /*
 ================================
@@ -67,12 +68,11 @@ class Contact : public Constraint
 {
 private: // Lifecycle
 	Contact( Rigid* a, Rigid* b );
-	virtual ~Contact();
+	Contact( const Contact& ) = delete;
+	Contact& operator = ( const Contact& ) = delete;
+	~Contact() = default;
 
-	friend class PhysicsState;
-	template < typename T > friend struct Expire;
-
-public: // Constraint
+public: // Constraint functions
 	virtual Scalar eval() const;
 	virtual std::pair < Vec3, Vec3 > jacobian() const;
 	virtual Scalar bias( Scalar jv ) const;
@@ -82,9 +82,8 @@ public: // Constraint
 		rd.drawContact( *this );
 		if ( ft ) rd.drawFriction( *ft );
 	}
-	friend class Renderer;
 
-public: // Contact
+public: // Contact functions
 	Scalar local_lambda() const;
 
 	Scalar mix_restitution() const;
@@ -101,6 +100,9 @@ public: // Members
 
 	// This Contact's associated Friction constraint.
 	Friction* ft;
+
+	friend class PhysicsState;
+	template < typename T > friend struct Expire;
 };
 
 #endif

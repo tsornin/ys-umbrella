@@ -1,5 +1,7 @@
 #include "Contact.h"
 #include "Constants.h"
+#include "Rigid.h"
+#include "Friction.h"
 
 bool operator == ( const FeatureKey& fk1, const FeatureKey& fk2 ) {
 	return
@@ -24,16 +26,6 @@ Contact::Contact( Rigid* a, Rigid* b ) : Constraint( a, b ), ft(0)
 
 /*
 ================================
-Contact::~Contact
-================================
-*/
-Contact::~Contact()
-{
-	
-}
-
-/*
-================================
 Contact::eval
 ================================
 */
@@ -50,8 +42,8 @@ Contact::jacobian
 std::pair < Vec3, Vec3 > Contact::jacobian() const
 {
 	return std::pair < Vec3, Vec3 >(
-		- Vec3( normal, (a_p - a->getPosition()) ^ normal ),
-		  Vec3( normal, (b_p - b->getPosition()) ^ normal ) );
+		- Vec3( normal, (a_p - a->position) ^ normal ),
+		  Vec3( normal, (b_p - b->position) ^ normal ) );
 }
 
 /*
@@ -121,7 +113,7 @@ Contact::mix_restitution
 */
 Scalar Contact::mix_restitution() const
 {
-	return Contact::mix_restitution( a->getBounce(), b->getBounce() );
+	return Contact::mix_restitution( a->bounce, b->bounce );
 }
 
 /*

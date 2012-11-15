@@ -3,7 +3,7 @@
 
 #include "PhysicsTags.h"
 #include "PhysicsGraph.h"
-#include <set>
+#include <vector>
 #include "spatial/Vec2.h"
 #include "spatial/Vec3.h"
 #include "spatial/Convex.h"
@@ -32,24 +32,28 @@ class Rigid :
 private: // Lifecycle
 	Rigid();
 	Rigid( const std::vector < Convex >& cs );
-	friend class PhysicsState;
+	Rigid( const Rigid& ) = delete;
+	Rigid& operator = ( const Rigid& ) = delete;
+	~Rigid() = default;
 
 public: // "Entity" functions
 	void input( const InputSet& is );
 	void update();
 	AABB getAABB() const;
-	friend class Renderer;
 
 public: // Rigid functions
+	bool frozen() const { return !linear_enable && !angular_enable; }
+
 	Vec2 world( const Vec2& p ) const;
 	Vec2 local( const Vec2& p ) const;
 
-public: // Accessors
-	Scalar getX() const { return position.x; }
-	Scalar getY() const { return position.y; }
+	Vec2 getVelocityAt( const Vec2& p ) const;
 
 	Vec3 getPositionState() const { return Vec3( position, angular_position ); }
+	void setPositionState( const Vec3& p ) { position = Vec2( p.x, p.y ); angular_position = p.z; }
+
 	Vec3 getVelocityState() const { return Vec3( velocity, angular_velocity ); }
+	void setVelocityState( const Vec3& v ) { velocity = Vec2( v.x, v.y ); angular_velocity = v.z; }
 
 	Vec3 getInverseMass() const {
 		return Vec3(
@@ -57,58 +61,7 @@ public: // Accessors
 			angular_enable ? 1.0 / moment : 0 );
 	}
 
-	Vec2 getVelocityAt( const Vec2& p ) const;
-
-	bool frozen() const { return !linear_enable && !angular_enable; }
-
-	Vec2 getPosition() const { return position; }
-	Vec2 getVelocity() const { return velocity; }
-	bool isLinearEnable() const { return linear_enable; }
-
-	Scalar getAngle() const { return angular_position; }
-	Scalar getAngularVelocity() const { return angular_velocity; }
-	bool isAngularEnable() const { return angular_enable; }
-
-	Vec2 getGravity() const { return gravity; }
-
-	Scalar getMass() const { return mass; }
-	Scalar getMoment() const { return moment; }
-	Scalar getBounce() const { return bounce; }
-	Scalar getFriction() const { return friction; }
-
-public: // Mutators (set)
-	void setX( Scalar x ) { position.x = x; }
-	void setY( Scalar y ) { position.y = y; }
-
-	void setPositionState( const Vec3& p ) { position = Vec2( p.x, p.y ); angular_position = p.z; }
-	void setVelocityState( const Vec3& v ) { velocity = Vec2( v.x, v.y ); angular_velocity = v.z; }
-
-	void setPosition( const Vec2& pos ) { position = pos; }
-	void setVelocity( const Vec2& vel ) { if ( linear_enable ) { velocity = vel; } }
-	void setLinearEnable( bool le ) { linear_enable = le; }
-
-	void setAngle( const Scalar t ) { angular_position = t; }
-	void setAngularVelocity( const Scalar w ) { if ( angular_enable ) { angular_velocity = w; } }
-	void setAngularEnable( bool ae ) { angular_enable = ae; }
-
-	void setLinearDamping( Scalar ld ) { linear_damping = ld; }
-	void setAngularDamping( Scalar ad ) { angular_damping = ad; }
-
-	void setGravity( Vec2 g ) { gravity = g; }
-
-	void setMass( Scalar m ) { mass = m; }
-	void setMoment( Scalar i ) { moment = i; }
-	void setBounce( Scalar b ) { bounce = b; }
-	void setFriction( Scalar k ) { friction = k; }
-
-public: // Mutators (add)
-	void addPosition( const Vec2& add ) { if ( linear_enable ) { position += add; } }
-	void addVelocity( const Vec2& add ) { if ( linear_enable ) { velocity += add; } }
-
-	void addAngle( const Scalar t ) { if ( angular_enable ) { angular_position += t; } }
-	void addAngularVelocity( const Scalar w ) { if ( angular_enable ) { angular_velocity += w; } }
-
-private: // Members
+public: // Members
 	// Position state
 	Vec2
 		position, // in 2D world-space
@@ -139,32 +92,10 @@ private: // Members
 
 private: // Members
 	std::vector < Convex > shapes; // object space
+
+	friend class PhysicsState;
+	template < typename T > friend struct Expire;
+	friend class Renderer;
 };
-
-
-
-// New access control
-// NOTE: velocity-LE invariant set by update()
-/*{
-public:
-	position;
-	velocity;
-	linear_enable;
-
-	angular_position;
-	angular_velocity;
-	angular_enable;
-
-	gravity;
-
-private:
-	linear_damping; // clamp [ 0, 1 ]
-	angular_damping; // clamp [ 0, 1 ]
-
-	mass; // clamp ( 0, oo )
-	moment; // clamp ( 0, oo )
-	bounce; // clamp [ 0, 1 ]
-	friction; // clamp [ 0, oo )
-}*/
 
 #endif

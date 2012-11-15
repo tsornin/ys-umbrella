@@ -48,11 +48,11 @@ void EntityState::init( Engine* game )
 	mfty = 0;
 
 	crg = PhysicsState::createRigid();
-	crg->setPosition( cursor );
-	crg->setVelocity( cursor - cursor_prev );
-	crg->setMass( 5001 * 10000.0 );
-	crg->setMoment( 4.16667e+06 * 10000.0 );
-	crg->setFriction( 1 ); // TODO: This is hacky (see Friction::bounds)
+	crg->position = cursor;
+	crg->velocity = cursor - cursor_prev;
+	crg->mass = 5001 * 10000.0;
+	crg->moment = 4.16667e+06 * 10000.0;
+	crg->friction = 1; // TODO: This is hacky (see Friction::bounds)
 }
 
 /*
@@ -117,13 +117,15 @@ EntityState::update
 */
 void EntityState::update( Engine* game )
 {
-	crg->setVelocity( cursor - cursor_prev );
+	// TODO: kinematic bodies
+	// These velocity writes are a hack for kinematic bodies
+	crg->velocity = cursor - cursor_prev;
 
 	PhysicsState::update( game );
 
 	for ( Entity* en : entities ) en->update();
 
-	crg->setPosition( cursor );
+	crg->position = cursor;
 }
 
 /*

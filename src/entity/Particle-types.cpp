@@ -2,8 +2,8 @@
 
 Flame::Flame( EntityState& es ) : Particle( es )
 {
-	eu->setBounce( 0 );
-	eu->setGravity( Vec2( 0, GRAVITY_LO / 2 ) );
+	eu->bounce = 0.0;
+	eu->gravity = Vec2( 0, GRAVITY_LO / 2 );
 	eu->mask = 1;
 }
 

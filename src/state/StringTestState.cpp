@@ -36,22 +36,22 @@ void StringTestState::init( Engine* game )
 	for ( int i = 0; i < x; ++i ) {
 		Verlet* vl = PhysicsState::createVerlet();
 		vl->putPosition( Vec2( i, 0 ) * step + off );
-		vl->setMass( mass );
-		vl->setGravity( g );
+		vl->mass = mass;
+		vl->gravity = g;
 		vls.push_back( vl );
 	}
 
 	// Distance constraints
 	for ( int i = 0; i < x-1; ++i ) {
 		Distance* dc = PhysicsState::createDistance( vls[i], vls[i+1] );
-		dc->setType( DC_PULL );
-		dc->setPower( 1.0 );
+		dc->type = DC_PULL;
+		dc->power = 1.0;
 	}
 
 	// Pin ends
-	vls[0]->setLinearEnable( false );
-	vls[x-1]->setLinearEnable( false );
+	vls[0]->linear_enable = false;
+	vls[x-1]->linear_enable = false;
 
 	// Pin center (we should see two islands)
-	vls[x/2]->setLinearEnable( false );
+	vls[x/2]->linear_enable = false;
 }

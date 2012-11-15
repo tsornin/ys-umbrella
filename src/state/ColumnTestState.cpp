@@ -35,17 +35,17 @@ void ColumnTestState::init( Engine* game )
 	o_frame.setScale( 50 );
 
 	Rigid* frame = PhysicsState::createRigid( o_frame );
-	frame->setPosition( Vec2( 0, -600 ) );
-	frame->setLinearEnable( false );
-	frame->setAngularEnable( false );
-	frame->setMask( 1 );
+	frame->position = Vec2( 0, -600 );
+	frame->linear_enable = false;
+	frame->angular_enable = false;
+	frame->mask = 0x1;
 
 	frame = PhysicsState::createRigid( o_frame );
-	frame->setPosition( Vec2( 0, -600 ) );
-	frame->setAngle( 1.57 );
-	frame->setLinearEnable( false );
-	frame->setAngularEnable( false );
-	frame->setMask( 1 );
+	frame->position = Vec2( 0, -600 );
+	frame->angular_position = 1.57;
+	frame->linear_enable = false;
+	frame->angular_enable = false;
+	frame->mask = 0x1;
 
 	MeshOBJ o_rg;
 	o_rg.load( Path( "level/test/", "4gon.obj" ) );
@@ -53,8 +53,8 @@ void ColumnTestState::init( Engine* game )
 
 	for ( int j = 0; j < x; ++j ) {
 		Rigid* rg = PhysicsState::createRigid( o_rg );
-		rg->setPosition( Vec2( 0, j ) * step + off );
-		rg->setGravity( g );
-		rg->setMask( 1 );
+		rg->position = Vec2( 0, j ) * step + off;
+		rg->gravity = g;
+		rg->mask = 0x1;
 	}
 }

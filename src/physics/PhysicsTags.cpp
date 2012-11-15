@@ -1,10 +1,10 @@
 #include "PhysicsTags.h"
 
 PhysicsTags::PhysicsTags() :
-	pid( -1 ),
 	mask( 0 ),
-	expire_enable( false ),
-	owner( 0 )
+	owner( 0 ),
+	pid( -1 ),
+	expire_enable( false )
 {
 	
 }

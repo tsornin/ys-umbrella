@@ -3,7 +3,7 @@
 
 #include "PhysicsTags.h"
 #include "PhysicsGraph.h"
-#include "spatial/Scalar.h"
+#include "spatial/Vec2.h"
 
 class AABB;
 class Verlet;
@@ -15,18 +15,16 @@ Enumerates different types of distance constraints:
 "pull": only applies when stretched
 "push": only applies when squashed
 "hard": always applies
-
-Not to be confused with DistanceType (the collision type for Distance).
 ================================
 */
-enum DCType
+enum DistanceType
 	{ DC_HARD, DC_PULL, DC_PUSH };
 
 /*
 ================================
 Distance constraint.
 
-Representse a distance constraint between two Verlet particles.
+Represents a distance constraint between two Verlet particles.
 
 Used to form soft-bodies. For example,
 A line of masses-and-constraints forms a string,
@@ -44,26 +42,26 @@ class Distance :
 {
 private: // Lifecycle
 	Distance( Verlet* a, Verlet* b );
-	friend class PhysicsState;
+	Distance( const Distance& ) = delete;
+	Distance& operator = ( const Distance& ) = delete;
+	~Distance() = default;
 
 public: // "Entity" functions
-	void apply();
 	AABB getAABB() const;
-	friend class Renderer;
 
 public: // Distance functions
+	void apply();
 
-public: // Accessors
-
-public: // Mutators
-	void setPower( Scalar k ) { power = k; }
-	void setType( DCType t ) { type = t; }
+public: // Members
+	// Constraint properties
+	Scalar power; // in range [ 0, 1 ]
+	DistanceType type;
 
 private: // Members
-	// Constraint properties
 	Scalar rest_length;
-	Scalar power; // in range [ 0, 1 ]
-	DCType type;
+
+	friend class PhysicsState;
+	template < typename T > friend struct Expire;
 };
 
 #endif

@@ -43,7 +43,7 @@ Camera::Camera( EntityState& es ) : Entity( es ),
 	dz( 0 )
 {
 	// This is pointless, since this Euler has no collision.
-	eu->setOwner( this );
+	eu->owner = this;
 }
 
 /*
@@ -115,7 +115,8 @@ void Camera::update()
 	if ( target ) {
 		Vec2 center = target->getAABB().center();
 		Vec2 response( CAMERA_RESPONSE_X, CAMERA_RESPONSE_Y );
-		eu->setVelocity( Vec2::prod( center - eu->getPosition(), response ) );
+
+		eu->velocity = Vec2::prod( center - eu->position, response );
 	}
 
 	// Manually integrate Z position

@@ -28,10 +28,10 @@ public:
 	class Vertex {
 	public:
 		Vertex() :
-			marked( false ),
 			component_id( -1 ),
-			local_id( -1 ) {
-			;
+			local_id( -1 ),
+			marked( false ) {
+
 		}
 
 		void insertVertex() {
@@ -46,14 +46,19 @@ public:
 			}
 		}
 
+	public:
+		int component_id; // The ID of the island this vertex belongs to
+		int local_id; // The ID this vertex within its island
+
+	protected:
+		bool marked;
 		// Edges
 		// Invariant:
 		// for ( E* e : edges ) assert( e->a == this || e->b == this );
 		std::set < E* > edges;
 
-		bool marked;
-		int component_id; // The ID of the island this vertex belongs to
-		int local_id; // The ID this vertex within its island
+		friend class PhysicsGraph < V, E >;
+		friend class Renderer;
 	};
 
 	class Edge {
@@ -74,12 +79,16 @@ public:
 			b->edges.erase( e );
 		}
 
+	protected:
 		// Vertices
 		V
 			// Invariant: assert( a->edges.contains( this ) );
 			*a, // source vertex (reference)
 			// Invariant: assert( b->edges.contains( this ) );
 			*b; // target vertex (incident)
+
+		friend class PhysicsGraph < V, E >;
+		friend class Renderer;
 	};
 
 	typedef std::pair < std::vector < V* >, std::vector < E* > > Island;

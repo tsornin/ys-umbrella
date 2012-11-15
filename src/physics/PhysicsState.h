@@ -11,11 +11,12 @@
 #include "PhysicsGraph.h"
 #include "Euler.h"
 #include "Rigid.h"
+#include "Constraint.h"
+#include "Contact.h"
+#include "Friction.h"
 #include "Verlet.h"
 #include "Distance.h"
 #include "Angular.h"
-#include "Friction.h"
-#include "Contact.h"
 
 /*
 ================================

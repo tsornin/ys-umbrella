@@ -1,10 +1,12 @@
 #include "Renderer.h"
 #include "physics/Euler.h"
 #include "physics/Rigid.h"
+#include "physics/Constraint.h"
+#include "physics/Contact.h"
+#include "physics/Friction.h"
 #include "physics/Verlet.h"
 #include "physics/Distance.h"
 #include "physics/Angular.h"
-#include "physics/Contact.h"
 
 /*
 ================================
@@ -103,55 +105,6 @@ void Renderer::drawRigid( const Rigid& rg )
 
 /*
 ================================
-Renderer::drawVerlet
-================================
-*/
-void Renderer::drawVerlet( const Verlet& vl )
-{
-	Scalar d = mass_diameter( vl.mass );
-
-	glPointSize( d );
-	gl_SetColor( RGBA_WHITE );
-	glBegin( GL_POINTS );
-		gl_SetVertex( vl.position );
-	glEnd();
-
-	if ( !vl.linear_enable ) {
-		glPointSize( d/2 );
-		gl_SetColor( RGBA_BLACK );
-		glBegin( GL_POINTS );
-			gl_SetVertex( vl.position );
-		glEnd();
-	}
-}
-
-/*
-================================
-Renderer::drawDistance
-================================
-*/
-void Renderer::drawDistance( const Distance& dc )
-{
-	glLineWidth( 1.0 );
-	gl_SetColor( RGBA_WHITE );
-	glBegin( GL_LINES );
-		gl_SetVertex( dc.a->position );
-		gl_SetVertex( dc.b->position );
-	glEnd();
-}
-
-/*
-================================
-Renderer::drawAngular
-================================
-*/
-void Renderer::drawAngular( const Angular& ac )
-{
-
-}
-
-/*
-================================
 Renderer::drawContact
 ================================
 */
@@ -208,4 +161,53 @@ void Renderer::drawFriction( const Friction& ft )
 	glBegin( GL_POINTS );
 		gl_SetVertex( ft.p );
 	glEnd();
+}
+
+/*
+================================
+Renderer::drawVerlet
+================================
+*/
+void Renderer::drawVerlet( const Verlet& vl )
+{
+	Scalar d = mass_diameter( vl.mass );
+
+	glPointSize( d );
+	gl_SetColor( RGBA_WHITE );
+	glBegin( GL_POINTS );
+		gl_SetVertex( vl.position );
+	glEnd();
+
+	if ( !vl.linear_enable ) {
+		glPointSize( d/2 );
+		gl_SetColor( RGBA_BLACK );
+		glBegin( GL_POINTS );
+			gl_SetVertex( vl.position );
+		glEnd();
+	}
+}
+
+/*
+================================
+Renderer::drawDistance
+================================
+*/
+void Renderer::drawDistance( const Distance& dc )
+{
+	glLineWidth( 1.0 );
+	gl_SetColor( RGBA_WHITE );
+	glBegin( GL_LINES );
+		gl_SetVertex( dc.a->position );
+		gl_SetVertex( dc.b->position );
+	glEnd();
+}
+
+/*
+================================
+Renderer::drawAngular
+================================
+*/
+void Renderer::drawAngular( const Angular& ac )
+{
+
 }

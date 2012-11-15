@@ -1,4 +1,5 @@
 #include "Friction.h"
+#include "Rigid.h"
 
 /*
 ================================
@@ -29,8 +30,8 @@ Friction::jacobian
 std::pair < Vec3, Vec3 > Friction::jacobian() const
 {
 	return std::pair < Vec3, Vec3 >(
-		- Vec3( tangent, (p - a->getPosition()) ^ tangent ),
-		  Vec3( tangent, (p - b->getPosition()) ^ tangent ) );
+		- Vec3( tangent, (p - a->position) ^ tangent ),
+		  Vec3( tangent, (p - b->position) ^ tangent ) );
 }
 
 /*
@@ -66,7 +67,7 @@ Friction::mix_friction
 */
 Scalar Friction::mix_friction() const
 {
-	return Friction::mix_friction( a->getFriction(), b->getFriction() );
+	return Friction::mix_friction( a->friction, b->friction );
 }
 
 /*

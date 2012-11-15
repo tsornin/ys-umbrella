@@ -39,8 +39,8 @@ void ClothTestState::init( Engine* game )
 	for ( int i = 0; i < w; ++i ) {
 		Verlet* vl = PhysicsState::createVerlet();
 		vl->putPosition( Vec2( i, j ) * step + off );
-		vl->setMass( mass );
-		vl->setGravity( g );
+		vl->mass = mass;
+		vl->gravity = g;
 		vlss[j].push_back( vl );
 	}
 	}
@@ -51,24 +51,24 @@ void ClothTestState::init( Engine* game )
 		Distance* dc;
 		if ( i != w-1 ) {
 			dc = PhysicsState::createDistance( vlss[j][i], vlss[j][i+1] );
-			dc->setType( DC_PULL );
-			dc->setPower( 1.0 );
+			dc->type = DC_PULL;
+			dc->power = 1.0;
 		}
 		if ( j != h-1 ) {
 			dc = PhysicsState::createDistance( vlss[j][i], vlss[j+1][i] );
-			dc->setType( DC_PULL );
-			dc->setPower( 1.0 );
+			dc->type = DC_PULL;
+			dc->power = 1.0;
 		}
 	}
 	}
 
 	// Pin bottom corners
-	vlss[0][0]->setLinearEnable( false );
-	vlss[0][w-1]->setLinearEnable( false );
+	vlss[0][0]->linear_enable = false;
+	vlss[0][w-1]->linear_enable = false;
 
 	// Pin top edge
 	for ( int i = 0; i < w; ++i ) {
-		vlss[h-1][i]->setLinearEnable( false );
+		vlss[h-1][i]->linear_enable = false;
 	}
 
 	// // Ground
@@ -76,6 +76,6 @@ void ClothTestState::init( Engine* game )
 	// o_gnd.load( Path( "level/pong/", "frame.obj" ) );
 	// o_gnd.setScale( 50 );
 	// Rigid* gnd = createRigid( o_gnd, ??? );
-	// gnd->setLinearEnable( false );
-	// gnd->setAngularEnable( false );
+	// gnd->linear_enable = false;
+	// gnd->angular_enable = false;
 }

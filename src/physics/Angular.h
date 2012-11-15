@@ -15,6 +15,8 @@ Represents an angular constraint between two distance constraints.
 
 Instances of this class are managed by the physics engine.
 Use PhysicsState::createAngular to create an Angular constraint.
+
+TODO: under construction.
 ================================
 */
 class Angular :
@@ -23,9 +25,9 @@ class Angular :
 {
 public: // Lifecycle
 	Angular( Distance* m, Distance* n );
-	friend class PhysicsState;
-
-	friend class Renderer;
+	Angular( const Angular& ) = delete;
+	Angular& operator = ( const Angular& ) = delete;
+	~Angular() = default;
 
 private: // Members
 	Verlet *vla, *vlb, *vlc;
@@ -37,6 +39,9 @@ private: // Members
 		*bl, *br,
 		*cl, *cr,
 		*h, *v;
+
+	friend class PhysicsState;
+	friend class Renderer;
 };
 
 #endif

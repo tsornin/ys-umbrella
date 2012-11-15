@@ -37,8 +37,8 @@ void BarTestState::init( Engine* game )
 	for ( int j = 0; j < x; ++j ) {
 		Verlet* vl = PhysicsState::createVerlet();
 		vl->putPosition( Vec2( j, j ) * step + off );
-		vl->setMass( mass );
-		vl->setGravity( g );
+		vl->mass = mass;
+		vl->gravity = g;
 		vls.push_back( vl );
 		mass *= k;
 	}
@@ -47,8 +47,8 @@ void BarTestState::init( Engine* game )
 	std::vector < Distance* > dcs;
 	for ( int j = 0; j < x-1; ++j ) {
 		Distance* dc = PhysicsState::createDistance( vls[j], vls[j+1] );
-		dc->setType( DC_HARD );
-		dc->setPower( 1.0 );
+		dc->type = DC_HARD;
+		dc->power = 1.0;
 		dcs.push_back( dc );
 	}
 
@@ -58,6 +58,6 @@ void BarTestState::init( Engine* game )
 	}
 
 	// Pin bottom
-	vls[0]->setLinearEnable( false );
-	vls[1]->setLinearEnable( false );
+	vls[0]->linear_enable = false;
+	vls[1]->linear_enable = false;
 }
