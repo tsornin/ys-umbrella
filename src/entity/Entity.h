@@ -38,16 +38,17 @@ public: // Entity functions
 	virtual void input( const InputSet& is ) {}
 	virtual void update() {}
 	virtual void draw( Renderer& rd ) const {}
-	//friend class Renderer;
 	virtual AABB getAABB() const { return AABB( Vec2(0) ); }
 
 public: // Handler
 	virtual void handle() {}
 
 protected: // Members
-	friend class EntityState;
 	EntityState& es;
 	int eid;
+
+	friend class EntityState;
+	friend class Renderer;
 };
 
 #endif

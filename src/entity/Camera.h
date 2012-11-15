@@ -17,9 +17,7 @@ public: // Life cycle
 public: // Entity functions
 	virtual void input( const InputSet& is );
 	virtual void update();
-	virtual void draw( Renderer& rd ) const
-		{ rd.drawCamera( *this ); }
-	friend class Renderer;
+	virtual void draw( Renderer& rd ) const { rd.drawCamera( *this ); }
 	virtual AABB getAABB() const;
 
 public: // Camera functions
@@ -42,6 +40,8 @@ private: // Members
 	int zoom;
 	double z;
 	double dz;
+
+	friend class Renderer;
 };
 
 #endif

@@ -18,11 +18,13 @@ public: // Life cycle
 	Particle( EntityState& es );
 	virtual ~Particle();
 
-	bool expired() const;
-
 public: // Entity functions
 	virtual void update();
+	virtual void draw( Renderer& rd ) const {}
 	virtual AABB getAABB();
+
+public: // Particle
+	bool expired() const;
 
 public: // Members
 	Euler* eu;
@@ -45,8 +47,8 @@ public: // Life cycle
 
 public: // Entity
 	virtual void update();
+	virtual void draw( Renderer& rd ) const {}
 	virtual AABB getAABB();
-	virtual void draw( Renderer& rd ) {}
 
 public: // Particles
 	T* createParticle();
@@ -152,11 +154,11 @@ class Emitter : public Particle, protected EmitterProperties
 {
 public: // Lifecycle
 	Emitter( EntityState& es );
-	virtual ~Emitter() {}
 
 public: // Entity
 	virtual void input( const InputSet& is );
 	virtual void update();
+	virtual void draw( Renderer& rd ) const {}
 	virtual AABB getAABB() const;
 
 protected: // Members
