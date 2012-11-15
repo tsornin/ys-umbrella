@@ -487,8 +487,6 @@ PhysicsState::rigid_solve_island
 
 Computes and applies constraint forces for the specified Rigid island.
 PDF: Interactive Dynamics (Catto 2005)
-
-Invariant: local_id is -1
 ================================
 */
 void PhysicsState::rigid_solve_island( RigidIsland& rgi )
@@ -517,10 +515,10 @@ void PhysicsState::rigid_solve_island( RigidIsland& rgi )
 	int n = rgs.size();
 	int s = cts.size();
 
-	// Set local_id
-	for ( int i = 0; i < n; ++i ) {
-		rgs[i]->local_id = i;
-	}
+	// // Set local ID
+	// for ( int i = 0; i < n; ++i ) {
+	// 	assert( rgs[i]->minor_id == i );
+	// }
 
 	// Velocity vector, V
 	auto V = std::vector < Vec3 >( n );
@@ -543,8 +541,8 @@ void PhysicsState::rigid_solve_island( RigidIsland& rgi )
 		Constraint* ct = cts[i];
 		J_sp[i] = ct->jacobian();
 		J_map[i] = std::pair < int, int >(
-			ct->a->local_id,
-			ct->b->local_id );
+			ct->a->minor_id,
+			ct->b->minor_id );
 	}
 
 	// Constraint velocity vector, H (eta)
@@ -629,10 +627,10 @@ void PhysicsState::rigid_solve_island( RigidIsland& rgi )
 		rg->setVelocityState( V[i] );
 	}
 
-	// Clear local_id
-	for ( int i = 0; i < n; ++i ) {
-		rgs[i]->local_id = -1;
-	}
+	// // Clear local ID
+	// for ( int i = 0; i < n; ++i ) {
+	// 	rgs[i]->minor_id = -1;
+	// }
 }
 
 /*

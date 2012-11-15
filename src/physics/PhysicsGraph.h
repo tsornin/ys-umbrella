@@ -28,8 +28,8 @@ public:
 	class Vertex {
 	public:
 		Vertex() :
-			component_id( -1 ),
-			local_id( -1 ),
+			major_id( -1 ),
+			minor_id( -1 ),
 			marked( false ) {
 
 		}
@@ -47,8 +47,8 @@ public:
 		}
 
 	public:
-		int component_id; // The ID of the island this vertex belongs to
-		int local_id; // The ID this vertex within its island
+		int major_id; // The ID of the island within the graph
+		int minor_id; // The ID of this vertex within its island
 
 	protected:
 		bool marked;
@@ -116,8 +116,8 @@ public:
 		// Pre-processing: reset ID tags
 		for ( V* v : vs ) {
 			v->marked = v->edges.empty() || v->frozen();
-			v->component_id = -1;
-			v->local_id = -1;
+			v->major_id = -1;
+			v->minor_id = -1;
 		}
 
 		// Undirected connected components algorithm
@@ -134,8 +134,8 @@ public:
 			auto& vs = islands[j].first;
 			for ( unsigned int i = 0; i < vs.size(); ++i ) {
 				V* v = vs[i];
-				v->component_id = j;
-				v->local_id = i;
+				v->major_id = j;
+				v->minor_id = i;
 			}
 		}
 
