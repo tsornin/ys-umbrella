@@ -515,10 +515,13 @@ void PhysicsState::rigid_solve_island( RigidIsland& rgi )
 	int n = rgs.size();
 	int s = cts.size();
 
-	// // Set local ID
-	// for ( int i = 0; i < n; ++i ) {
-	// 	assert( rgs[i]->minor_id == i );
-	// }
+	// Set local ID
+	// TODO: Okay, so minor_id out of PhysicsGraph isn't really useful,
+	// because frozen objects belong to multiple islands. Without this,
+	// forces mess up, and then the -1 index causes weird segfaults.
+	for ( int i = 0; i < n; ++i ) {
+		rgs[i]->minor_id = i;
+	}
 
 	// Velocity vector, V
 	auto V = std::vector < Vec3 >( n );
@@ -627,10 +630,10 @@ void PhysicsState::rigid_solve_island( RigidIsland& rgi )
 		rg->setVelocityState( V[i] );
 	}
 
-	// // Clear local ID
-	// for ( int i = 0; i < n; ++i ) {
-	// 	rgs[i]->minor_id = -1;
-	// }
+	// Clear local ID
+	for ( int i = 0; i < n; ++i ) {
+		rgs[i]->minor_id = -1;
+	}
 }
 
 /*
