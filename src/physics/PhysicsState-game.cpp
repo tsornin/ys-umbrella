@@ -31,8 +31,6 @@ void PhysicsState::init( Engine* game )
 	// anchor->setLinearEnable( false );
 	// anchor->setAngularEnable( false );
 	// rgs.push_back( anchor );
-
-	dirty_verlet_islands = false;
 }
 
 /*

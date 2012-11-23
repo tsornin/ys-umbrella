@@ -141,7 +141,6 @@ private: // Members
 	std::list < Distance* > dcs;
 	std::list < Angular* > acs;
 	std::vector < PhysicsGraph < Verlet, Distance >::Island > verlet_islands;
-	bool dirty_verlet_islands;
 
 	friend class Contact;
 };

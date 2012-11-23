@@ -164,8 +164,6 @@ Creates a new Verlet particle.
 */
 Verlet* PhysicsState::createVerlet()
 {
-	dirty_verlet_islands = true;
-
 	Verlet* vl = new Verlet();
 	vl->pid = nextPID();
 	vl->it = vls.insert( vls.end(), vl );
@@ -182,8 +180,6 @@ Destroying a Verlet will also destroy all connected Distance objects.
 */
 void PhysicsState::destroyVerlet( Verlet* vl )
 {
-	dirty_verlet_islands = true;
-
 	auto edges_copy = vl->edges;
 	for ( Distance* dc : edges_copy ) {
 		destroyDistance( dc );
@@ -205,8 +201,6 @@ TODO: Verify that the specified Verlet particles aren't already constrained.
 */
 Distance* PhysicsState::createDistance( Verlet* a, Verlet* b )
 {
-	dirty_verlet_islands = true;
-
 	Distance* dc = new Distance( a, b );
 	dc->pid = nextPID();
 	dc->it = dcs.insert( dcs.end(), dc );
@@ -223,8 +217,6 @@ Destroying a Distance will also destroy all connected Angular objects.
 */
 void PhysicsState::destroyDistance( Distance* dc )
 {
-	dirty_verlet_islands = true;
-
 	auto edges_copy = dc->edges;
 	for ( Angular* ac : edges_copy ) {
 		destroyAngular( ac );
@@ -252,8 +244,6 @@ Angular* PhysicsState::createAngular( Distance* m, Distance* n )
 	return 0; // TODO: operation currently not supported
 
 /*
-	dirty_verlet_islands = true;
-
 	if ( m->b != n->a ) return 0;
 
 	Angular* ac = new Angular( m, n );
@@ -308,8 +298,6 @@ void PhysicsState::destroyAngular( Angular* ac )
 	return;
 
 /*
-	dirty_verlet_islands = true;
-
 	// No higher destroy calls
 	// (Angular is at the top of the dual-graph food chain)
 

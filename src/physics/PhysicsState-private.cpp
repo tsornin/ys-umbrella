@@ -741,13 +741,7 @@ Finds all "islands" (connected components) of the
 */
 void PhysicsState::verlet_find_islands()
 {
-	// TODO: If we use this flag,
-	// any freezing toggle should also set this flag.
-	// if ( ! dirty_verlet_islands ) return;
-
 	verlet_islands = PhysicsGraph < Verlet, Distance >::find_islands( vls );
-
-	dirty_verlet_islands = false;
 }
 
 /*
