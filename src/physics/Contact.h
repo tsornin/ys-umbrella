@@ -72,6 +72,8 @@ private: // Lifecycle
 	Contact& operator = ( const Contact& ) = delete;
 	~Contact() = default;
 
+	virtual void destroy( PhysicsState& ps );
+
 public: // Constraint functions
 	virtual Scalar eval() const;
 	virtual std::pair < Vec3, Vec3 > jacobian() const;
@@ -80,7 +82,6 @@ public: // Constraint functions
 
 	virtual void draw( Renderer& rd ) const {
 		rd.drawContact( *this );
-		if ( ft ) rd.drawFriction( *ft );
 	}
 
 public: // Contact functions
@@ -98,11 +99,13 @@ public: // Members
 	// Contact caching
 	ContactKey key;
 
-	// This Contact's associated Friction constraint.
+	// This Contact's associated Friction constraint. May be NULL.
 	Friction* ft;
 
+private: // Members
+	bool expired;
+
 	friend class PhysicsState;
-	template < typename T > friend struct Expire;
 };
 
 #endif

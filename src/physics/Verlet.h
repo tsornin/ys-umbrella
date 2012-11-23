@@ -66,8 +66,10 @@ public: // Members
 		mass,
 		bounce;
 
+private: // Members
+	std::list < Verlet* >::iterator it;
+
 	friend class PhysicsState;
-	template < typename T > friend struct Expire;
 };
 
 #endif

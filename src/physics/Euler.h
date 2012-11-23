@@ -62,6 +62,9 @@ public: // Members
 		mass,
 		bounce;
 
+private:
+	std::list < Euler* >::iterator it;
+
 	friend class PhysicsState;
 	template < typename T > friend struct Expire;
 };

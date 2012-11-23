@@ -44,30 +44,22 @@ NOTE: Clearing the lists isn't voodoo (PhysicsState is never destructed).
 */
 void PhysicsState::cleanup()
 {
-	for ( Rigid* rg : rgs ) delete rg;
-	rgs.clear();
+	auto rgs_copy = rgs;
+	for ( Rigid* rg : rgs_copy ) destroyRigid( rg );
+	assert( rgs.empty() );
+	assert( cts.empty() );
 
-	for ( Contact* ct : contacts ) delete ct;
-	contacts.clear();
+	assert( contact_cache.empty() );
 
-	for ( Constraint* ct : cts ) delete ct;
-	cts.clear();
+	auto eus_copy = eus;
+	for ( Euler* eu : eus_copy ) destroyEuler( eu );
+	assert( eus.empty() );
 
-	rigid_islands.clear();
-
-	for ( Euler* eu : eus ) delete eu;
-	eus.clear();
-
-	for ( Verlet* vl : vls ) delete vl;
-	vls.clear();
-
-	for ( Distance* dc : dcs ) delete dc;
-	dcs.clear();
-
-	for ( Angular* ac : acs ) delete ac;
-	acs.clear();
-
-	verlet_islands.clear();
+	auto vls_copy = vls;
+	for ( Verlet* vl : vls_copy ) destroyVerlet( vl );
+	assert( vls.empty() );
+	assert( dcs.empty() );
+	assert( acs.empty() );
 
 	clear_collision_data();
 
@@ -113,7 +105,6 @@ void PhysicsState::draw( Engine* game )
 	// }
 
 	for ( Rigid* rg : rgs ) game->rd.drawRigid( *rg );
-	for ( Contact* ct : contacts ) ct->draw( game->rd ); // Contact contains Friction
 	for ( Constraint* ct : cts ) ct->draw( game->rd ); // Constraint is polymorphic
 
 	for ( Euler* eu : eus ) game->rd.drawEuler( *eu );
@@ -155,7 +146,7 @@ void PhysicsState::setCaption( std::ostringstream& buffer )
 
 	buffer << " " << rgs.size();
 	buffer << " (" << rigid_shapes.size() << ")";
-	buffer << "-" << contacts.size();
+	buffer << "-" << contact_cache.size();
 	buffer << "-" << cts.size();
 	buffer << "/" << rigid_islands.size();
 

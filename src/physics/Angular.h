@@ -40,6 +40,8 @@ private: // Members
 		*cl, *cr,
 		*h, *v;
 
+	std::list < Angular* >::iterator it;
+
 	friend class PhysicsState;
 	friend class Renderer;
 };

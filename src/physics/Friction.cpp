@@ -1,5 +1,6 @@
 #include "Friction.h"
 #include "Rigid.h"
+#include "PhysicsState.h"
 
 /*
 ================================
@@ -9,6 +10,16 @@ Friction::Friction
 Friction::Friction( Rigid* a, Rigid* b ) : Constraint( a, b )
 {
 	
+}
+
+/*
+================================
+Friction::destroy
+================================
+*/
+void Friction::destroy( PhysicsState& ps )
+{
+	ps.destroyFriction( this );
 }
 
 /*

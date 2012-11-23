@@ -53,9 +53,6 @@ public: // Physics engine - lifecycle
 	Friction* createFriction( Rigid* a, Rigid* b );
 	void destroyFriction( Friction* ft );
 
-	Contact* createContact( Rigid* a, Rigid* b );
-	void destroyContact( Contact* ct );
-
 	Euler* createEuler();
 	void destroyEuler( Euler* eu );
 
@@ -76,17 +73,20 @@ public: // Physics engine - stuff
 	// VerletIsland island( Verlet* vl );
 
 private: // Physics timestep
+	std::pair < bool, Contact* > createContact( Rigid* a, Rigid* b, ContactKey& key );
+	void destroyContact( Contact* ct );
+
+	std::list < Contact* > contacts();
+
 	typedef std::pair < Rigid*, int > ConvexTag;
 	typedef PhysicsGraph < Rigid, Constraint >::Island RigidIsland;
 	typedef PhysicsGraph < Verlet, Distance >::Island VerletIsland;
 
 	void step();
-		void expire();
 		void clear_collision_data();
 
 		void rigid_step();
 			void rigid_transform_convex();
-			void rigid_index_contacts();
 			void rigid_detect_rigid();
 				void rigid_caltrops(
 					ConvexTag& ta, Convex& a,
@@ -126,9 +126,8 @@ private: // Members
 	int next_pid;
 
 	// Rigid bodies
-	std::vector < Rigid* > rgs;
-	std::vector < Contact* > contacts;
-	std::vector < Constraint* > cts;
+	std::list < Rigid* > rgs;
+	std::list < Constraint* > cts;
 	std::vector < PhysicsGraph < Rigid, Constraint >::Island > rigid_islands;
 
 	std::vector < std::pair < ConvexTag, Convex > > rigid_shapes;
@@ -138,14 +137,13 @@ private: // Members
 	std::list < Euler* > eus;
 
 	// Verlet particles
-	std::vector < Verlet* > vls;
-	std::vector < Distance* > dcs;
-	std::vector < Angular* > acs;
+	std::list < Verlet* > vls;
+	std::list < Distance* > dcs;
+	std::list < Angular* > acs;
 	std::vector < PhysicsGraph < Verlet, Distance >::Island > verlet_islands;
 	bool dirty_verlet_islands;
 
-// protected:
-	// Rigid* anchor;
+	friend class Contact;
 };
 
 #endif

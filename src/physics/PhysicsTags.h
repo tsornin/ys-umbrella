@@ -2,6 +2,7 @@
 #define PHYSICS_TAGS_H
 
 #include "Handler.h"
+#include <list> // TODO: ??? iterators
 
 typedef unsigned int PhysicsMask;
 
@@ -17,7 +18,6 @@ public: // Lifecycle
 	PhysicsTags();
 
 public: // PhysicsTags
-	bool expired() const;
 	static bool pid_lt( PhysicsTags* a, PhysicsTags* b );
 
 public: // Members
@@ -26,7 +26,6 @@ public: // Members
 
 private: // Members
 	int pid;
-	bool expire_enable;
 
 	friend class PhysicsState;
 };

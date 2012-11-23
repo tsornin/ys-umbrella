@@ -3,23 +3,9 @@
 PhysicsTags::PhysicsTags() :
 	mask( 0 ),
 	owner( 0 ),
-	pid( -1 ),
-	expire_enable( false )
+	pid( -1 )
 {
 	
-}
-
-/*
-================================
-PhysicsTags::expired
-
-In lieu of a good data structure for PhysicsState::destroy,
-we're just using an "expired" flag.
-================================
-*/
-bool PhysicsTags::expired() const
-{
-	return expire_enable;
 }
 
 /*

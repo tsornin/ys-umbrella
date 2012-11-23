@@ -22,6 +22,8 @@ private: // Lifecycle
 	Friction& operator = ( const Friction& ) = delete;
 	~Friction() = default;
 
+	virtual void destroy( PhysicsState& ps );
+
 public: // Constraint functions
 	virtual Scalar eval() const;
 	virtual std::pair < Vec3, Vec3 > jacobian() const;
@@ -43,7 +45,6 @@ public: // Members
 	Scalar normal_lambda;
 
 	friend class PhysicsState;
-	template < typename T > friend struct Expire;
 	friend class Contact;
 };
 

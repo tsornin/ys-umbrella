@@ -17,45 +17,11 @@ Steps the simulation once.
 */
 void PhysicsState::step()
 {
-	expire();
 	clear_collision_data();
 
 	rigid_step();
 	euler_step();
 	verlet_step();
-}
-
-/*
-================================
-PhysicsState::expire
-
-Removes and deletes expired physics objects.
-
-TODO: use std::vector for all physics object collections
-================================
-*/
-template < typename T >
-struct Expire {
-	bool operator () ( T& t ) {
-		if ( t->expired() ) {
-			delete t;
-			return true;
-		}
-		return false;
-	}
-};
-
-void PhysicsState::expire()
-{
-	rgs.erase( std::remove_if( rgs.begin(), rgs.end(), Expire < Rigid* >() ), rgs.end() );
-	contacts.erase( std::remove_if( contacts.begin(), contacts.end(), Expire < Contact* >() ), contacts.end() );
-	cts.erase( std::remove_if( cts.begin(), cts.end(), Expire < Constraint* >() ), cts.end() );
-
-	eus.remove_if( Expire < Euler* >() );
-
-	vls.erase( std::remove_if( vls.begin(), vls.end(), Expire < Verlet* >() ), vls.end() );
-	dcs.erase( std::remove_if( dcs.begin(), dcs.end(), Expire < Distance* >() ), dcs.end() );
-	acs.erase( std::remove_if( acs.begin(), acs.end(), Expire < Angular* >() ), acs.end() );
 }
 
 /*
@@ -68,7 +34,6 @@ Clears all collision data from the last frame.
 void PhysicsState::clear_collision_data()
 {
 	rigid_shapes.clear();
-	contact_cache.clear();
 
 	rigid_islands.clear();
 	verlet_islands.clear();
@@ -84,7 +49,6 @@ Steps the Rigid body simulation.
 void PhysicsState::rigid_step()
 {
 	rigid_transform_convex();
-	rigid_index_contacts();
 	rigid_detect_rigid();
 	rigid_expire_contacts();
 	rigid_find_islands();
@@ -120,28 +84,6 @@ void PhysicsState::rigid_transform_convex()
 
 /*
 ================================
-PhysicsState::rigid_index_contacts
-================================
-*/
-void PhysicsState::rigid_index_contacts()
-{
-	// Index contacts by contact identifier
-	for ( Contact* ct : contacts ) {
-		contact_cache[ ct->key ] = ct;
-	}
-
-	// Mark all contacts as expired.
-	// We are now holding on to contacts from the previous step.
-	// Instead of wiping the contacts, we run collision detection
-	// and try to hit the contact cache with new contacts.
-	// Contact cache hits will be un-marked before wiping.
-	for ( Contact* ct : contacts ) {
-		ct->expire_enable = true;
-	}
-}
-
-/*
-================================
 PhysicsState::rigid_detect_rigid
 
 Detects all collisions between Rigid bodies.
@@ -171,7 +113,7 @@ void PhysicsState::rigid_detect_rigid()
 			// Avoid sad matrices
 			if ( rg->frozen() && rg2->frozen() ) continue;
 
-			// TODO: Masking happens here
+			// Masking
 			if ( !(rg->mask & rg2->mask) ) continue;
 
 			// Narrow-phase
@@ -267,19 +209,8 @@ void PhysicsState::rigid_caltrops(
 				key.b.fid = ib;
 
 			// Hit the Contact cache or make a new Contact
-			Contact* ct;
-			bool cached;
-			auto find = contact_cache.find( key );
-			if ( find != contact_cache.end() ) {
-				ct = find->second;
-				ct->expire_enable = false;
-				cached = true;
-			}
-			else {
-				ct = createContact( ta.first, tb.first );
-				ct->key = key;
-				cached = false;
-			}
+			auto cc = createContact( ta.first, tb.first, key );
+			Contact* ct = cc.second;
 
 			Wall w( p, n );
 			ct->overlap = - w.distance( pb );
@@ -287,14 +218,25 @@ void PhysicsState::rigid_caltrops(
 			ct->a_p = w.nearest( pb );
 			ct->b_p = pb;
 
-			// Compute local_lambda after writing to ct
-			// TODO: the logic here could be a lot better
-			if ( !cached ) {
+			// Compute "local lambda" for new contacts
+			// (after writing to ct)
+			if ( ! cc.first ) {
 				ct->lambda = ct->local_lambda();
+
+				// Friction optimization
+				// TODO: Floating point == seems like a bad idea
+				if ( Friction::mix_friction( ta.first->friction, tb.first->friction ) == 0.0 ) {
+					ct->ft = 0;
+				}
+				else {
+					// TODO: This logic is kind of bad?
+					// 1. createFriction is far from createContact
+					// 2. Every narrow-phase will have to create Friction
+					ct->ft = createFriction( ta.first, tb.first );
+				}
 			}
 
 			// Apply friction at the same point on both bodies
-			// TODO: This assumes that friction doesn't change.
 			if ( ct->ft ) {
 				ct->ft->normal_lambda = ct->lambda;
 				ct->ft->tangent = w.normal.lperp();
@@ -342,19 +284,8 @@ void PhysicsState::rigid_caltrops(
 				key.b.cid = ta.second;
 				key.b.fid = ia;
 
-			Contact* ct;
-			bool cached;
-			auto find = contact_cache.find( key );
-			if ( find != contact_cache.end() ) {
-				ct = find->second;
-				ct->expire_enable = false;
-				cached = true;
-			}
-			else {
-				ct = createContact( tb.first, ta.first );
-				ct->key = key;
-				cached = false;
-			}
+			auto cc = createContact( tb.first, ta.first, key );
+			Contact* ct = cc.second;
 
 			Wall w( p, n );
 			ct->overlap = - w.distance( pa );
@@ -362,14 +293,20 @@ void PhysicsState::rigid_caltrops(
 			ct->a_p = w.nearest( pa );
 			ct->b_p = pa;
 
-			if ( !cached ) {
+			if ( ! cc.first ) {
 				ct->lambda = ct->local_lambda();
+				if ( Friction::mix_friction( tb.first->friction, ta.first->friction ) == 0.0 ) {
+					ct->ft = 0;
+				}
+				else {
+					ct->ft = createFriction( tb.first, ta.first );
+				}
 			}
 
 			if ( ct->ft ) {
 				ct->ft->normal_lambda = ct->lambda;
 				ct->ft->tangent = w.normal.lperp();
-				ct->ft->p = (ct->a_p + ct->b_p) * 0.5;
+				ct->ft->p = (ct->b_p + ct->a_p) * 0.5;
 			}
 
 			break; // Only one intersection per caltrop
@@ -377,18 +314,37 @@ void PhysicsState::rigid_caltrops(
 	}
 }
 
+// Returns a list of all Contacts (from the contact_cache).
+std::list < Contact* > PhysicsState::contacts()
+{
+	std::list < Contact* > ret;
+
+	for ( auto& pair : contact_cache ) {
+		ret.push_back( pair.second );
+	}
+
+	return ret;
+}
+
 /*
 ================================
 PhysicsState::rigid_expire_contacts
 
-Collision detection finds persistent contacts.
-After detection, all Contacts still marked as expired are deleted.
+TODO: ???
 ================================
 */
 void PhysicsState::rigid_expire_contacts()
 {
-	for ( Contact* ct : contacts ) {
-		if ( ct->expired() ) destroyContact( ct );
+	for ( Contact* ct : contacts() ) {
+		if ( ct->expired ) {
+			destroyContact( ct );
+			if ( ct->ft ) {
+				destroyFriction( ct->ft );
+			}
+		}
+		else {
+			ct->expired = true;
+		}
 	}
 }
 

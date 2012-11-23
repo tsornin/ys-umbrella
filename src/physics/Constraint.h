@@ -6,6 +6,8 @@
 #include "spatial/Vec3.h"
 #include "graphics/Renderer.h"
 
+class PhysicsState;
+
 class Rigid;
 
 /*
@@ -21,7 +23,9 @@ protected: // Lifecycle
 	Constraint( Rigid* a, Rigid* b );
 	Constraint( const Constraint& ) = delete;
 	Constraint& operator = ( const Constraint& ) = delete;
-	virtual ~Constraint() {}
+	virtual ~Constraint() = default;
+
+	virtual void destroy( PhysicsState& ps ) = 0;
 
 public: // "Entity" functions
 	virtual void draw( Renderer& rd ) const {}
@@ -36,8 +40,9 @@ protected: // Members
 	// Warm starting
 	Scalar lambda;
 
+	std::list < Constraint* >::iterator it;
+
 	friend class PhysicsState;
-	template < typename T > friend struct Expire;
 	friend class Renderer;
 };
 

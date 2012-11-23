@@ -2,6 +2,7 @@
 #include "Constants.h"
 #include "Rigid.h"
 #include "Friction.h"
+#include "PhysicsState.h"
 
 bool operator == ( const FeatureKey& fk1, const FeatureKey& fk2 ) {
 	return
@@ -22,6 +23,16 @@ Contact::Contact
 Contact::Contact( Rigid* a, Rigid* b ) : Constraint( a, b ), ft(0)
 {
 	
+}
+
+/*
+================================
+Contact::destroy
+================================
+*/
+void Contact::destroy( PhysicsState& ps )
+{
+	ps.destroyContact( this );
 }
 
 /*

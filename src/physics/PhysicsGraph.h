@@ -1,10 +1,13 @@
 #ifndef PHYSICS_GRAPH_H
 #define PHYSICS_GRAPH_H
 
-#include <set>
-#include <vector>
-#include <queue>
-#include <algorithm>
+#include <cassert>
+
+#include <set> // for PhysicsGraph::Vertex::edges
+#include <list>
+#include <vector> // for PhysicsGraph::Island
+#include <queue> // for PhysicsGraph::mark_connected
+#include <algorithm> // for std::sort
 
 template < typename T >
 void remove_duplicates( std::vector < T >& xs ) {
@@ -34,16 +37,18 @@ public:
 
 		}
 
-		void insertVertex() {
-
-		}
-
-		void eraseVertex() {
+		~Vertex() {
 			// Can't iterate edges (removeEdge modifies our edges)
+			// TODO: Does this loop ever actually happen?
 			auto edges_copy = edges;
 			for ( E* e : edges_copy ) {
-				e->eraseEdge();
+				e->a->edges.erase( e );
+				e->b->edges.erase( e );
 			}
+		}
+
+		bool isolated() const {
+			return edges.empty();
 		}
 
 	public:
@@ -64,16 +69,12 @@ public:
 	class Edge {
 	public:
 		Edge( V* a, V* b ) : a(a), b(b) {
-
-		}
-
-		void insertEdge() {
 			E* e = static_cast < E* >( this );
 			a->edges.insert( e );
 			b->edges.insert( e );
 		}
 
-		void eraseEdge() {
+		~Edge() {
 			E* e = static_cast < E* >( this );
 			a->edges.erase( e );
 			b->edges.erase( e );
@@ -106,16 +107,16 @@ public:
 	Invariant: no Vertexs are marked
 	================================
 	*/
-	static std::vector < Island > find_islands( std::vector < V* >& vs ) {
+	static std::vector < Island > find_islands( std::list < V* >& vs ) {
 		// Pre-condition
-		// for ( V* v : vs ) assert( ! v->marked );
+		for ( V* v : vs ) assert( ! v->marked );
 
 		std::vector < Island > islands;
 
 		// Pre-processing: we'll skip edge-less and frozen vertices
 		// Pre-processing: reset ID tags
 		for ( V* v : vs ) {
-			v->marked = v->edges.empty() || v->frozen();
+			v->marked = v->isolated() || v->frozen();
 			v->major_id = -1;
 			v->minor_id = -1;
 		}
@@ -127,7 +128,7 @@ public:
 		}
 
 		// Post-condition
-		// for ( V* v : vs ) assert( v->marked );
+		for ( V* v : vs ) assert( v->marked );
 
 		// Set ID tags
 		for ( unsigned int j = 0; j < islands.size(); ++j ) {
@@ -171,7 +172,7 @@ public:
 			unseen.pop();
 
 			for ( E* e : v->edges ) {
-				// assert( e->a == v || e->b == v );
+				assert( e->a == v || e->b == v );
 				V* w = ( e->a == v ) ? e->b : e->a;
 
 				// Include and mark, but do not expand, frozen nodes.
@@ -200,7 +201,7 @@ public:
 		remove_duplicates( es );
 
 		// Post-condition
-		// for ( V* v : vs ) assert( v->marked );
+		for ( V* v : vs ) assert( v->marked );
 
 		return island;
 	}

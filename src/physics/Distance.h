@@ -60,8 +60,9 @@ public: // Members
 private: // Members
 	Scalar rest_length;
 
+	std::list < Distance* >::iterator it;
+
 	friend class PhysicsState;
-	template < typename T > friend struct Expire;
 };
 
 #endif

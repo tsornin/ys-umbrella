@@ -24,10 +24,7 @@ Rigid* PhysicsState::createRigid( const MeshOBJ& obj )
 
 	Rigid* rg = new Rigid( cs );
 	rg->pid = nextPID();
-	rgs.push_back( rg );
-
-	rg->insertVertex();
-
+	rg->it = rgs.insert( rgs.end(), rg );
 	return rg;
 }
 
@@ -40,34 +37,25 @@ Rigid* PhysicsState::createRigid()
 {
 	Rigid* rg = new Rigid();
 	rg->pid = nextPID();
-	rgs.push_back( rg );
-
-	rg->insertVertex();
-
+	rg->it = rgs.insert( rgs.end(), rg );
 	return rg;
 }
 
 /*
 ================================
 PhysicsState::destroyRigid
-
-Marks the specified Rigid body for deletion.
 ================================
 */
 void PhysicsState::destroyRigid( Rigid* rg )
 {
-	for ( Constraint* ct : rg->edges ) {
-		// TODO:
-		// WARNING:
-		// Contact and Friction both appear in our list.
-		// This is only correct because destroyContact and destroyFriction look similar.
-		// Since Constraint is polymorphic, we should do something like ct->destroy( *this ).
-		ct->expire_enable = true;
+	auto edges_copy = rg->edges;
+	for ( Constraint* ct : edges_copy ) {
+		ct->destroy( *this );
 	}
+	assert( rg->isolated() );
 
-	rg->eraseVertex();
-
-	rg->expire_enable = true;
+	rgs.erase( rg->it );
+	delete rg;
 }
 
 /*
@@ -79,10 +67,7 @@ Friction* PhysicsState::createFriction( Rigid* a, Rigid* b )
 {
 	Friction* ft = new Friction( a, b );
 	ft->pid = nextPID();
-	cts.push_back( ft );
-
-	ft->insertEdge();
-
+	ft->it = cts.insert( cts.end(), ft );
 	return ft;
 }
 
@@ -93,9 +78,8 @@ PhysicsState::destroyFriction
 */
 void PhysicsState::destroyFriction( Friction* ft )
 {
-	ft->eraseEdge();
-
-	ft->expire_enable = true;
+	cts.erase( ft->it );
+	delete ft;
 }
 
 /*
@@ -103,46 +87,46 @@ void PhysicsState::destroyFriction( Friction* ft )
 PhysicsState::createContact
 
 Creates a new Contact constraint.
-
-NOTE: This function should be private.
 ================================
 */
-Contact* PhysicsState::createContact( Rigid* a, Rigid* b )
+std::pair < bool, Contact* >
+PhysicsState::createContact( Rigid* a, Rigid* b, ContactKey& key )
 {
-	Contact* ct = new Contact( a, b );
-	ct->pid = nextPID();
-	contacts.push_back( ct );
+	bool cache_hit;
+	Contact* ct;
 
-	ct->insertEdge();
-
-	// TODO: Floating point == doesn't seem like a good idea
-	if ( a->friction == 0.0 || b->friction == 0.0 ) {
-		ct->ft = 0;
+	auto find = contact_cache.find( key );
+	if ( find != contact_cache.end() ) {
+		cache_hit = true;
+		ct = find->second;
 	}
 	else {
-		ct->ft = createFriction( a, b );
+		cache_hit = false;
+		ct = new Contact( a, b );
+		ct->pid = nextPID();
+		ct->it = cts.insert( cts.end(), ct );
+
+		// Just for destroyContact
+		ct->key = key;
+		contact_cache[ key ] = ct;
 	}
 
-	return ct;
+	ct->expired = false;
+
+	return std::pair < bool, Contact* >( cache_hit, ct );
 }
 
 /*
 ================================
 PhysicsState::destroyContact
-
-NOTE: This function should be private.
 ================================
 */
 void PhysicsState::destroyContact( Contact* ct )
 {
-	ct->eraseEdge();
+	contact_cache.erase( ct->key );
 
-	Friction* ft = ct->ft;
-	if ( ft ) {
-		destroyFriction( ft );
-	}
-
-	ct->expire_enable = true;
+	cts.erase( ct->it );
+	delete ct;
 }
 
 /*
@@ -156,20 +140,19 @@ Euler* PhysicsState::createEuler()
 {
 	Euler* eu = new Euler();
 	eu->pid = nextPID();
-	eus.push_back( eu );
+	eu->it = eus.insert( eus.end(), eu );
 	return eu;
 }
 
 /*
 ================================
 PhysicsState::destroyEuler
-
-Marks the specified Euler particle for deletion.
 ================================
 */
 void PhysicsState::destroyEuler( Euler* eu )
 {
-	eu->expire_enable = true;
+	eus.erase( eu->it );
+	delete eu;
 }
 
 /*
@@ -185,18 +168,13 @@ Verlet* PhysicsState::createVerlet()
 
 	Verlet* vl = new Verlet();
 	vl->pid = nextPID();
-	vls.push_back( vl );
-
-	vl->insertVertex();
-
+	vl->it = vls.insert( vls.end(), vl );
 	return vl;
 }
 
 /*
 ================================
 PhysicsState::destroyVerlet
-
-Marks the specified Verlet particle for deletion.
 
 NOTE: Verlet particles and Distance constraints form a graph.
 Destroying a Verlet will also destroy all connected Distance objects.
@@ -206,9 +184,14 @@ void PhysicsState::destroyVerlet( Verlet* vl )
 {
 	dirty_verlet_islands = true;
 
-	vl->eraseVertex();
+	auto edges_copy = vl->edges;
+	for ( Distance* dc : edges_copy ) {
+		destroyDistance( dc );
+	}
+	assert( vl->isolated() );
 
-	vl->expire_enable = true;
+	vls.erase( vl->it );
+	delete vl;
 }
 
 /*
@@ -226,19 +209,13 @@ Distance* PhysicsState::createDistance( Verlet* a, Verlet* b )
 
 	Distance* dc = new Distance( a, b );
 	dc->pid = nextPID();
-	dcs.push_back( dc );
-
-	dc->insertEdge();
-	dc->insertVertex();
-
+	dc->it = dcs.insert( dcs.end(), dc );
 	return dc;
 }
 
 /*
 ================================
 PhysicsState::destroyDistance
-
-Marks the specified Distance constraint for deletion.
 
 NOTE: Distance constraints and Angular constraints form a graph.
 Destroying a Distance will also destroy all connected Angular objects.
@@ -248,10 +225,14 @@ void PhysicsState::destroyDistance( Distance* dc )
 {
 	dirty_verlet_islands = true;
 
-	dc->eraseEdge();
-	dc->eraseVertex();
+	auto edges_copy = dc->edges;
+	for ( Angular* ac : edges_copy ) {
+		destroyAngular( ac );
+	}
+	assert( dc->isolated() );
 
-	dc->expire_enable = true;
+	dcs.erase( dc->it );
+	delete dc;
 }
 
 /*

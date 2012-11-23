@@ -93,8 +93,10 @@ public: // Members
 private: // Members
 	std::vector < Convex > shapes; // object space
 
+	// TODO: Maybe this can move into PhysicsTags (CRTP)?
+	std::list < Rigid* >::iterator it;
+
 	friend class PhysicsState;
-	template < typename T > friend struct Expire;
 	friend class Renderer;
 };
 
