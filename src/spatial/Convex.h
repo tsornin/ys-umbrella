@@ -5,7 +5,7 @@
 #include "Vec2.h" // for std::vector< Vec2 >
 #include "Wall.h" // for Convex::sat
 
-class AABB;
+struct AABB;
 
 /*
 ================================

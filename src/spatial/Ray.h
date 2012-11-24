@@ -3,8 +3,8 @@
 
 #include "Vec2.h"
 
-class AABB;
-class Segment;
+struct AABB;
+struct Segment;
 
 /*
 ================================
