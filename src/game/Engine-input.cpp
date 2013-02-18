@@ -11,31 +11,33 @@ we should read these settings from a configuration file.
 */
 bool Engine::initInput()
 {
-	// Controller 1
-	keymap1[ SDLK_SPACE ]	= IK_START;
-	keymap1[ SDLK_UP ]		= IK_U;
-	keymap1[ SDLK_DOWN ]	= IK_D;
-	keymap1[ SDLK_LEFT ]	= IK_L;
-	keymap1[ SDLK_RIGHT ]	= IK_R;
-	keymap1[ SDLK_z ]		= IK_A;
-	keymap1[ SDLK_x ]		= IK_B;
-	keymap1[ SDLK_c ]		= IK_X;
-	keymap1[ SDLK_v ]		= IK_Y;
-	keymap1[ SDLK_LSHIFT ]	= IK_SL;
-	keymap1[ SDLK_RSHIFT ]	= IK_SR;
+    keymap1 = {
+        { SDLK_SPACE,   IK_START },
+        { SDLK_UP,      IK_U },
+        { SDLK_DOWN,    IK_D },
+        { SDLK_LEFT,    IK_L },
+        { SDLK_RIGHT,   IK_R },
+        { SDLK_z,       IK_A },
+        { SDLK_x,       IK_B },
+        { SDLK_c,       IK_X },
+        { SDLK_v,       IK_Y },
+        { SDLK_LSHIFT,  IK_SL },
+        { SDLK_RSHIFT,  IK_SR }
+    };
 
-	// Controller 2
-	keymap2[ SDLK_RETURN ]	= IK_START;
-	keymap2[ SDLK_w ]		= IK_U;
-	keymap2[ SDLK_s ]		= IK_D;
-	keymap2[ SDLK_a ]		= IK_L;
-	keymap2[ SDLK_d ]		= IK_R;
-	keymap2[ SDLK_g ]		= IK_A;
-	keymap2[ SDLK_h ]		= IK_B;
-	keymap2[ SDLK_j ]		= IK_X;
-	keymap2[ SDLK_k ]		= IK_Y;
-	keymap2[ SDLK_q ]		= IK_SL;
-	keymap2[ SDLK_e ]		= IK_SR;
+    keymap2 = {
+       { SDLK_RETURN,   IK_START },
+       { SDLK_w,        IK_U },
+       { SDLK_s,        IK_D },
+       { SDLK_a,        IK_L },
+       { SDLK_d,        IK_R },
+       { SDLK_g,        IK_A },
+       { SDLK_h,        IK_B },
+       { SDLK_j,        IK_X },
+       { SDLK_k,        IK_Y },
+       { SDLK_q,        IK_SL },
+       { SDLK_e,        IK_SR },
+    };
 
 	return true;
 }
