@@ -207,11 +207,11 @@ void EntityState::mouseDown( const SDL_MouseButtonEvent& e )
 		ml = true;
 		mrg = PhysicsState::nearestRigid( cursor );
 		if ( mrg ) {
-			PhysicsState::destroyRigid( mrg );
-			/*
+			// PhysicsState::destroyRigid( mrg );
+			
 			// mrg->setAngularEnable( false );
 
-			Scalar normal_lambda = mrg->getMass() * 10;
+			Scalar normal_lambda = mrg->mass * 10;
 
 			// "Double surface friction"
 			mftx = PhysicsState::createFriction( crg, mrg );
@@ -223,7 +223,7 @@ void EntityState::mouseDown( const SDL_MouseButtonEvent& e )
 			mfty->tangent = Vec2( 0, 1 );
 			mfty->p = cursor;
 			mfty->normal_lambda = normal_lambda;
-			*/
+			
 		}
 		else {
 			mvl = PhysicsState::nearestVerlet( cursor, 50 );
