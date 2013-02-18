@@ -1,15 +1,17 @@
+#include "Input.h"
+#include <iostream> // for std::cerr
 #include "Engine.h"
 #include "State.h"
 
 /*
 ================================
-Engine::initInput
+Input::init
 
 TODO: Even without any input-configuration functions,
 we should read these settings from a configuration file.
 ================================
 */
-bool Engine::initInput()
+bool Input::init()
 {
     keymap1 = {
         { SDLK_SPACE,   IK_START },
@@ -44,10 +46,10 @@ bool Engine::initInput()
 
 /*
 ================================
-Engine::cleanupInput
+Input::cleanup
 ================================
 */
-void Engine::cleanupInput()
+void Input::cleanup()
 {
 	keymap1.clear();
 	keymap2.clear();
@@ -55,39 +57,35 @@ void Engine::cleanupInput()
 
 /*
 ================================
-Engine::specialKeyDown
+Input::specialKeyDown
 
 Processes special non-InputSet keyboard commands.
 ================================
 */
-void Engine::specialKeyDown( SDLKey sym )
+void Input::specialKeyDown( SDLKey sym )
 {
 	// State stack control (TODO: for testing only)
-	if ( sym == SDLK_HOME ) reset();
-	if ( sym == SDLK_END ) pop();
-	if ( sym == SDLK_ESCAPE ) pop();
+	if ( sym == SDLK_HOME ) engine.reset();
+	if ( sym == SDLK_END ) engine.pop();
+	if ( sym == SDLK_ESCAPE ) engine.pop();
 
 	// Single-frame stepping (TODO: for testing only)
-	if ( sym == SDLK_F1 ) pause = !pause;
-	if ( pause && sym == SDLK_PAGEDOWN ) {
-		input();
-		update();
-		draw();
-		setCaption();
+	if ( sym == SDLK_F1 ) engine.pause = !engine.pause;
+	if ( engine.pause && sym == SDLK_PAGEDOWN ) {
+		engine.tick();
 	}
 
 	// Fullscreen toggle.
 	// TODO: X11 supports fullscreen toggling using SDL_WM_ToggleFullScreen:
 	// http://www.libsdl.org/docs/html/sdlwmtogglefullscreen.html
 	if ( sym == SDLK_F2 ) {
-		bool fullscreen = screen->flags & SDL_FULLSCREEN;
-		setVideoMode( screen->w, screen->h, !fullscreen );
+		engine.video_sys->toggle_fullscreen();
 	}
 }
 
 /*
 ================================
-Engine::pollInput
+Input::poll
 
 Polls for all queued SDL input events
 and writes keyboard input to the input sets.
@@ -99,7 +97,7 @@ TODO: Since all inputs are clocked even when the game is paused,
 all "held" inputs will be broken by unfocus pausing.
 ================================
 */
-void Engine::pollInput()
+void Input::poll()
 {
 	is1.clock();
 	is2.clock();
@@ -134,28 +132,28 @@ void Engine::pollInput()
 		break;
 
 		case SDL_MOUSEMOTION: {
-			if ( states.empty() ) break;
-			states.back()->mouseMoved( event.motion );
+			if ( engine.states.empty() ) break;
+			engine.states.back()->mouseMoved( event.motion );
 			if ( event.motion.state & SDL_PRESSED ) {
-				states.back()->mouseDragged( event.motion );
+				engine.states.back()->mouseDragged( event.motion );
 			}
 		}
 		break;
 
 		case SDL_MOUSEBUTTONUP: {
-			if ( states.empty() ) break;
-			states.back()->mouseUp( event.button );
+			if ( engine.states.empty() ) break;
+			engine.states.back()->mouseUp( event.button );
 		}
 		break;
 
 		case SDL_MOUSEBUTTONDOWN: {
-			if ( states.empty() ) break;
-			states.back()->mouseDown( event.button );
+			if ( engine.states.empty() ) break;
+			engine.states.back()->mouseDown( event.button );
 		}
 		break;
 
 		case SDL_QUIT: {
-			quit = true;
+			engine.quit = true;
 		}
 		break;
 	}

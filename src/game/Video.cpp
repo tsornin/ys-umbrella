@@ -1,6 +1,6 @@
-#include "Engine.h"
+#include "Video.h"
 #include <iostream> // for std::cout, std::cerr
-#include "SDL_opengl.h"
+#include "Engine.h"
 
 /*
 ================================
@@ -16,10 +16,10 @@ static const int SCREEN_BPP = 32;
 
 /*
 ================================
-Engine::initVideo
+Video::init
 ================================
 */
-bool Engine::initVideo()
+bool Video::init()
 {
 	if ( SDL_InitSubSystem( SDL_INIT_VIDEO ) == -1 ) {
 		std::cerr << "SDL video subsystem initialization failed: "
@@ -36,22 +36,22 @@ bool Engine::initVideo()
 
 /*
 ================================
-Engine::cleanupVideo
+Video::cleanup
 ================================
 */
-void Engine::cleanupVideo()
+void Video::cleanup()
 {
-	
+	engine.rd.cleanup();
 }
 
 /*
 ================================
-Engine::setVideoMode
+Video::setVideoMode
 
 TODO: OpenGL context destroyed; reload all textures (Windows only)
 ================================
 */
-bool Engine::setVideoMode( const int wx, const int wy, const bool fullscreen )
+bool Video::setVideoMode( const int wx, const int wy, const bool fullscreen )
 {
 	// Caption before video mode
 	SDL_WM_SetCaption( "Loading...", NULL );
@@ -77,7 +77,7 @@ bool Engine::setVideoMode( const int wx, const int wy, const bool fullscreen )
 	glViewport( 0, 0, screen->w, screen->h );
 
 	// OpenGL report
-	std::cout << "Engine::setVideoMode:" << std::endl;
+	std::cout << "Video::setVideoMode:" << std::endl;
 	std::cout << "Resolution: "
 		<< screen->w << "x" << screen->h << " "
 		<< ((screen->flags & SDL_FULLSCREEN) ? "fullscreen" : "windowed")
@@ -87,17 +87,28 @@ bool Engine::setVideoMode( const int wx, const int wy, const bool fullscreen )
 		<< glGetString( GL_RENDERER ) << ", "
 		<< glGetString( GL_VERSION ) << std::endl;
 
-	rd.init();
+	engine.rd.init();
 
 	return true;
 }
 
 /*
 ================================
-Engine::getAspectRatio
+Video::getAspectRatio
 ================================
 */
-double Engine::getAspectRatio() const
+double Video::getAspectRatio() const
 {
 	return (double) screen->w / screen->h;
+}
+
+/*
+================================
+Video::toggle_fullscreen
+================================
+*/
+void Video::toggle_fullscreen()
+{
+	bool fullscreen = screen->flags & SDL_FULLSCREEN;
+	setVideoMode( screen->w, screen->h, !fullscreen );
 }

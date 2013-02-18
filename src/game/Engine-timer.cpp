@@ -53,14 +53,10 @@ void Engine::run()
 	while ( !states.empty() && !quit )
 	{
 		// Poll for input even when unfocused
-		pollInput();
+		input_sys->poll();
 
 		if ( !pause && (SDL_GetAppState() & SDL_APPINPUTFOCUS ) ) {
-			input();
-			update();
-			draw();
-
-			setCaption();
+			tick();
 		}
 
 		SDL_Delay( time_left() );
@@ -69,6 +65,20 @@ void Engine::run()
 		// }
 		next_time += TICK_INTERVAL;
 	}
+}
+
+/*
+================================
+Engine::tick
+================================
+*/
+void Engine::tick()
+{
+	input();
+	update();
+	draw();
+
+	setCaption();
 }
 
 /*

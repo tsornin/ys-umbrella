@@ -1,6 +1,6 @@
+#include "Audio.h"
+#include <iostream> // for std::cerr
 #include "Engine.h"
-#include <iostream> // for std::cout, std::cerr
-#include "SDL_mixer.h"
 
 /*
 ================================
@@ -20,10 +20,10 @@ static const int AUDIO_CHUNK_SIZE = 1024;
 
 /*
 ================================
-Engine::initAudio
+Audio::init
 ================================
 */
-bool Engine::initAudio()
+bool Audio::init()
 {
 	if ( SDL_InitSubSystem( SDL_INIT_AUDIO ) == -1 ) {
 		std::cerr << "SDL audio subsystem initialization failed: "
@@ -46,7 +46,7 @@ bool Engine::initAudio()
 	int frequency; Uint16 format; int channels;
 	Mix_QuerySpec( &frequency, &format, &channels );
 	if ( frequency != AUDIO_FREQUENCY || channels != AUDIO_CHANNELS ) {
-		std::cerr << "Engine::initAudio:" << std::endl;
+		std::cerr << "Audio::init:" << std::endl;
 		std::cerr << "Warning: Actual audio format does not match specified audio format." << std::endl;
 	}
 
@@ -55,10 +55,10 @@ bool Engine::initAudio()
 
 /*
 ================================
-Engine::cleanupAudio
+Audio::cleanup
 ================================
 */
-void Engine::cleanupAudio()
+void Audio::cleanup()
 {
 	Mix_CloseAudio();
 	Mix_Quit();

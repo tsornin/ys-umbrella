@@ -75,10 +75,10 @@ EntityState::input
 */
 void EntityState::input( Engine* game )
 {
-	cam->input( game->is2 );
+	cam->input( game->input_sys->is2 );
 
 	Entity* t = cam->getTarget();
-	if ( t ) t->input( game->is1 );
+	if ( t ) t->input( game->input_sys->is1 );
 
 	// Compute cursor
 	cursor_prev = cursor;

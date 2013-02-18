@@ -2,10 +2,13 @@
 #define GAME_ENGINE_H
 
 #include <vector> // for std::vector < State* >
-#include <map> // for std::map < SDLKey, InputKey >
-#include "SDL.h" // for SDL_Surface
-#include "InputSet.h"
-#include "graphics/Renderer.h"
+#include "SDL.h" // TODO: is this necessary?
+#include "graphics/Renderer.h" // TODO: what's this doing here?
+
+#include "Input.h"
+#include "Video.h"
+#include "Audio.h"
+// #include "Config.h"
 
 class State;
 
@@ -13,21 +16,6 @@ class State;
 ================================
 Game engine with a stack of game states:
 http://gamedevgeek.com/tutorials/managing-game-states-in-c/
-
-TODO: This class definition conflates several subsystems.
-Should we arrange the groups of functions into subsystem classes?
-Subsystems should carry some data:
-	Input: key bindings, default key bindings
-	Video: allowed video modes
-	Audio: ???
-
-TODO: Move subsystem data into a configuration subsystem.
-
-TODO: Think about the resource split for subsystems and wrappers?
-video - graphics init
-image - image file format loading -> opengl
-audio - audio init
-sound - sound file format loading -> ???
 ================================
 */
 class Engine
@@ -45,26 +33,14 @@ public:
 
 	// Timer
 	void run();
-	void input();
-	void update();
-	void draw();
+	void tick();
+		void input();
+		void update();
+		void draw();
 	void setCaption();
 
-	// Input
-	bool initInput();
-	void cleanupInput();
-	void pollInput();
-	void specialKeyDown( SDLKey sym );
-
-	// Video
-	bool initVideo();
-	void cleanupVideo();
-	bool setVideoMode( const int wx, const int wy, const bool fullscreen );
-	double getAspectRatio() const;
-
-	// Audio
-	bool initAudio();
-	void cleanupAudio();
+	// Subsystems
+	std::vector < Subsystem* > all_subsystems();
 
 public: // Members
 	// Stack
@@ -75,16 +51,10 @@ public: // Members
 	bool quit;
 	bool pause;
 
-	// Input
-	std::map < SDLKey, InputKey > keymap1, keymap2;
-	InputSet is1, is2;
+	Input* input_sys;
+	Video* video_sys;
+	Audio* audio_sys;
 
-	// Video
-	SDL_Surface* screen;
-
-	// Audio
-
-public: // More members
 	Renderer rd;
 };
 

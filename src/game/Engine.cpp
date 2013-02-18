@@ -13,24 +13,19 @@ bool Engine::init()
 	quit = false;
 	pause = false;
 
-	screen = 0;
-
 	if ( SDL_Init( 0 ) == -1 ) {
 		std::cerr << "SDL initialization failed: "
 			<< SDL_GetError() << std::endl;
 		return false;
 	}
 
-	if ( !initInput() ) {
-		return false;
-	}
-
-	if ( !initVideo() ) {
-		return false;
-	}
-
-	if ( !initAudio() ) {
-		return false;
+	input_sys = new Input( *this );
+	video_sys = new Video( *this );
+	audio_sys = new Audio( *this );
+	for ( Subsystem* sub : all_subsystems() ) {
+		if ( !sub->init() ) {
+			return false;
+		}
 	}
 
 	return true;
@@ -51,9 +46,21 @@ void Engine::cleanup()
 		states.pop_back();
 	}
 
-	cleanupAudio();
-	cleanupVideo();
-	cleanupInput();
+	auto subs = all_subsystems();
+	std::reverse( subs.begin(), subs.end() );
+	for ( Subsystem *sub : subs ) {
+		sub->cleanup();
+	}
 
 	SDL_Quit();
+}
+
+/*
+================================
+Engine::all_subsystems
+================================
+*/
+std::vector < Subsystem* > Engine::all_subsystems()
+{
+	return std::vector < Subsystem* >{ input_sys, video_sys, audio_sys };
 }
