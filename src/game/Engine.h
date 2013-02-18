@@ -2,7 +2,6 @@
 #define GAME_ENGINE_H
 
 #include <vector> // for std::vector < State* >
-#include "SDL.h" // TODO: is this necessary?
 #include "graphics/Renderer.h" // TODO: what's this doing here?
 
 #include "Input.h"

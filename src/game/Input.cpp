@@ -93,7 +93,7 @@ and writes keyboard input to the input sets.
 This function sits outside the unfocus/pause guard in Engine::run,
 since we always need to check for SDL_Event SDL_QUIT.
 
-TODO: Since all inputs are clocked even when the game is paused,
+NOTE: Since all inputs are clocked even when the game is paused,
 all "held" inputs will be broken by unfocus pausing.
 ================================
 */
