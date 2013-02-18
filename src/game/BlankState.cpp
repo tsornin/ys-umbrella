@@ -75,13 +75,23 @@ void BlankState::draw( Engine* game )
 
 /*
 ================================
-BlankState::setCaption
+BlankState::frame_caption
 ================================
 */
-void BlankState::setCaption( std::ostringstream& buffer )
+void BlankState::frame_caption( std::ostringstream& buffer )
 {
 	buffer << " || Blank:";
 	buffer << " " << frames_elapsed << " frames elapsed";
+}
+
+/*
+================================
+BlankState::frame_printout
+================================
+*/
+void BlankState::frame_printout( std::ostringstream& buffer )
+{
+	
 }
 
 /*

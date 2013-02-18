@@ -78,7 +78,10 @@ void Engine::tick()
 	update();
 	draw();
 
-	setCaption();
+	frame_caption();
+
+	// Debug feature; see Input::specialKeyDown
+	// frame_printout();
 }
 
 /*
@@ -133,13 +136,10 @@ void Engine::draw()
 
 /*
 ================================
-Engine::setCaption
-
-Displays a frame count on the title bar,
-then lets the current state write some more to the title bar.
+Engine::frame_caption
 ================================
 */
-void Engine::setCaption()
+void Engine::frame_caption()
 {
 	std::ostringstream caption;
 	caption << "Umbrella: ";
@@ -170,9 +170,28 @@ void Engine::setCaption()
 	}
 
 	if ( !states.empty() ) {
-		states.back()->setCaption( caption );
+		states.back()->frame_caption( caption );
 	}
 
 	// Send caption to window title bar
 	SDL_WM_SetCaption( caption.str().c_str(), NULL );
+}
+
+/*
+================================
+Engine::frame_printout
+================================
+*/
+void Engine::frame_printout()
+{
+	std::ostringstream printout;
+	printout << "================================";
+	printout << "\n" << "Engine frame: " << frames_elapsed;
+
+	if ( !states.empty() ) {
+		states.back()->frame_printout( printout );
+	}
+
+	// Send printout to console
+	std::cout << printout.str() << std::endl;
 }

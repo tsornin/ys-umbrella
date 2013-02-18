@@ -26,7 +26,8 @@ public: // State implementation
 	virtual void update( Engine* game );
 	virtual void draw( Engine* game );
 
-	virtual void setCaption( std::ostringstream& buffer );
+	virtual void frame_caption( std::ostringstream& buffer );
+	virtual void frame_printout( std::ostringstream& buffer );
 
 	virtual void mouseMoved( const SDL_MouseMotionEvent& e );
 	virtual void mouseDragged( const SDL_MouseMotionEvent& e );

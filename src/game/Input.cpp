@@ -74,6 +74,7 @@ void Input::specialKeyDown( SDLKey sym )
 	if ( sym == SDLK_F1 ) engine.pause = !engine.pause;
 	if ( engine.pause && sym == SDLK_PAGEDOWN ) {
 		engine.tick();
+		engine.frame_printout();
 	}
 #endif
 

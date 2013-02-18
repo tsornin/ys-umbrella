@@ -134,35 +134,40 @@ void PhysicsState::draw( Engine* game )
 
 /*
 ================================
-PhysicsState::setCaption
+PhysicsState::frame_caption
 ================================
 */
-void PhysicsState::setCaption( std::ostringstream& buffer )
+void PhysicsState::frame_caption( std::ostringstream& buffer )
 {
 	buffer << " || Physics:";
 	buffer << " " << frames_elapsed << " frames elapsed";
-
-	buffer << " " << rgs.size();
-	buffer << " (" << rigid_shapes.size() << ")";
-	buffer << "-" << contact_cache.size();
-	buffer << "-" << cts.size();
-	buffer << "/" << rigid_islands.size();
+}
 
 /*
-	for ( RigidGraph& rgg : rigid_islands ) {
-		buffer << " {" << rgg.first.size() << "-" << rgg.second.size() << "}";
-		buffer << " pid:[";
-		for ( Rigid* rg : rgg.first ) {
-			buffer << " " << rg->pid;
-		}
-		buffer << " ]";
-	}
+================================
+PhysicsState::frame_printout
+================================
 */
+void PhysicsState::frame_printout( std::ostringstream& buffer )
+{
+	buffer << "\n" << "--------------------------------";
+	buffer << "\n" << "Physics frame: " << frames_elapsed;
 
-	buffer << ", " << eus.size();
+	buffer << "\n" << "Rigid:"
+		<< "\n\t" << rgs.size() << " rigid bodies"
+		<< "\n\t" << rigid_shapes.size() << " shapes"
+		<< "\n\t" << contact_cache.size() << " contacts cached"
+		<< "\n\t" << cts.size() << " contacts"
+		<< "\n\t" "across " << rigid_islands.size() << " islands";
 
-	buffer << ", " << vls.size() << "-" << dcs.size() << "-" << acs.size();
-	buffer << "/" << verlet_islands.size();
+	buffer << "\n" << "Euler:"
+		<< "\n\t" << eus.size() << " euler particles";
 
-	buffer << ", next_pid: " << next_pid;
+	buffer << "\n" << "Verlet:"
+		<< "\n\t" << vls.size() << " verlet particles"
+		<< "\n\t" << dcs.size() << " distance constraints"
+		<< "\n\t" << acs.size() << " angular constraints"
+		<< "\n\t" << "across " << verlet_islands.size() << " islands";
+
+	buffer << "\n" << "next_pid: " << next_pid;
 }

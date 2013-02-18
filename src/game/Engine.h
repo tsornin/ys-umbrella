@@ -36,7 +36,8 @@ public:
 		void input();
 		void update();
 		void draw();
-	void setCaption();
+	void frame_caption();
+	void frame_printout();
 
 	// Subsystems
 	std::vector < Subsystem* > all_subsystems();

@@ -2,7 +2,7 @@
 #define GAME_STATE_H
 
 #include "Engine.h"
-#include <sstream> // for setCaption
+#include <sstream> // for frame_caption, frame_printout
 
 /*
 ================================
@@ -22,7 +22,8 @@ public:
 	virtual void update( Engine* game ) = 0;
 	virtual void draw( Engine* game ) = 0;
 
-	virtual void setCaption( std::ostringstream& buffer ) = 0;
+	virtual void frame_caption( std::ostringstream& buffer ) = 0;
+	virtual void frame_printout( std::ostringstream& buffer ) = 0;
 
 	virtual void mouseMoved( const SDL_MouseMotionEvent& e ) = 0;
 	virtual void mouseDragged( const SDL_MouseMotionEvent& e ) = 0;

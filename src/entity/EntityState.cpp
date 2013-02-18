@@ -152,12 +152,12 @@ void EntityState::draw( Engine* game )
 
 /*
 ================================
-EntityState::setCaption
+EntityState::frame_caption
 ================================
 */
-void EntityState::setCaption( std::ostringstream& buffer )
+void EntityState::frame_caption( std::ostringstream& buffer )
 {
-	PhysicsState::setCaption( buffer );
+	PhysicsState::frame_caption( buffer );
 
 	buffer << " || Entity:";
 	buffer << " " << entities.size();
@@ -165,6 +165,16 @@ void EntityState::setCaption( std::ostringstream& buffer )
 	Entity* t = cam->getTarget();
 	int eid = t ? t->eid : -1;
 	buffer << " [" << eid << "]";
+}
+
+/*
+================================
+EntityState::frame_printout
+================================
+*/
+void EntityState::frame_printout( std::ostringstream& buffer )
+{
+	PhysicsState::frame_printout( buffer );
 }
 
 /*
