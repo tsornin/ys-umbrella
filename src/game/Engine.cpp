@@ -29,9 +29,9 @@ bool Engine::init()
 		return false;
 	}
 
-	// if ( !initAudio() ) {
-	// 	return false;
-	// }
+	if ( !initAudio() ) {
+		return false;
+	}
 
 	return true;
 }
@@ -51,10 +51,9 @@ void Engine::cleanup()
 		states.pop_back();
 	}
 
-	// TODO: cleanup for subsystems.
-	rd.cleanup();
-
 	cleanupAudio();
+	cleanupVideo();
+	cleanupInput();
 
 	SDL_Quit();
 }

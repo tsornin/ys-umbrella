@@ -42,6 +42,17 @@ bool Engine::initInput()
 
 /*
 ================================
+Engine::cleanupInput
+================================
+*/
+void Engine::cleanupInput()
+{
+	keymap1.clear();
+	keymap2.clear();
+}
+
+/*
+================================
 Engine::specialKeyDown
 
 Processes special non-InputSet keyboard commands.
@@ -83,7 +94,7 @@ This function sits outside the unfocus/pause guard in Engine::run,
 since we always need to check for SDL_Event SDL_QUIT.
 
 TODO: Since all inputs are clocked even when the game is paused,
-all "held" inputs will be broken by pausing.
+all "held" inputs will be broken by unfocus pausing.
 ================================
 */
 void Engine::pollInput()

@@ -52,17 +52,19 @@ public:
 
 	// Input
 	bool initInput();
+	void cleanupInput();
 	void pollInput();
 	void specialKeyDown( SDLKey sym );
 
 	// Video
 	bool initVideo();
-	void cleanupAudio();
+	void cleanupVideo();
 	bool setVideoMode( const int wx, const int wy, const bool fullscreen );
 	double getAspectRatio() const;
 
 	// Audio
 	bool initAudio();
+	void cleanupAudio();
 
 public: // Members
 	// Stack

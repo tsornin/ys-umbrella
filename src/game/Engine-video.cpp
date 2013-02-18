@@ -36,6 +36,16 @@ bool Engine::initVideo()
 
 /*
 ================================
+Engine::cleanupVideo
+================================
+*/
+void Engine::cleanupVideo()
+{
+	
+}
+
+/*
+================================
 Engine::setVideoMode
 
 TODO: OpenGL context destroyed; reload all textures (Windows only)

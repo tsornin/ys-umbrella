@@ -53,9 +53,13 @@ bool Engine::initAudio()
 	return true;
 }
 
+/*
+================================
+Engine::cleanupAudio
+================================
+*/
 void Engine::cleanupAudio()
 {
 	Mix_CloseAudio();
-
 	Mix_Quit();
 }
