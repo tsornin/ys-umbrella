@@ -68,7 +68,7 @@ endif
 # ==============================
 CXX = g++
 WARNINGS = -Wall
-CXXFLAGS = --std=c++11 $(WARNINGS) -I. -I$(SRC_DIR) $(SDL_FLAGS) $(SDL_MIXER_FLAGS)
+CXXFLAGS = -DDEBUG --std=c++11 $(WARNINGS) -I. -I$(SRC_DIR) $(SDL_FLAGS) $(SDL_MIXER_FLAGS)
 LDFLAGS = $(SYSTEM_LIBS) $(SDL_MIXER_LIBS) $(SDL_LIBS) $(GL_LIBS)
 BIN = ys
 RM = rm -f

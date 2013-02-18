@@ -64,16 +64,18 @@ Processes special non-InputSet keyboard commands.
 */
 void Input::specialKeyDown( SDLKey sym )
 {
-	// State stack control (TODO: for testing only)
+#ifdef DEBUG
+	// State stack control
 	if ( sym == SDLK_HOME ) engine.reset();
 	if ( sym == SDLK_END ) engine.pop();
 	if ( sym == SDLK_ESCAPE ) engine.pop();
 
-	// Single-frame stepping (TODO: for testing only)
+	// Single-frame stepping
 	if ( sym == SDLK_F1 ) engine.pause = !engine.pause;
 	if ( engine.pause && sym == SDLK_PAGEDOWN ) {
 		engine.tick();
 	}
+#endif
 
 	// Fullscreen toggle.
 	// TODO: X11 supports fullscreen toggling using SDL_WM_ToggleFullScreen:

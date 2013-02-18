@@ -3,9 +3,14 @@
 #include "physics/PhysicsState.h"
 #include "entity/EntityState.h"
 #include "state/States.h"
+#include <iostream>
 
 int main( int argc, char** argv )
 {
+#ifdef DEBUG
+	std::cout << "Debug build!" << std::endl;
+#endif
+
 	Engine game;
 
 	if ( !game.init() ) return 1;
