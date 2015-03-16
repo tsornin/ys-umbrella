@@ -272,3 +272,13 @@ int EntityState::nextEID()
 {
 	return next_eid++;
 }
+
+/*
+================================
+EntityState::setCameraPosition
+================================
+*/
+void EntityState::setCameraPosition( Vec2 pos )
+{
+	this->cam->eu->setPosition( pos );
+}

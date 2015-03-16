@@ -30,8 +30,9 @@ public: // Camera functions
 	void zoomIn();
 	void zoomOut();
 
-private: // Members
 	Euler* eu;
+
+private: // Members
 	std::list < Entity* > targets;
 
 	// gluPerspective arguments

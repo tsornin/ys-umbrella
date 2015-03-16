@@ -18,7 +18,7 @@ Returns the graphical diameter for a point-mass of the specified mass.
 static Scalar mass_diameter( Scalar mass )
 {
 	static const Scalar MASS_DIAMETER_MIN = 4.0;
-	static const Scalar MASS_DIAMETER_MAX = 64.0;
+	static const Scalar MASS_DIAMETER_MAX = 32.0;
 
 	Scalar d = MASS_DIAMETER_MIN;
 	d += std::pow( mass, 0.33 ) * 0.5;

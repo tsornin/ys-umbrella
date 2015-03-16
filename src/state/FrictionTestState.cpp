@@ -64,4 +64,6 @@ void FrictionTestState::init( Engine* game )
 		// rg->angular_velocity = 5.0;
 		rg->mask = 0x1;
 	}
+
+	this->setCameraPosition( Vec2( 0, 100 ) );
 }

@@ -38,6 +38,7 @@ void ColumnTestState::init( Engine* game )
 	frame->position = Vec2( 0, -600 );
 	frame->linear_enable = false;
 	frame->angular_enable = false;
+	// frame->friction = 0.25;
 	frame->mask = 0x1;
 
 	frame = PhysicsState::createRigid( o_frame );
@@ -45,6 +46,7 @@ void ColumnTestState::init( Engine* game )
 	frame->angular_position = 1.57;
 	frame->linear_enable = false;
 	frame->angular_enable = false;
+	// frame->friction = 0.25;
 	frame->mask = 0x1;
 
 	MeshOBJ o_rg;
@@ -55,6 +57,10 @@ void ColumnTestState::init( Engine* game )
 		Rigid* rg = PhysicsState::createRigid( o_rg );
 		rg->position = Vec2( 0, j ) * step + off;
 		rg->gravity = g;
+		rg->bounce = 0.25;
+		// rg->friction = 0.25;
 		rg->mask = 0x1;
 	}
+
+	this->setCameraPosition( Vec2( 0, 100 ) );
 }

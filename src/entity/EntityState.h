@@ -48,6 +48,8 @@ protected:
 public: // Public functions
 	void add( Entity* en );
 
+	void setCameraPosition( Vec2 pos );
+
 private: // Private functions
 	int nextEID();
 
