@@ -1,9 +1,9 @@
-Installing gcc 4.7 with MinGW
+Installing GCC 4.7 with MinGW
 --------------------------------
-This distro of MinGW includes gcc 4.7 and git:
-http://nuwen.net/mingw.html
-
+This distro of MinGW includes GCC 4.7: http://nuwen.net/mingw.html
 Add "C:\MinGW\bin" to the system PATH.
+
+UPDATE: Distro version 11.0 with GCC 4.8.1 and above is x64-native. Update your libraries accordingly.
 
 
 Installing git
@@ -17,23 +17,45 @@ Installing SDL
 This distro of MinGW includes SDL.
 Copy "C:\MinGW\bin\SDL.dll" to the project directory.
 
+UPDATE: Distro version 11.1 and above only includes SDL 2, and is x64-native.
+Get a 64-bit MinGW build of SDL 1.2 here:
+	http://sourceforge.net/projects/mingw-w64/files/External%20binary%20packages%20%28Win64%20hosted%29/SDL/
+Copy the "*.a" files into "C:\MinGW\lib\SDL".
+Copy the "*.dll" files into the project directory.
+
 
 Installing SDL_mixer
 --------------------------------
-This distro of MinGW includes SDL_mixer, but it doesn't link properly (?)
+This distro of MinGW includes SDL_mixer, but it doesn't link properly (?).
 Download "SDL_mixer-devel-1.2.12-VC.zip" from this website:
 http://www.libsdl.org/projects/SDL_mixer/
 Copy the "*.lib" files into "C:\MinGW\lib\SDL".
 Copy the "*.dll" files into the project directory.
 
+UPDATE: Get a 64-bit MinGW build of SDL_mixer (and SDL_net) here:
+	http://sourceforge.net/projects/mingw-w64/files/External%20binary%20packages%20%28Win64%20hosted%29/SDL/
+Copy the "*.a" files into "C:\MinGW\lib\SDL".
+Copy the "*.dll" files into the project directory.
+
 
 Cloning
 --------------------------------
-Run "C:\MinGW\open_distro_window.bat".
+Open a MinGW console (either option):
+	Run "C:\MinGW\open_distro_window.bat".
+	Run "C:\MinGW\set_distro_paths.bat" from an existing console.
 Run "ssh-keygen -t rsa".
 Make the folder "C:\Users\[YOUR_USERNAME]\.ssh" in a command prompt.
 Move "id_rsa" and "id_rsa.pub" to "C:\Users\[YOUR_USERNAME]\.ssh".
 Upload "id_rsa.pub" to your Assembla account.
 Clone the repo:
 	$ git clone git@git.assembla.com:ys-umbrella.git
+
+
+General workflow for include and linker errors
+--------------------------------
+Did you point your compiler to all your includes? (There are two versions of SDL)
+Did you edit PATH and forget to restart your console?
+Did you point your compiler to all your libraries?
+Are your libraries MinGW compatible? (MSVC uses .lib, MinGW uses .a)
+Are your libraries all 64-bit? (STL's MinGW Distro 11.0 (GCC 4.8.1) is x64-native)
 
