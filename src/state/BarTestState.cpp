@@ -54,10 +54,18 @@ void BarTestState::init( Engine* game )
 
 	// Angular constraints
 	for ( int j = 0; j < x-2; ++j ) {
-		Angular* ac = PhysicsState::createAngular( dcs[j], dcs[j+1] );
+		PhysicsState::createAngular( dcs[j], dcs[j+1] );
+		// Angular* ac = PhysicsState::createAngular( dcs[j], dcs[j+1] );
+		// PhysicsState::destroyAngular( ac );
 	}
+
+	// PhysicsState::destroyDistance( dcs[0] );
 
 	// Pin bottom
 	vls[0]->linear_enable = false;
 	vls[1]->linear_enable = false;
+
+	// PhysicsState::destroyVerlet( vls[0] );
+	// PhysicsState::destroyVerlet( vls[1] );
+	// PhysicsState::destroyVerlet( vls[2] );
 }

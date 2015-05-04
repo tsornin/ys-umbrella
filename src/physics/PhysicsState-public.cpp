@@ -180,8 +180,12 @@ Destroying a Verlet will also destroy all connected Distance objects.
 */
 void PhysicsState::destroyVerlet( Verlet* vl )
 {
-	auto edges_copy = vl->edges;
-	for ( Distance* dc : edges_copy ) {
+	std::list < Distance* > user_edges;
+	for ( Distance* dc : vl->edges ) {
+		if ( dc->pid > 0 )
+			user_edges.push_back( dc );
+	}
+	for ( Distance* dc : user_edges ) {
 		destroyDistance( dc );
 	}
 	assert( vl->isolated() );
@@ -241,36 +245,33 @@ TODO: Verify that the specified Distance constraints aren't already constrained.
 */
 Angular* PhysicsState::createAngular( Distance* m, Distance* n )
 {
-	return 0; // TODO: operation currently not supported
-
-/*
 	if ( m->b != n->a ) return 0;
 
 	Angular* ac = new Angular( m, n );
 	ac->pid = nextPID();
-	acs.push_back( ac );
+	ac->it = acs.insert( acs.end(), ac );
 
 	// Here are the three masses we'll be clamping
-	Verlet* a = ac->a = m->a;
-	Verlet* b = ac->b = m->b; // n->a
-	Verlet* c = ac->c = n->b;
+	Verlet* a = ac->vla = m->a;
+	Verlet* b = ac->vlb = m->b; // n->a
+	Verlet* c = ac->vlc = n->b;
 
 	// TODO: This isn't terribly good positioning
-	Vec2 left = ( c->getPosition() - a->getPosition() ).lperp() * 0.25;
-	// TODO: Is this the best we can do for mass?
-	Scalar mass = b->getMass();
-	Vec2 gravity = b->getGravity();
+	Vec2 left = ( c->position - a->position ).lperp() * 0.25;
+	// TODO: Is this the best we can do for mass/gravity?
+	Scalar mass = b->mass;
+	Vec2 gravity = b->gravity;
 
 	// Supporting Verlet masses
-	Verlet* l = ac->l = createVerlet();
-	l->putPosition( b->getPosition() + left );
-	l->setMass( mass );
-	l->setGravity( gravity );
+	Verlet* l = ac->vll = createVerlet();
+	l->putPosition( b->position + left );
+	l->mass = mass;
+	l->gravity = gravity;
 
-	Verlet* r = ac->r = createVerlet();
-	r->putPosition( b->getPosition() - left );
-	r->setMass( mass );
-	r->setGravity( gravity );
+	Verlet* r = ac->vlr = createVerlet();
+	r->putPosition( b->position - left );
+	r->mass = mass;
+	r->gravity = gravity;
 
 	// Supporting Distance constraints
 	ac->al = createDistance( a, l ); ac->ar = createDistance( a, r );
@@ -279,12 +280,16 @@ Angular* PhysicsState::createAngular( Distance* m, Distance* n )
 	ac->h = createDistance( l, r );
 	ac->v = createDistance( a, c );
 
-	// Graph setup
-	ac->m->edges.insert( ac );
-	ac->n->edges.insert( ac );
+	// Disable deletion of our stuff
+	ac->vll->pid = -(ac->vll->pid);
+	ac->vlr->pid = -(ac->vlr->pid);
+	ac->al->pid = -(ac->al->pid); ac->ar->pid = -(ac->ar->pid);
+	ac->bl->pid = -(ac->bl->pid); ac->br->pid = -(ac->br->pid);
+	ac->cl->pid = -(ac->cl->pid); ac->cr->pid = -(ac->cr->pid);
+	ac->h->pid = -(ac->h->pid);
+	ac->v->pid = -(ac->v->pid);
 
 	return ac;
-*/
 }
 
 /*
@@ -294,28 +299,27 @@ PhysicsState::destroyAngular
 */
 void PhysicsState::destroyAngular( Angular* ac )
 {
-	// TODO: operation currently not supported
-	return;
-
-/*
 	// No higher destroy calls
 	// (Angular is at the top of the dual-graph food chain)
+
+	// Enable deletion of our stuff
+	ac->vll->pid = -(ac->vll->pid);
+	ac->vlr->pid = -(ac->vlr->pid);
+	ac->al->pid = -(ac->al->pid); ac->ar->pid = -(ac->ar->pid);
+	ac->bl->pid = -(ac->bl->pid); ac->br->pid = -(ac->br->pid);
+	ac->cl->pid = -(ac->cl->pid); ac->cr->pid = -(ac->cr->pid);
+	ac->h->pid = -(ac->h->pid);
+	ac->v->pid = -(ac->v->pid);
 
 	// Destroy our physics objects.
 	// Destroying the two supporting Verlet masses
 	// removes all constraints except the vertical one.
-	destroyVerlet( ac->l );
-	destroyVerlet( ac->r );
+	destroyVerlet( ac->vll );
+	destroyVerlet( ac->vlr );
 	destroyDistance( ac->v );
 
-	// Vertex edge-list removal
-	// (this is why destroyDistance can't iterate edges)
-	ac->m->edges.erase( ac );
-	ac->n->edges.erase( ac );
-
-	// Flag for deletion
-	ac->expire_enable = true;
-*/
+	acs.erase( ac->it );
+	delete ac;
 }
 
 /*

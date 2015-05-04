@@ -53,8 +53,15 @@ void PhysicsState::cleanup()
 	for ( Euler* eu : eus_copy ) destroyEuler( eu );
 	assert( eus.empty() );
 
-	auto vls_copy = vls;
-	for ( Verlet* vl : vls_copy ) destroyVerlet( vl );
+	// TODO: make non-user Verlet filtering less ugly
+	std::list < Verlet* > user_vls;
+	for ( Verlet* vl : vls ) {
+		if ( vl->pid > 0 )
+			user_vls.push_back( vl );
+	}
+	for ( Verlet* vl : user_vls ) {
+		destroyVerlet( vl );
+	}
 	assert( vls.empty() );
 	assert( dcs.empty() );
 	assert( acs.empty() );
@@ -62,6 +69,8 @@ void PhysicsState::cleanup()
 	clear_collision_data();
 
 	BlankState::cleanup();
+
+	next_pid = 0;
 }
 
 /*

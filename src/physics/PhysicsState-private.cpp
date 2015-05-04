@@ -796,6 +796,7 @@ void PhysicsState::verlet_solve_island( VerletIsland& vli )
 	int m = (int) std::ceil( std::sqrt( dcs.size() ) );
 
 	// TODO: Relax distance constraints with wall contacts.
+	// TODO: Sort constraints by PID (like we do with rigid bodies)
 
 	for ( int i = 0; i < m; ++i ) {
 		for ( Distance* dc : dcs ) {
@@ -825,5 +826,5 @@ PhysicsState::nextPID
 */
 int PhysicsState::nextPID()
 {
-	return next_pid++;
+	return ++next_pid;
 }
