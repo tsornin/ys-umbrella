@@ -21,22 +21,22 @@ public: // Members
 		min, // bottom-left
 		max; // top-right
 
-public:	// Lifecycle
+public: // Lifecycle
 	AABB();
 	AABB( const Vec2& v );
 	AABB( const Vec2& min, const Vec2& max );
 
-public:	// Collision
+public: // Collision
 	bool intersects( const AABB& box ) const;
 	bool contains( const AABB& box ) const;
 	bool contains( const Vec2& v ) const;
 
-public:	// Self
+public: // Self
 	Vec2 center() const;
 	Scalar width() const;
 	Scalar height() const;
 
-public:	// Other
+public: // Other
 	AABB& operator += ( const AABB& box );
 	const AABB operator + ( const AABB& box ) const;
 	AABB fatter( Scalar x ) const;

@@ -80,7 +80,7 @@ public:
 			b->edges.erase( e );
 		}
 
-	protected:
+	public:
 		// Vertices
 		V
 			// Invariant: assert( a->edges.contains( this ) );

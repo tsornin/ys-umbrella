@@ -1,6 +1,8 @@
 #include "PhysicsState.h"
 #include <iostream>
 
+#include "spatial/AABB.h"
+
 /*
 ================================
 PhysicsState::createRigid
@@ -358,4 +360,28 @@ Rigid* PhysicsState::nearestRigid( const Vec2& p )
 	}
 
 	return 0;
+}
+
+// Returns all Verlet particles contained by the specified box.
+std::list < Verlet * > PhysicsState::getVerlets( const AABB& box ) {
+	std::list < Verlet *> results;
+	for ( Verlet* vl : vls ) {
+		if ( box.intersects( vl->getAABB() ) ) {
+			results.push_back( vl );
+		}
+	}
+	return results;
+}
+
+// Returns all Distance constraints intersecting the specified box.
+std::list < Distance * > PhysicsState::getDistances( const AABB& box ) {
+	std::list < Distance *> results;
+	for ( Distance* dc : dcs ) {
+		if ( dc->pid > 0 ) {
+			if ( box.intersects( dc->getAABB() ) ) {
+				results.push_back( dc );
+			}
+		}
+	}
+	return results;
 }

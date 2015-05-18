@@ -337,10 +337,10 @@ void PhysicsState::rigid_expire_contacts()
 {
 	for ( Contact* ct : contacts() ) {
 		if ( ct->expired ) {
-			destroyContact( ct );
 			if ( ct->ft ) {
 				destroyFriction( ct->ft );
 			}
+			destroyContact( ct );
 		}
 		else {
 			ct->expired = true;

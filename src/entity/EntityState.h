@@ -65,13 +65,13 @@ private: // Members
 	Fires* fires;
 	Flames* flames; friend class Fire;
 
-	int mx, my;
-	bool ml, mr;
-	Vec2 cursor, cursor_prev;
-	Rigid* crg;
-	Verlet* mvl;
-	Rigid* mrg;
-	Friction *mftx, *mfty;
+	int mx, my; // where the mouse is (pixels)
+	bool ml, mr; // if the mouse is pressed
+	Vec2 cursor, cursor_prev; // where the mouse is
+	Rigid* crg; // the rigid body of the mouse
+	Verlet* mvl; // the grabbed Verlet
+	Rigid* mrg; // the grabbed Rigid
+	Friction *mftx, *mfty; // the friction constraints on the grabbed Rigid and the rigid body of the mouse
 };
 
 #endif

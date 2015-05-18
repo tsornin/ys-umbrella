@@ -3,6 +3,8 @@
 #include "Camera.h"
 #include "Particle-types.h"
 
+#include "spatial/Segment.h"
+
 static const Scalar MOUSE_OFFSET = 10;
 
 /*
@@ -85,15 +87,25 @@ void EntityState::input( Engine* game )
 	cursor = cam->world( mx, my );
 
 	if ( mrg != PhysicsState::nearestRigid( cursor_prev ) ) {
-		// if ( mrg ) mrg->setAngularEnable( true );
-		mrg = 0;
 		if ( mftx ) PhysicsState::destroyFriction( mftx );
 		mftx = 0;
 		if ( mfty ) PhysicsState::destroyFriction( mfty );
 		mfty = 0;
+		mrg = 0;
 	}
 
 	if ( ml ) {
+		AABB cursor_box = AABB( cursor ) + AABB( cursor_prev );
+		Segment c( cursor, cursor_prev );
+		for ( Distance* dc : PhysicsState::getDistances( cursor_box ) ) {
+			Segment d( dc->a->position, dc->b->position );
+			if ( c.intersects( d ).first ) {
+				PhysicsState::destroyDistance( dc );
+			}
+		}
+	}
+
+	if ( mr ) {
 		if ( mftx && mfty ) {
 			Vec2 tangent = Vec2( 1, 0 );
 
@@ -102,11 +114,9 @@ void EntityState::input( Engine* game )
 
 			mfty->tangent = tangent.lperp();
 			mfty->p = cursor_prev;
+		} else if ( mvl ) {
+			mvl->setPosition( cursor_prev );
 		}
-		if ( mvl ) mvl->setPosition( cursor_prev );
-	}
-	if ( mr ) {
-		
 	}
 }
 
@@ -185,6 +195,8 @@ EntityState mouse functions
 
 void EntityState::mouseMoved( const SDL_MouseMotionEvent& e )
 {
+	// Record mouse position here and set this->cursor in EntityState::update
+	// (since the camera can move without mouse events)
 	mx = e.x;
 	my = e.y;
 }
@@ -198,16 +210,18 @@ void EntityState::mouseUp( const SDL_MouseButtonEvent& e )
 {
 	if ( e.button == SDL_BUTTON_LEFT ) {
 		ml = false;
-		mvl = 0;
-		// if ( mrg ) mrg->setAngularEnable( true );
-		mrg = 0;
+	}
+
+	if ( e.button == SDL_BUTTON_RIGHT ) {
+		mr = false;
+
 		if ( mftx ) PhysicsState::destroyFriction( mftx );
 		mftx = 0;
 		if ( mfty ) PhysicsState::destroyFriction( mfty );
 		mfty = 0;
-	}
-	if ( e.button == SDL_BUTTON_RIGHT ) {
-		mr = false;
+		mrg = 0;
+
+		mvl = 0;
 	}
 }
 
@@ -215,15 +229,31 @@ void EntityState::mouseDown( const SDL_MouseButtonEvent& e )
 {
 	if ( e.button == SDL_BUTTON_LEFT ) {
 		ml = true;
+
+		if ( mrg ) {
+			if ( mftx ) PhysicsState::destroyFriction( mftx );
+			mftx = 0;
+			if ( mfty ) PhysicsState::destroyFriction( mfty );
+			mfty = 0;
+			if ( mrg ) PhysicsState::destroyRigid( mrg );
+			mrg = 0;
+		} else {
+			auto nrg = PhysicsState::nearestRigid( cursor );
+			if ( nrg ) {
+				PhysicsState::destroyRigid( nrg );
+			}
+		}
+	}
+
+	if ( e.button == SDL_BUTTON_RIGHT ) {
+		mr = true;
+
 		mrg = PhysicsState::nearestRigid( cursor );
 		if ( mrg ) {
-			// PhysicsState::destroyRigid( mrg );
-			
-			// mrg->setAngularEnable( false );
-
 			Scalar normal_lambda = mrg->mass * 10;
 
-			// "Double surface friction"
+			// Surface friction constraints. Unlike the joint constraint, this
+			// will just slip away when you push a block into another block.
 			mftx = PhysicsState::createFriction( crg, mrg );
 			mftx->tangent = Vec2( 1, 0 );
 			mftx->p = cursor;
@@ -233,14 +263,10 @@ void EntityState::mouseDown( const SDL_MouseButtonEvent& e )
 			mfty->tangent = Vec2( 0, 1 );
 			mfty->p = cursor;
 			mfty->normal_lambda = normal_lambda;
-			
 		}
 		else {
 			mvl = PhysicsState::nearestVerlet( cursor, 50 );
 		}
-	}
-	if ( e.button == SDL_BUTTON_RIGHT ) {
-		mr = true;
 	}
 
 	if ( e.button == SDL_BUTTON_WHEELUP ) {

@@ -70,6 +70,9 @@ public: // Physics engine - stuff
 	Verlet* nearestVerlet( const Vec2& p, Scalar r );
 	Rigid* nearestRigid( const Vec2& p );
 
+	std::list < Verlet * > getVerlets( const AABB& box );
+	std::list < Distance * > getDistances( const AABB& box );
+
 	// RigidIsland island( Rigid* rg );
 	// VerletIsland island( Verlet* vl );
 
