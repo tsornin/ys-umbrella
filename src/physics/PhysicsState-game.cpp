@@ -56,8 +56,8 @@ void PhysicsState::cleanup()
 	// TODO: make non-user Verlet filtering less ugly
 	std::list < Verlet* > user_vls;
 	for ( Verlet* vl : vls ) {
-		if ( vl->pid > 0 )
-			user_vls.push_back( vl );
+		if ( vl->pid < 0 ) continue;
+		user_vls.push_back( vl );
 	}
 	for ( Verlet* vl : user_vls ) {
 		destroyVerlet( vl );

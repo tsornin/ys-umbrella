@@ -184,8 +184,8 @@ void PhysicsState::destroyVerlet( Verlet* vl )
 {
 	std::list < Distance* > user_edges;
 	for ( Distance* dc : vl->edges ) {
-		if ( dc->pid > 0 )
-			user_edges.push_back( dc );
+		if ( dc->pid < 0 ) continue;
+		user_edges.push_back( dc );
 	}
 	for ( Distance* dc : user_edges ) {
 		destroyDistance( dc );
@@ -340,6 +340,8 @@ Verlet* PhysicsState::nearestVerlet( const Vec2& p, Scalar r )
 	Scalar score = SCALAR_MAX;
 
 	for ( Verlet* vl : vls ) {
+		if ( vl->frozen() ) continue;
+		if ( vl->pid < 0 ) continue;
 		Scalar rr = (vl->position - p).length2();
 		if ( rr < score ) {
 			ret = vl;
@@ -366,6 +368,8 @@ Rigid* PhysicsState::nearestRigid( const Vec2& p )
 std::list < Verlet * > PhysicsState::getVerlets( const AABB& box ) {
 	std::list < Verlet *> results;
 	for ( Verlet* vl : vls ) {
+		if ( vl->frozen() ) continue;
+		if ( vl->pid < 0 ) continue;
 		if ( box.intersects( vl->getAABB() ) ) {
 			results.push_back( vl );
 		}
@@ -377,10 +381,9 @@ std::list < Verlet * > PhysicsState::getVerlets( const AABB& box ) {
 std::list < Distance * > PhysicsState::getDistances( const AABB& box ) {
 	std::list < Distance *> results;
 	for ( Distance* dc : dcs ) {
-		if ( dc->pid > 0 ) {
-			if ( box.intersects( dc->getAABB() ) ) {
-				results.push_back( dc );
-			}
+		if ( dc->pid < 0 ) continue;
+		if ( box.intersects( dc->getAABB() ) ) {
+			results.push_back( dc );
 		}
 	}
 	return results;
